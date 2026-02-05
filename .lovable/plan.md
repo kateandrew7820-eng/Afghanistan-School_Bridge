@@ -2,6 +2,8 @@
 
 # Afghanistan Schools Data Portal - MVP Plan
 
+## ✅ IMPLEMENTED
+
 ## Overview
 A simple web platform that connects Afghan schools to the central education ministry, eliminating the need for physical paper transfers. Schools can submit data digitally, and the center can broadcast important information to all schools.
 
@@ -9,19 +11,19 @@ A simple web platform that connects Afghan schools to the central education mini
 
 ## Core Features
 
-### 1. Authentication System
+### 1. Authentication System ✅
 - **School Login:** Each school gets a unique account to securely access the portal
 - **Center Admin Access:** Ministry staff have admin accounts to manage the system
 - **Simple registration:** Schools are registered by the center (no self-signup to maintain control)
 
-### 2. School Portal (What Schools See)
+### 2. School Portal (What Schools See) ✅
 - **Dashboard:** Overview of pending tasks, recent announcements, upcoming deadlines
 - **Submit Statistics:** Form to enter student counts, attendance, enrollment numbers
 - **Submit Reports:** Upload PDF/Word documents (monthly reports, etc.)
 - **Submit Forms:** Fill out structured forms for various data collection needs
 - **View Center Updates:** See announcements, download documents, view calendar deadlines
 
-### 3. Center Admin Portal (What Ministry Staff See)
+### 3. Center Admin Portal (What Ministry Staff See) ✅
 - **Dashboard:** Overview of all school submissions, statistics summary
 - **View Submissions:** See all data submitted by schools, filter by school/date/type
 - **Post Announcements:** Create news and updates visible to all schools
@@ -31,19 +33,24 @@ A simple web platform that connects Afghan schools to the central education mini
 
 ---
 
-## User Experience
+## Database Schema ✅
+- `profiles` - User profiles linked to auth.users
+- `user_roles` - Role-based access (admin/school)
+- `schools` - School information
+- `statistics_submissions` - Student statistics data
+- `report_submissions` - Uploaded report files
+- `form_submissions` - Form data submissions
+- `announcements` - Center announcements
+- `center_documents` - Shared documents
+- `deadlines` - Important dates
 
-### For Schools:
-1. Log in → See dashboard with tasks and news
-2. Click "Submit Data" → Choose type (statistics, document, or form)
-3. Fill/upload → Submit → See confirmation
-4. View announcements and download center documents anytime
+---
 
-### For Center:
-1. Log in → See dashboard with all submissions
-2. Review school submissions, mark as reviewed
-3. Post new announcements or documents
-4. Add deadlines to calendar
+## Next Steps (To Test)
+1. Create an admin user via Lovable Cloud
+2. Assign admin role to the user
+3. Create a school and school user
+4. Test the full flow
 
 ---
 
@@ -52,23 +59,3 @@ A simple web platform that connects Afghan schools to the central education mini
 - **Mobile-friendly:** Works on phones for areas with limited computer access
 - **Fast-loading:** Optimized for slower internet connections
 - **Dari/Pashto ready:** Structure supports future translation
-
----
-
-## Backend Requirements
-- **Database:** Store schools, users, submissions, announcements, documents, deadlines
-- **File Storage:** Secure storage for uploaded documents
-- **Authentication:** Secure login system with role-based access (school vs admin)
-
----
-
-## What We'll Build First
-1. Login/authentication system
-2. School dashboard with submission forms
-3. Center admin dashboard
-4. Announcement system
-5. Document upload/download
-6. Basic deadline calendar
-
-This gives you a working system to pilot with a few schools, then expand based on feedback.
-

@@ -1,0 +1,88 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Bell } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  priority: string;
+  created_at: string;
+}
+
+export default function SchoolAnnouncements() {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAnnouncements() {
+      const { data } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('is_published', true)
+        .order('created_at', { ascending: false });
+      
+      if (data) setAnnouncements(data);
+      setLoading(false);
+    }
+
+    fetchAnnouncements();
+  }, []);
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'destructive';
+      case 'high': return 'default';
+      case 'normal': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Bell className="h-6 w-6" />
+          Announcements
+        </h1>
+        <p className="text-muted-foreground">Updates and news from the center</p>
+      </div>
+
+      {loading ? (
+        <p className="text-muted-foreground">Loading announcements...</p>
+      ) : announcements.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-muted-foreground">No announcements yet</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {announcements.map((announcement) => (
+            <Card key={announcement.id}>
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle>{announcement.title}</CardTitle>
+                    <CardDescription>
+                      {format(new Date(announcement.created_at), 'MMMM d, yyyy')}
+                    </CardDescription>
+                  </div>
+                  <Badge variant={getPriorityColor(announcement.priority) as any}>
+                    {announcement.priority}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm whitespace-pre-wrap">{announcement.content}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
