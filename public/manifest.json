@@ -1,0 +1,77 @@
+{
+  "name": "پل آموزش افغانستان",
+  "short_name": "SchoolBridge",
+  "description": "پورتال داده‌های مکاتب افغانستان - اتصال آموزش در سراسر کشور",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "lang": "fa",
+  "dir": "rtl",
+  "categories": ["education", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshot-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/screenshot-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "داشبورد",
+      "short_name": "داشبورد",
+      "description": "رفتن به داشبورد",
+      "url": "/school",
+      "icons": [
+        {
+          "src": "/shortcut-dashboard.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "ارسال گزارش",
+      "short_name": "گزارش",
+      "description": "ارسال گزارش جدید",
+      "url": "/school/reports",
+      "icons": [
+        {
+          "src": "/shortcut-reports.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}

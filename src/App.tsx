@@ -7,15 +7,18 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocalizationProvider } from "@/contexts/LocalizationContext";
 import { getRoleTier } from "@/lib/supabase";
 import { useVerification } from "@/hooks/useVerification";
+import { Suspense, lazy } from "react";
 
-// Pages
+// Pages - Core pages loaded immediately, others lazy-loaded for performance
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
-import Demo from "./pages/Demo";
 import SetupProfile from "./pages/SetupProfile";
-import PendingVerification from "./pages/PendingVerification";
+
+// Lazy load heavy pages for better performance
+const Demo = lazy(() => import("./pages/Demo"));
+const PendingVerification = lazy(() => import("./pages/PendingVerification"));
 
 // Layouts
 import SchoolLayout from "./components/layouts/SchoolLayout";
@@ -23,33 +26,42 @@ import DistrictLayout from "./components/layouts/DistrictLayout";
 import ProvinceLayout from "./components/layouts/ProvinceLayout";
 import MinistryLayout from "./components/layouts/MinistryLayout";
 
-// School Pages
-import SchoolDashboard from "./pages/school/Dashboard";
-import SubmitStatistics from "./pages/school/SubmitStatistics";
-import SubmitReports from "./pages/school/SubmitReports";
-import SubmitForms from "./pages/school/SubmitForms";
-import Schoolاعلانات from "./pages/school/اعلانات";
-import SchoolDocuments from "./pages/school/Documents";
-import SchoolDeadlines from "./pages/school/Deadlines";
+// School Pages - Lazy loaded for code splitting
+const SchoolDashboard = lazy(() => import("./pages/school/Dashboard"));
+const SubmitStatistics = lazy(() => import("./pages/school/SubmitStatistics"));
+const SubmitReports = lazy(() => import("./pages/school/SubmitReports"));
+const SubmitForms = lazy(() => import("./pages/school/SubmitForms"));
+const SchoolAnnouncements = lazy(() => import("./pages/school/Announcements"));
+const SchoolDocuments = lazy(() => import("./pages/school/Documents"));
+const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
 
-// District Pages
-import DistrictDashboard from "./pages/district/Dashboard";
+// District Pages - Lazy loaded
+const DistrictDashboard = lazy(() => import("./pages/district/Dashboard"));
 
-// Province Pages
-import ProvinceDashboard from "./pages/province/Dashboard";
+// Province Pages - Lazy loaded
+const ProvinceDashboard = lazy(() => import("./pages/province/Dashboard"));
 
-// Ministry Pages
-import MinistryDashboard from "./pages/ministry/Dashboard";
+// Ministry Pages - Lazy loaded
+const MinistryDashboard = lazy(() => import("./pages/ministry/Dashboard"));
 
 // Shared
-import PlaceholderPage from "./components/PlaceholderPage";
+const PlaceholderPage = lazy(() => import("./components/PlaceholderPage"));
 
-// Legacy Admin Pages (will be used under ministry)
-import AdminSubmissions from "./pages/admin/Submissions";
-import Adminاعلانات from "./pages/admin/اعلانات";
-import AdminDocuments from "./pages/admin/Documents";
-import AdminDeadlines from "./pages/admin/Deadlines";
-import ManageSchools from "./pages/admin/ManageSchools";
+// Legacy Admin Pages (will be used under ministry) - Lazy loaded
+const AdminSubmissions = lazy(() => import("./pages/admin/Submissions"));
+const AdminAnnouncements = lazy(() => import("./pages/admin/Announcements"));
+const AdminDocuments = lazy(() => import("./pages/admin/Documents"));
+const AdminDeadlines = lazy(() => import("./pages/admin/Deadlines"));
+const ManageSchools = lazy(() => import("./pages/admin/ManageSchools"));
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -138,12 +150,12 @@ function AppRoutes() {
 
       {/* User Setup & Verification Routes */}
       <Route path="/setup-profile" element={<SetupProfile />} />
-      <Route path="/pending-verification" element={<PendingVerification />} />
+      <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
 
       {/* Demo/Testing Mode - Choose role and see dashboards without auth */}
       {/* Only available in development environment */}
       {import.meta.env.MODE === 'development' && (
-        <Route path="/demo" element={<Demo />} />
+        <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><Demo /></Suspense>} />
       )}
 
       {/* Legacy admin redirect */}
@@ -152,163 +164,163 @@ function AppRoutes() {
       {/* School Routes (teacher & principal) */}
       <Route path="/school" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><SchoolDashboard /></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolDashboard /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/statistics" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><SubmitStatistics /></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubmitStatistics /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/reports" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><SubmitReports /></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubmitReports /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/forms" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><SubmitForms /></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubmitForms /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
-      <Route path="/school/اعلانات" element={
+      <Route path="/school/announcements" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><Schoolاعلانات /></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/documents" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><SchoolDocuments /></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolDocuments /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/deadlines" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><SchoolDeadlines /></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolDeadlines /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
 
       {/* District Routes */}
       <Route path="/district" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><DistrictDashboard /></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictDashboard /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/submissions" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><PlaceholderPage title="School Submissions" description="View and verify submissions from schools in your district" /></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="School Submissions" description="View and verify submissions from schools in your district" /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/verify" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><PlaceholderPage title="Verify Data" description="Review and approve school data submissions" /></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Verify Data" description="Review and approve school data submissions" /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/schools" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><PlaceholderPage title="Schools" description="Manage schools in your district" /></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Schools" description="Manage schools in your district" /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/district/اعلانات" element={
+      <Route path="/district/announcements" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Schoolاعلانات /></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/documents" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><SchoolDocuments /></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><SchoolDocuments /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/deadlines" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><SchoolDeadlines /></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><SchoolDeadlines /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
 
       {/* Province Routes */}
       <Route path="/province" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><ProvinceDashboard /></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceDashboard /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/districts" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><PlaceholderPage title="Districts" description="View and manage districts in your province" /></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Districts" description="View and manage districts in your province" /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/analytics" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><PlaceholderPage title="Analytics" description="Province-level analytics and trend data" /></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Analytics" description="Province-level analytics and trend data" /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/submissions" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><PlaceholderPage title="Submissions" description="View aggregated submissions from all districts" /></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Submissions" description="View aggregated submissions from all districts" /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
-      <Route path="/province/اعلانات" element={
+      <Route path="/province/announcements" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Schoolاعلانات /></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/documents" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><SchoolDocuments /></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><SchoolDocuments /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/deadlines" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><SchoolDeadlines /></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><SchoolDeadlines /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
 
       {/* Ministry Routes */}
       <Route path="/ministry" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><MinistryDashboard /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryDashboard /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/analytics" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><PlaceholderPage title="National Analytics" description="Nation-wide data analysis and trends" /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="National Analytics" description="Nation-wide data analysis and trends" /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/provinces" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><PlaceholderPage title="Provinces" description="مشاهده همه 34 provinces and their data" /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Provinces" description="View all 34 provinces and their data" /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/submissions" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><AdminSubmissions /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminSubmissions /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
-      <Route path="/ministry/اعلانات" element={
+      <Route path="/ministry/announcements" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Adminاعلانات /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminAnnouncements /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/documents" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><AdminDocuments /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminDocuments /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/deadlines" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><AdminDeadlines /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminDeadlines /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/users" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><PlaceholderPage title="Manage Users" description="Create and manage user accounts for all levels" /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Manage Users" description="Create and manage user accounts for all levels" /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/schools" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><ManageSchools /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><ManageSchools /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/export" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><PlaceholderPage title="Export Reports" description="Generate and download national reports in Excel and PDF" /></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Export Reports" description="Generate and download national reports in Excel and PDF" /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
 

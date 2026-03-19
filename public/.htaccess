@@ -1,0 +1,115 @@
+# Enable gzip compression for faster downloads on slow connections
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/json application/javascript
+  AddOutputFilter DEFLATE js css html xml json svg
+  
+  # Ensure Accept-Encoding header is passed through
+  <IfModule mod_setenvif.c>
+    <IfModule mod_headers.c>
+      SetEnvIfNoCase ^(Accept-EncodIng)$ ^(.*gzip.*)$ HAVE_GZIP=1
+      RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_GZIP
+    </IfModule>
+  </IfModule>
+</IfModule>
+
+# Enable browser caching with appropriate expiration times
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault "access plus 2 days"
+  
+  # Cache static assets for a long time (1 year)
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType application/font-truetype "access plus 1 year"
+  ExpiresByType application/font-opentype "access plus 1 year"
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+  
+  # Cache JS and CSS for 30 days (allows new versions without cache busting)
+  ExpiresByType application/javascript "access plus 30 days"
+  ExpiresByType text/javascript "access plus 30 days"
+  ExpiresByType text/css "access plus 30 days"
+  
+  # Don't cache HTML (SPA routing requires fresh index.html)
+  ExpiresByType text/html "access plus 0 seconds"
+  
+  # Service worker - cache for 1 hour
+  <FilesMatch "service-worker\.js$">
+    ExpiresByType application/javascript "access plus 1 hour"
+  </FilesMatch>
+</IfModule>
+
+# Set correct MIME types
+<IfModule mod_mime.c>
+  AddType application/javascript js
+  AddType application/json json
+  AddType font/ttf ttf
+  AddType font/otf otf
+  AddType font/woff woff
+  AddType font/woff2 woff2
+  AddType image/svg+xml svg
+  AddType image/x-icon ico
+  
+  AddEncoding gzip svgz
+  AddType image/svg+xml svgz
+</IfModule>
+
+# Single Page Application (SPA) routing
+# Rewrite all requests to index.html for client-side routing
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Skip files and directories
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Route everything to index.html
+  RewriteRule ^(.*)$ index.html [QSA,L]
+</IfModule>
+
+# Security headers for best practices
+<IfModule mod_headers.c>
+  # Prevent MIME type sniffing
+  Header set X-Content-Type-Options "nosniff"
+  
+  # Enable XSS filtering in older browsers
+  Header set X-XSS-Protection "1; mode=block"
+  
+  # Prevent clickjacking
+  Header set X-Frame-Options "SAMEORIGIN"
+  
+  # Allow Service Worker to access all routes
+  Header set Service-Worker-Allowed "/"
+  
+  # Referrer policy for privacy
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  
+  # Cache-Control for versioned assets
+  <FilesMatch "\\.(js|css|woff|woff2|ttf|otf|png|jpg|jpeg|gif|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  
+  # Don't cache HTML
+  <FilesMatch "\\.html$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# Optimize Transfer Encoding
+Header unset ETag
+FileETag None
+
+# Disable ETags to prevent If-None-Match requests (saves bandwidth)
+<IfModule mod_auth_digest.c>
+  SetEnv no-etag
+</IfModule>
