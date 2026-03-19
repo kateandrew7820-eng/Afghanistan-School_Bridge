@@ -68,10 +68,10 @@ export default function SetupProfile() {
 
   // Initialize form with either defaults (quick mode) or current profile
   const [formData, setFormData] = useState({
-    full_name: isQuickMode ? 'سازنده توسعہ' : (profile?.full_name || ''),
+    full_name: isQuickMode ? 'سازنده توسعه' : (profile?.full_name || ''),
     role: isQuickMode ? 'teacher' : '',
-    school_name: isQuickMode ? 'مکتب توسعہ' : '',
-    district: isQuickMode ? 'منطقہ توسعہ' : '',
+    school_name: isQuickMode ? 'مکتب توسعه' : '',
+    district: isQuickMode ? 'منطقہ توسعه' : '',
     province: isQuickMode ? 'کابل' : '',
     phone_number: isQuickMode ? '+93 700 000 000' : '',
   });
@@ -177,7 +177,7 @@ export default function SetupProfile() {
       if (DEV_MODE) {
         toast({
           title: 'کامیابی',
-          description: '[DEV MODE] نمونہ شما تأیید شد۔ به داشبورد منتقل می‌شود...',
+          description: '[DEV MODE] نمونہ شما تأیید شد۔ به صفحه اصلی منتقل می‌شود...',
         });
 
         // Determine dashboard route based on role
@@ -295,7 +295,7 @@ export default function SetupProfile() {
               <Alert className="border-blue-200 bg-blue-50 mt-4">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
-                  یہ حساب توسعہ برای سیستم کی تجربہ ہے۔ تمام ڈیٹا فوری تأیید شود۔
+                  یہ حساب توسعه برای سیستم کی تجربہ ہے۔ تمام ڈیٹا فوری تأیید شود۔
                 </AlertDescription>
               </Alert>
 
@@ -354,9 +354,9 @@ export default function SetupProfile() {
                 <span className="text-xl">⚙️</span>
               </div>
               <div>
-                <h3 className="font-medium text-amber-900">حالت توسعہ فعال</h3>
+                <h3 className="font-medium text-amber-900">حالت توسعه فعال</h3>
                 <p className="text-sm text-amber-800 mt-1">
-                  حالت توسعہ میں، نمونہ فوری تأیید ہوگا اور داشبورد میں منتقل ہوگا۔
+                  حالت توسعه میں، نمونہ فوری تأیید ہوگا اور صفحه اصلی میں منتقل ہوگا۔
                   یہ صرف تجربہ کے لیے ہے۔
                 </p>
               </div>

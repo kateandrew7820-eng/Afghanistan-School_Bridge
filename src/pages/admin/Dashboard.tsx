@@ -27,7 +27,7 @@ interface Stats {
   totalSchools: number;
   totalSubmissions: number;
   pendingSubmissions: number;
-  activeAnnouncements: number;
+  activeاعلانات: number;
 }
 
 interface RecentSubmission {
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
     totalSchools: 0,
     totalSubmissions: 0,
     pendingSubmissions: 0,
-    activeAnnouncements: 0
+    activeاعلانات: 0
   });
   const [recentSubmissions, setRecentSubmissions] = useState<RecentSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,12 +54,12 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function fetchData() {
-      const [schoolsRes, statsRes, reportsRes, formsRes, announcementsRes] = await Promise.all([
+      const [schoolsRes, statsRes, reportsRes, formsRes, اعلاناتRes] = await Promise.all([
         supabase.from('schools').select('id', { count: 'exact' }),
         supabase.from('statistics_submissions').select('id, status, created_at, schools(name)').order('created_at', { ascending: false }).limit(10),
         supabase.from('report_submissions').select('id, status, created_at, schools(name)').order('created_at', { ascending: false }).limit(10),
         supabase.from('form_submissions').select('id, status, created_at, schools(name)').order('created_at', { ascending: false }).limit(10),
-        supabase.from('announcements').select('id', { count: 'exact' }).eq('is_published', true)
+        supabase.from('اعلانات').select('id', { count: 'exact' }).eq('is_published', true)
       ]);
 
       const allSubmissions = [
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
         totalSchools: schoolsRes.count || 0,
         totalSubmissions: (statsRes.data?.length || 0) + (reportsRes.data?.length || 0) + (formsRes.data?.length || 0),
         pendingSubmissions: pendingCount,
-        activeAnnouncements: announcementsRes.count || 0
+        activeاعلانات: اعلاناتRes.count || 0
       });
 
       setRecentSubmissions(allSubmissions);
@@ -142,11 +142,11 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Announcements</CardTitle>
+            <CardTitle className="text-sm font-medium">Active اعلانات</CardTitle>
             <Bell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeAnnouncements}</div>
+            <div className="text-2xl font-bold">{stats.activeاعلانات}</div>
             <p className="text-xs text-muted-foreground">Published</p>
           </CardContent>
         </Card>
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Link to="/admin/announcements">
+        <Link to="/admin/اعلانات">
           <Card className="hover:border-primary transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center gap-3">
               <Bell className="h-5 w-5 text-primary" />
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
           </div>
           <Link to="/admin/submissions">
             <Button variant="ghost" size="sm">
-              View All <ArrowRight className="ml-1 h-4 w-4" />
+              مشاهده همه <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </Link>
         </CardHeader>

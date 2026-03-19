@@ -95,7 +95,7 @@
 │ 📄 Upload Reports                      │
 │ 📋 Fill Forms                          │
 │                                         │
-│ [Announcements] [Deadlines]            │
+│ [اعلانات] [Deadlines]            │
 │ 📢 Latest News...                      │
 │ 📅 Upcoming dates...                   │
 └─────────────────────────────────────────┘
@@ -153,7 +153,7 @@
 │                                          │
 │ [User 2: فاطمه احمد]                     │
 │ • Role: Student                          │
-│ • School: مدرسه ابن سینا                 │
+│ • School: مکتب ابن سینا                 │
 │ • District: شاه الکوندی                 │
 │ • Phone: 0700987654                    │
 │ • Submitted: 4 hours ago                │

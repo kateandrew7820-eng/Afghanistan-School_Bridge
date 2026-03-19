@@ -108,7 +108,7 @@ $$;
 -- Drop old policies
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can مشاهده همه profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can manage profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Users can create their own profile" ON public.profiles;
 
@@ -122,7 +122,7 @@ CREATE POLICY "Users can create their own profile" ON public.profiles
 CREATE POLICY "Users can update own profile" ON public.profiles 
   FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "Admins can view all profiles" ON public.profiles 
+CREATE POLICY "Admins can مشاهده همه profiles" ON public.profiles 
   FOR SELECT USING (public.is_admin());
 
 CREATE POLICY "Admins can update profiles" ON public.profiles 
@@ -175,7 +175,7 @@ CREATE POLICY "Ministry admins manage all schools" ON public.schools
 DROP POLICY IF EXISTS "Schools can view own stats" ON public.statistics_submissions;
 DROP POLICY IF EXISTS "Schools can insert own stats" ON public.statistics_submissions;
 DROP POLICY IF EXISTS "Schools can update own stats" ON public.statistics_submissions;
-DROP POLICY IF EXISTS "Admins can view all stats" ON public.statistics_submissions;
+DROP POLICY IF EXISTS "Admins can مشاهده همه stats" ON public.statistics_submissions;
 DROP POLICY IF EXISTS "Admins can update stats" ON public.statistics_submissions;
 
 CREATE POLICY "Schools can view own stats" ON public.statistics_submissions 
@@ -210,7 +210,7 @@ CREATE POLICY "District+ admins update stats" ON public.statistics_submissions
 DROP POLICY IF EXISTS "Schools can view own reports" ON public.report_submissions;
 DROP POLICY IF EXISTS "Schools can insert own reports" ON public.report_submissions;
 DROP POLICY IF EXISTS "Schools can delete own reports" ON public.report_submissions;
-DROP POLICY IF EXISTS "Admins can view all reports" ON public.report_submissions;
+DROP POLICY IF EXISTS "Admins can مشاهده همه reports" ON public.report_submissions;
 
 CREATE POLICY "Schools can view own reports" ON public.report_submissions 
   FOR SELECT USING (
@@ -228,7 +228,7 @@ CREATE POLICY "Schools can delete own reports" ON public.report_submissions
     school_id = public.get_user_school_id(auth.uid())
   );
 
-CREATE POLICY "District+ admins view all reports" ON public.report_submissions 
+CREATE POLICY "District+ admins مشاهده همه reports" ON public.report_submissions 
   FOR SELECT USING (public.is_district_admin_or_higher());
 
 -- ============================================================================
@@ -238,7 +238,7 @@ CREATE POLICY "District+ admins view all reports" ON public.report_submissions
 DROP POLICY IF EXISTS "Schools can view own forms" ON public.form_submissions;
 DROP POLICY IF EXISTS "Schools can insert own forms" ON public.form_submissions;
 DROP POLICY IF EXISTS "Schools can update own forms" ON public.form_submissions;
-DROP POLICY IF EXISTS "Admins can view all forms" ON public.form_submissions;
+DROP POLICY IF EXISTS "Admins can مشاهده همه forms" ON public.form_submissions;
 DROP POLICY IF EXISTS "Admins can update forms" ON public.form_submissions;
 
 CREATE POLICY "Schools can view own forms" ON public.form_submissions 
@@ -261,26 +261,26 @@ CREATE POLICY "District+ admins manage forms" ON public.form_submissions
   FOR ALL USING (public.is_district_admin_or_higher());
 
 -- ============================================================================
--- 8. ANNOUNCEMENTS TABLE - NOW WITH RLS
+-- 8. اعلانات TABLE - NOW WITH RLS
 -- ============================================================================
 
-DROP POLICY IF EXISTS "Anyone can view published announcements" ON public.announcements;
-DROP POLICY IF EXISTS "Admins can manage announcements" ON public.announcements;
-DROP POLICY IF EXISTS "Authenticated users can view announcements" ON public.announcements;
-DROP POLICY IF EXISTS "Only admins can create announcements" ON public.announcements;
-DROP POLICY IF EXISTS "Only admins can update announcements" ON public.announcements;
-DROP POLICY IF EXISTS "Only admins can delete announcements" ON public.announcements;
+DROP POLICY IF EXISTS "Anyone can view published اعلانات" ON public.اعلانات;
+DROP POLICY IF EXISTS "Admins can manage اعلانات" ON public.اعلانات;
+DROP POLICY IF EXISTS "Authenticated users can view اعلانات" ON public.اعلانات;
+DROP POLICY IF EXISTS "Only admins can create اعلانات" ON public.اعلانات;
+DROP POLICY IF EXISTS "Only admins can update اعلانات" ON public.اعلانات;
+DROP POLICY IF EXISTS "Only admins can delete اعلانات" ON public.اعلانات;
 
-CREATE POLICY "Authenticated users can view announcements" ON public.announcements 
+CREATE POLICY "Authenticated users can view اعلانات" ON public.اعلانات 
   FOR SELECT TO authenticated USING (is_published = true);
 
-CREATE POLICY "Only admins can create announcements" ON public.announcements 
+CREATE POLICY "Only admins can create اعلانات" ON public.اعلانات 
   FOR INSERT WITH CHECK (public.is_admin());
 
-CREATE POLICY "Only admins can update announcements" ON public.announcements 
+CREATE POLICY "Only admins can update اعلانات" ON public.اعلانات 
   FOR UPDATE USING (public.is_admin());
 
-CREATE POLICY "Only admins can delete announcements" ON public.announcements 
+CREATE POLICY "Only admins can delete اعلانات" ON public.اعلانات 
   FOR DELETE USING (public.is_admin());
 
 -- ============================================================================

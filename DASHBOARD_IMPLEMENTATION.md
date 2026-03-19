@@ -29,7 +29,7 @@
 
 ### **Tier 1: School Dashboard (HIGHEST PRIORITY)**
 Currently exists but needs enhancement:
-- ✅ Dashboard overview with announcements & deadlines
+- ✅ Dashboard overview with اعلانات & deadlines
 - ✅ Submit Statistics form (working with validation)
 - 🔄 SubmitReports.tsx - needs file upload UI
 - 🔄 SubmitForms.tsx - needs multi-form support
@@ -42,7 +42,7 @@ Currently exists but needs enhancement:
 /school/statistics → Submit student statistics (done)
 /school/reports → Upload reports/PDFs (needs work)
 /school/forms → Submit monthly/yearly forms (needs work)
-/school/announcements → View announcements (done)
+/school/اعلانات → View اعلانات (done)
 /school/documents → View center documents (done)
 /school/deadlines → View deadlines (done)
 /school/profile → User & school profile (todo)
@@ -56,7 +56,7 @@ Skeleton exists, needs metrics & functionality:
 - 📍 Submissions viewer (pending/approved/rejected)
 - 📍 Approve/reject submissions with feedback
 - 📍 School management interface
-- 📍 Announcements/documents/deadlines management
+- 📍 اعلانات/documents/deadlines management
 
 **Required Pages:**
 ```
@@ -64,7 +64,7 @@ Skeleton exists, needs metrics & functionality:
 /district/submissions → View & manage school submissions
 /district/verify → Approve/reject/provide feedback
 /district/schools → Manage district schools
-/district/announcements → Create/manage announcements
+/district/اعلانات → Create/manage اعلانات
 /district/documents → Upload/manage documents
 /district/deadlines → Create/manage deadlines
 ```
@@ -75,7 +75,7 @@ Skeleton exists, needs metrics & functionality:
 Skeleton exists, needs metrics & views:
 - 📍 Dashboard with district summary
 - 📍 Aggregate district data visualization
-- 📍 Announcements & documents broadcast
+- 📍 اعلانات & documents broadcast
 - 📍 Analytics (submission trends, completion %)
 - 📍 District management
 
@@ -85,7 +85,7 @@ Skeleton exists, needs metrics & views:
 /province/analytics → Charts/trends
 /province/districts → District list & management
 /province/submissions → Aggregate district submissions
-/province/announcements → Create/push announcements
+/province/اعلانات → Create/push اعلانات
 /province/documents → Upload/manage documents
 /province/deadlines → Create/manage deadlines
 ```
@@ -100,7 +100,7 @@ Most comprehensive, needs full implementation:
 - 📍 User account creation/management
 - 📍 School registration & management
 - 📍 Excel/PDF report export
-- 📍 Announcements/documents/deadlines broadcast nationwide
+- 📍 اعلانات/documents/deadlines broadcast nationwide
 
 **Required Pages:**
 ```
@@ -110,8 +110,8 @@ Most comprehensive, needs full implementation:
 /ministry/districts → View/manage all districts
 /ministry/schools → School registration & management
 /ministry/users → Create/manage user accounts
-/ministry/submissions → View all submissions
-/ministry/announcements → Create/broadcast announcements
+/ministry/submissions → مشاهده همه submissions
+/ministry/اعلانات → Create/broadcast اعلانات
 /ministry/documents → Upload/manage national documents
 /ministry/deadlines → Create national deadlines
 /ministry/export → Generate reports (Excel/PDF)
@@ -163,7 +163,7 @@ SearchFilter - search + filtering UI
 - Get submission count by status (for district)
 - Aggregate school data to district level
 - Aggregate district data to province level
-- Broadcast announcements/documents
+- Broadcast اعلانات/documents
 - Get user's school/district/province info
 ```
 

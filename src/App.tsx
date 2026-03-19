@@ -28,7 +28,7 @@ import SchoolDashboard from "./pages/school/Dashboard";
 import SubmitStatistics from "./pages/school/SubmitStatistics";
 import SubmitReports from "./pages/school/SubmitReports";
 import SubmitForms from "./pages/school/SubmitForms";
-import SchoolAnnouncements from "./pages/school/Announcements";
+import Schoolاعلانات from "./pages/school/اعلانات";
 import SchoolDocuments from "./pages/school/Documents";
 import SchoolDeadlines from "./pages/school/Deadlines";
 
@@ -46,7 +46,7 @@ import PlaceholderPage from "./components/PlaceholderPage";
 
 // Legacy Admin Pages (will be used under ministry)
 import AdminSubmissions from "./pages/admin/Submissions";
-import AdminAnnouncements from "./pages/admin/Announcements";
+import Adminاعلانات from "./pages/admin/اعلانات";
 import AdminDocuments from "./pages/admin/Documents";
 import AdminDeadlines from "./pages/admin/Deadlines";
 import ManageSchools from "./pages/admin/ManageSchools";
@@ -170,9 +170,9 @@ function AppRoutes() {
           <SchoolLayout><SubmitForms /></SchoolLayout>
         </ProtectedRoute>
       } />
-      <Route path="/school/announcements" element={
+      <Route path="/school/اعلانات" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><SchoolAnnouncements /></SchoolLayout>
+          <SchoolLayout><Schoolاعلانات /></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/documents" element={
@@ -207,9 +207,9 @@ function AppRoutes() {
           <DistrictLayout><PlaceholderPage title="Schools" description="Manage schools in your district" /></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/district/announcements" element={
+      <Route path="/district/اعلانات" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><SchoolAnnouncements /></DistrictLayout>
+          <DistrictLayout><Schoolاعلانات /></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/documents" element={
@@ -244,9 +244,9 @@ function AppRoutes() {
           <ProvinceLayout><PlaceholderPage title="Submissions" description="View aggregated submissions from all districts" /></ProvinceLayout>
         </ProtectedRoute>
       } />
-      <Route path="/province/announcements" element={
+      <Route path="/province/اعلانات" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><SchoolAnnouncements /></ProvinceLayout>
+          <ProvinceLayout><Schoolاعلانات /></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/documents" element={
@@ -273,7 +273,7 @@ function AppRoutes() {
       } />
       <Route path="/ministry/provinces" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><PlaceholderPage title="Provinces" description="View all 34 provinces and their data" /></MinistryLayout>
+          <MinistryLayout><PlaceholderPage title="Provinces" description="مشاهده همه 34 provinces and their data" /></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/submissions" element={
@@ -281,9 +281,9 @@ function AppRoutes() {
           <MinistryLayout><AdminSubmissions /></MinistryLayout>
         </ProtectedRoute>
       } />
-      <Route path="/ministry/announcements" element={
+      <Route path="/ministry/اعلانات" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><AdminAnnouncements /></MinistryLayout>
+          <MinistryLayout><Adminاعلانات /></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/documents" element={

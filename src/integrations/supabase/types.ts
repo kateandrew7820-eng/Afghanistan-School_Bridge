@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      announcements: {
+      اعلانات: {
         Row: {
           content: string
           created_at: string

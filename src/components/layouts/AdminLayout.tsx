@@ -26,7 +26,7 @@ interface AdminLayoutProps {
 const navItems = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/submissions', icon: BarChart3, label: 'View Submissions' },
-  { href: '/admin/announcements', icon: Bell, label: 'Announcements' },
+  { href: '/admin/اعلانات', icon: Bell, label: 'اعلانات' },
   { href: '/admin/documents', icon: FileUp, label: 'Documents' },
   { href: '/admin/deadlines', icon: Calendar, label: 'Deadlines' },
   { href: '/admin/schools', icon: School, label: 'Manage Schools' },

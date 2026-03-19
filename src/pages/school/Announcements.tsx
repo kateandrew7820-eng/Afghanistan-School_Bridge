@@ -13,23 +13,23 @@ interface Announcement {
   created_at: string;
 }
 
-export default function SchoolAnnouncements() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+export default function Schoolاعلانات() {
+  const [اعلانات, setاعلانات] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchAnnouncements() {
+    async function fetchاعلانات() {
       const { data } = await supabase
-        .from('announcements')
+        .from('اعلانات')
         .select('*')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
       
-      if (data) setAnnouncements(data);
+      if (data) setاعلانات(data);
       setLoading(false);
     }
 
-    fetchAnnouncements();
+    fetchاعلانات();
   }, []);
 
   const getPriorityColor = (priority: string) => {
@@ -46,22 +46,22 @@ export default function SchoolAnnouncements() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Bell className="h-6 w-6" />
-          Announcements
+          اعلانات
         </h1>
         <p className="text-muted-foreground">Updates and news from the center</p>
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading announcements...</p>
-      ) : announcements.length === 0 ? (
+        <p className="text-muted-foreground">Loading اعلانات...</p>
+      ) : اعلانات.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No announcements yet</p>
+            <p className="text-muted-foreground">No اعلانات yet</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {announcements.map((announcement) => (
+          {اعلانات.map((announcement) => (
             <Card key={announcement.id}>
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">

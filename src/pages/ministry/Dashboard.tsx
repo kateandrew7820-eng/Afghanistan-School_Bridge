@@ -94,7 +94,7 @@ export default function MinistryDashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground text-sm">
-              Latest submissions, announcements, and system activity will be shown here.
+              Latest submissions, اعلانات, and system activity will be shown here.
             </p>
           </CardContent>
         </Card>

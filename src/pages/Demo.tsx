@@ -11,14 +11,14 @@ const DEMO_ROLES = [
   {
     id: 'teacher',
     label: 'معلم',
-    description: 'صاحب صلاحیت معلم - دسترسی به داشبرد مدرسه',
+    description: 'صاحب صلاحیت معلم - دسترسی به داشبرد مکتب',
     icon: User,
     tier: 'school',
   },
   {
     id: 'principal',
     label: 'مدیر',
-    description: 'صاحب صلاحیت مدیر مدرسه - دسترسی کامل به داشبرد مدرسه',
+    description: 'صاحب صلاحیت مدیر مکتب - دسترسی کامل به داشبرد مکتب',
     icon: Users,
     tier: 'school',
   },

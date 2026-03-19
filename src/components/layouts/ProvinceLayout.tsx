@@ -34,7 +34,7 @@ export default function ProvinceLayout({ children }: ProvinceLayoutProps) {
     { href: '/province/districts', icon: MapPin, label: t('province.districtOverview') },
     { href: '/province/analytics', icon: TrendingUp, label: t('province.analytics') },
     { href: '/province/submissions', icon: BarChart3, label: t('navigation.submissions') },
-    { href: '/province/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/province/اعلانات', icon: Bell, label: t('navigation.اعلانات') },
     { href: '/province/documents', icon: FileDown, label: t('navigation.documents') },
     { href: '/province/deadlines', icon: Calendar, label: t('navigation.deadlines') },
   ];

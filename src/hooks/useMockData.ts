@@ -5,7 +5,7 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  mockAnnouncements,
+  mockاعلانات,
   mockDeadlines,
   mockStudentStats,
   mockSubmissions,
@@ -21,7 +21,7 @@ export function useMockData() {
 
   return {
     isDemoMode,
-    announcements: mockAnnouncements,
+    اعلانات: mockاعلانات,
     deadlines: mockDeadlines,
     studentStats: mockStudentStats,
     submissions: mockSubmissions,

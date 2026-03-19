@@ -3,7 +3,7 @@
  * Used when developer needs to test dashboards without authentication
  */
 
-export const mockAnnouncements = [
+export const mockاعلانات = [
   {
     id: '1',
     title: 'نتایج امتحانات ترمین منتشر شد',
@@ -15,15 +15,15 @@ export const mockAnnouncements = [
   {
     id: '2',
     title: 'تعطیلات پائیزی از فردا آغاز می‌شود',
-    content: 'تعطیلات پائیزی از فردا به مدت دو هفته آغاز خواهد شد. مدارس تا 15 مهرماه تعطیل هستند.',
+    content: 'تعطیلات پائیزی از فردا به مدت دو هفته آغاز خواهد شد. مکاتب تا 15 مهرماه تعطیل هستند.',
     priority: 'normal',
     created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     is_published: true,
   },
   {
     id: '3',
-    title: 'بهروزرسانی سیستم مدیریت مدرسه',
-    content: 'نسخه جدید سیستم مدیریت مدرسه با امکانات جدید، فردا ساعت 22:00 راه‌اندازی خواهد شد.',
+    title: 'بهروزرسانی سیستم مدیریت مکتب',
+    content: 'نسخه جدید سیستم مدیریت مکتب با امکانات جدید، فردا ساعت 22:00 راه‌اندازی خواهد شد.',
     priority: 'normal',
     created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
     is_published: true,

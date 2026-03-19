@@ -80,7 +80,7 @@ export function getApprovalInstruction(role: string, language: 'en' | 'fa' = 'fa
     },
     'teacher': {
       'en': 'Your account is pending approval from a Principal.',
-      'fa': 'حساب شما منتظر تصویب مدیر مدرسه است.'
+      'fa': 'حساب شما منتظر تصویب مدیر مکتب است.'
     },
     'principal': {
       'en': 'Your account is pending approval from a District Admin.',
@@ -110,7 +110,7 @@ export function getRoleLabel(role: string, language: 'en' | 'fa' = 'fa'): string
   const labels: Record<string, Record<'en' | 'fa', string>> = {
     'student': { 'en': 'Student', 'fa': 'دانش‌آموز' },
     'teacher': { 'en': 'Teacher', 'fa': 'معلم' },
-    'principal': { 'en': 'School Principal', 'fa': 'مدیر مدرسه' },
+    'principal': { 'en': 'School Principal', 'fa': 'مدیر مکتب' },
     'district_admin': { 'en': 'District Admin', 'fa': 'مدیر ولسوالی' },
     'province_admin': { 'en': 'Province Admin', 'fa': 'مدیر ولایت' },
     'ministry_admin': { 'en': 'Ministry Admin', 'fa': 'مدیر وزارت' },

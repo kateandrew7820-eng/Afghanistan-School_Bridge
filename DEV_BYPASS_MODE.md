@@ -101,7 +101,7 @@ The form shows a clear **amber/yellow banner** saying:
 ⚙️ حالت توسعه فعال
 (Development Mode Active)
 
-در حالت توسعه، پروفایل شما بلافاصله تأیید می‌شود و به داشبورد منتقل می‌شوید.
+در حالت توسعه، پروفایل شما بلافاصله تأیید می‌شود و به صفحه اصلی منتقل می‌شوید.
 این فقط برای آزمایش است.
 (In dev mode, your profile is immediately verified and you're redirected to dashboard.
 This is for testing only.)
@@ -111,7 +111,7 @@ This is for testing only.)
 When submitting in dev mode, users see:
 ```
 موفقیت
-[DEV MODE] پروفایل شما تأیید شد. به داشبورد منتقل می‌شوید...
+[DEV MODE] پروفایل شما تأیید شد. به صفحه اصلی منتقل می‌شوید...
 (Success - [DEV MODE] Your profile is verified. Redirecting to dashboard...)
 ```
 
@@ -146,11 +146,11 @@ This means:
 4. Verify each role sees correct dashboard
 ```
 
-### Scenario 3: Test Announcements, Deadlines, etc.
+### Scenario 3: Test اعلانات, Deadlines, etc.
 ```
 1. Login as any role (dev mode auto-verifies)
 2. See dashboard
-3. Try announcements, deadlines, submissions
+3. Try اعلانات, deadlines, submissions
 4. Add/edit content
 5. Test all features without approval bottleneck
 ```
@@ -221,7 +221,7 @@ if (DEV_MODE) {
 ✅ **Role Testing** - Test each role's dashboard quickly  
 ✅ **UI Testing** - See all UI flows without approval bottleneck  
 ✅ **Feature Development** - Develop new features in dashboards freely  
-✅ **Edit & Test** - Create announcements, deadlines, submissions, and test immediately  
+✅ **Edit & Test** - Create اعلانات, deadlines, submissions, and test immediately  
 
 ## QA/Testing Example
 

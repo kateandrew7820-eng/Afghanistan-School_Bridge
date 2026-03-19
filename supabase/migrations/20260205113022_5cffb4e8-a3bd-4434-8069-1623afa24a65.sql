@@ -78,8 +78,8 @@ CREATE TABLE public.form_submissions (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Create announcements table (center to schools)
-CREATE TABLE public.announcements (
+-- Create اعلانات table (center to schools)
+CREATE TABLE public.اعلانات (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   content TEXT NOT NULL,
@@ -120,7 +120,7 @@ ALTER TABLE public.schools ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.statistics_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.report_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.form_submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.اعلانات ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.center_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.deadlines ENABLE ROW LEVEL SECURITY;
 
@@ -167,7 +167,7 @@ $$;
 -- Profiles policies
 CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Admins can view all profiles" ON public.profiles FOR SELECT USING (public.is_admin());
+CREATE POLICY "Admins can مشاهده همه profiles" ON public.profiles FOR SELECT USING (public.is_admin());
 CREATE POLICY "Admins can manage profiles" ON public.profiles FOR ALL USING (public.is_admin());
 
 -- User roles policies
@@ -182,25 +182,25 @@ CREATE POLICY "Admins can manage schools" ON public.schools FOR ALL USING (publi
 CREATE POLICY "Schools can view own stats" ON public.statistics_submissions FOR SELECT USING (school_id = public.get_user_school_id(auth.uid()));
 CREATE POLICY "Schools can insert own stats" ON public.statistics_submissions FOR INSERT WITH CHECK (school_id = public.get_user_school_id(auth.uid()));
 CREATE POLICY "Schools can update own stats" ON public.statistics_submissions FOR UPDATE USING (school_id = public.get_user_school_id(auth.uid()));
-CREATE POLICY "Admins can view all stats" ON public.statistics_submissions FOR SELECT USING (public.is_admin());
+CREATE POLICY "Admins can مشاهده همه stats" ON public.statistics_submissions FOR SELECT USING (public.is_admin());
 CREATE POLICY "Admins can update stats" ON public.statistics_submissions FOR UPDATE USING (public.is_admin());
 
 -- Report submissions policies
 CREATE POLICY "Schools can view own reports" ON public.report_submissions FOR SELECT USING (school_id = public.get_user_school_id(auth.uid()));
 CREATE POLICY "Schools can insert own reports" ON public.report_submissions FOR INSERT WITH CHECK (school_id = public.get_user_school_id(auth.uid()));
 CREATE POLICY "Schools can delete own reports" ON public.report_submissions FOR DELETE USING (school_id = public.get_user_school_id(auth.uid()));
-CREATE POLICY "Admins can view all reports" ON public.report_submissions FOR SELECT USING (public.is_admin());
+CREATE POLICY "Admins can مشاهده همه reports" ON public.report_submissions FOR SELECT USING (public.is_admin());
 
 -- Form submissions policies
 CREATE POLICY "Schools can view own forms" ON public.form_submissions FOR SELECT USING (school_id = public.get_user_school_id(auth.uid()));
 CREATE POLICY "Schools can insert own forms" ON public.form_submissions FOR INSERT WITH CHECK (school_id = public.get_user_school_id(auth.uid()));
 CREATE POLICY "Schools can update own forms" ON public.form_submissions FOR UPDATE USING (school_id = public.get_user_school_id(auth.uid()));
-CREATE POLICY "Admins can view all forms" ON public.form_submissions FOR SELECT USING (public.is_admin());
+CREATE POLICY "Admins can مشاهده همه forms" ON public.form_submissions FOR SELECT USING (public.is_admin());
 CREATE POLICY "Admins can update forms" ON public.form_submissions FOR UPDATE USING (public.is_admin());
 
--- Announcements policies (public read, admin write)
-CREATE POLICY "Anyone can view published announcements" ON public.announcements FOR SELECT USING (is_published = true);
-CREATE POLICY "Admins can manage announcements" ON public.announcements FOR ALL USING (public.is_admin());
+-- اعلانات policies (public read, admin write)
+CREATE POLICY "Anyone can view published اعلانات" ON public.اعلانات FOR SELECT USING (is_published = true);
+CREATE POLICY "Admins can manage اعلانات" ON public.اعلانات FOR ALL USING (public.is_admin());
 
 -- Center documents policies (public read, admin write)
 CREATE POLICY "Anyone can view documents" ON public.center_documents FOR SELECT TO authenticated USING (true);
@@ -221,7 +221,7 @@ WITH CHECK (bucket_id = 'school-reports' AND (storage.foldername(name))[1] = pub
 CREATE POLICY "Schools can view own reports" ON storage.objects FOR SELECT TO authenticated
 USING (bucket_id = 'school-reports' AND (storage.foldername(name))[1] = public.get_user_school_id(auth.uid())::text);
 
-CREATE POLICY "Admins can view all reports" ON storage.objects FOR SELECT TO authenticated
+CREATE POLICY "Admins can مشاهده همه reports" ON storage.objects FOR SELECT TO authenticated
 USING (bucket_id = 'school-reports' AND public.is_admin());
 
 -- Storage policies for center-documents bucket
@@ -269,4 +269,4 @@ CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON public.profiles FOR E
 CREATE TRIGGER update_schools_updated_at BEFORE UPDATE ON public.schools FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER update_statistics_updated_at BEFORE UPDATE ON public.statistics_submissions FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER update_forms_updated_at BEFORE UPDATE ON public.form_submissions FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-CREATE TRIGGER update_announcements_updated_at BEFORE UPDATE ON public.announcements FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+CREATE TRIGGER update_اعلانات_updated_at BEFORE UPDATE ON public.اعلانات FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

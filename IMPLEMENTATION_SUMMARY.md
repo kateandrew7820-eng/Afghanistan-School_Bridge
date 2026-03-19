@@ -446,7 +446,7 @@ Please wait for your administrator's approval
 
 دانش‌آموز      Student
 معلم          Teacher
-مدیر مدرسه     Principal
+مدیر مکتب     Principal
 مدیر ولسوالی   District Admin
 مدیر ولایت     Province Admin
 مدیر وزارت     Ministry Admin

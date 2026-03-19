@@ -40,7 +40,7 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
     { href: '/ministry/analytics', icon: TrendingUp, label: t('province.analytics') },
     { href: '/ministry/provinces', icon: Map, label: t('ministry.allProvinces') },
     { href: '/ministry/submissions', icon: BarChart3, label: t('navigation.submissions') },
-    { href: '/ministry/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/ministry/اعلانات', icon: Bell, label: t('navigation.اعلانات') },
     { href: '/ministry/documents', icon: FileDown, label: t('navigation.documents') },
     { href: '/ministry/deadlines', icon: Calendar, label: t('navigation.deadlines') },
     { href: '/ministry/users', icon: Users, label: t('ministry.userManagement') },

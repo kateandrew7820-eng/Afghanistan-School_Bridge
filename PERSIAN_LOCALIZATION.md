@@ -120,11 +120,11 @@
 **Expected Result**:
 - Auto-redirected to `/school` dashboard
 - School layout displayed with Persian menu items:
-  - داشبورد (Dashboard)
+  - صفحه اصلی (Dashboard)
   - ارسال آمار و اطلاعات (Submit Statistics)
   - ارسال گزارشات (Submit Reports)
   - ارسال فرم‌ها (Submit Forms)
-  - اطلاعیه‌ها (Announcements)
+  - اطلاعیه‌ها (اعلانات)
   - اسناد (Documents)
   - مهلت‌ها (Deadlines)
 
@@ -145,10 +145,10 @@ WHERE user_id = (SELECT id FROM auth.users WHERE email = 'teacher@example.com');
 **Expected Result**:
 - Auto-redirected to `/district` dashboard
 - District layout with menu items:
-  - داشبورد (Dashboard)
-  - ارسالی‌های مدارس (School Submissions)
+  - صفحه اصلی (Dashboard)
+  - ارسالی‌های مکاتب (School Submissions)
   - تأیید (Verify)
-  - مدیریت مدارس (Manage Schools)
+  - مدیریت مکاتب (Manage Schools)
 
 #### Test 4: Role Missing Error Handling
 

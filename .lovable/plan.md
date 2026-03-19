@@ -17,16 +17,16 @@ A simple web platform that connects Afghan schools to the central education mini
 - **Simple registration:** Schools are registered by the center (no self-signup to maintain control)
 
 ### 2. School Portal (What Schools See) ✅
-- **Dashboard:** Overview of pending tasks, recent announcements, upcoming deadlines
+- **Dashboard:** Overview of pending tasks, recent اعلانات, upcoming deadlines
 - **Submit Statistics:** Form to enter student counts, attendance, enrollment numbers
 - **Submit Reports:** Upload PDF/Word documents (monthly reports, etc.)
 - **Submit Forms:** Fill out structured forms for various data collection needs
-- **View Center Updates:** See announcements, download documents, view calendar deadlines
+- **View Center Updates:** See اعلانات, download documents, view calendar deadlines
 
 ### 3. Center Admin Portal (What Ministry Staff See) ✅
 - **Dashboard:** Overview of all school submissions, statistics summary
 - **View Submissions:** See all data submitted by schools, filter by school/date/type
-- **Post Announcements:** Create news and updates visible to all schools
+- **Post اعلانات:** Create news and updates visible to all schools
 - **Upload Documents:** Share policies, curricula, guidelines for schools to download
 - **Manage Deadlines:** Set important dates and deadlines schools need to follow
 - **Manage Schools:** Add new schools, reset passwords, view school activity
@@ -40,7 +40,7 @@ A simple web platform that connects Afghan schools to the central education mini
 - `statistics_submissions` - Student statistics data
 - `report_submissions` - Uploaded report files
 - `form_submissions` - Form data submissions
-- `announcements` - Center announcements
+- `اعلانات` - Center اعلانات
 - `center_documents` - Shared documents
 - `deadlines` - Important dates
 

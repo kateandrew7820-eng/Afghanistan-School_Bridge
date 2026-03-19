@@ -34,7 +34,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
     { href: '/school/statistics', icon: BarChart3, label: t('school.submitStatistics') },
     { href: '/school/reports', icon: FileText, label: t('school.submitReports') },
     { href: '/school/forms', icon: ClipboardList, label: t('school.submitForms') },
-    { href: '/school/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/school/اعلانات', icon: Bell, label: t('navigation.اعلانات') },
     { href: '/school/documents', icon: FileDown, label: t('navigation.documents') },
     { href: '/school/deadlines', icon: Calendar, label: t('navigation.deadlines') },
   ];

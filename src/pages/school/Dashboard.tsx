@@ -41,7 +41,7 @@ interface Deadline {
 export default function SchoolDashboard() {
   const { profile, role } = useAuth();
   const verification = useVerification();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [اعلانات, setاعلانات] = useState<Announcement[]>([]);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,9 +50,9 @@ export default function SchoolDashboard() {
 
   useEffect(() => {
     async function fetchData() {
-      const [announcementsRes, deadlinesRes] = await Promise.all([
+      const [اعلاناتRes, deadlinesRes] = await Promise.all([
         supabase
-          .from('announcements')
+          .from('اعلانات')
           .select('*')
           .eq('is_published', true)
           .order('created_at', { ascending: false })
@@ -66,7 +66,7 @@ export default function SchoolDashboard() {
           .limit(5)
       ]);
 
-      if (announcementsRes.data) setAnnouncements(announcementsRes.data);
+      if (اعلاناتRes.data) setاعلانات(اعلاناتRes.data);
       if (deadlinesRes.data) setDeadlines(deadlinesRes.data);
       setLoading(false);
     }
@@ -88,13 +88,13 @@ export default function SchoolDashboard() {
       {/* Breadcrumb Navigation */}
       <Breadcrumb items={[
         { label: 'خانه', href: '/' },
-        { label: 'مدرسه', href: '/school' },
-        { label: 'داشبورد' }
+        { label: 'مکتب', href: '/school' },
+        { label: 'صفحه اصلی' }
       ]} />
 
       {/* Page Header */}
       <PageHeader
-        title="داشبورد مدرسه"
+        title="صفحه اصلی مکتب"
         description={`${profile?.schools?.name} - ${profile?.schools?.province}، ${profile?.schools?.district}`}
         icon={<School className="h-6 w-6" />}
         backButton={false}
@@ -140,29 +140,29 @@ export default function SchoolDashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Announcements */}
+        {/* Recent اعلانات */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Latest Announcements
+                Latest اعلانات
               </CardTitle>
               <CardDescription>Updates from the center</CardDescription>
             </div>
-            <Link to="/school/announcements">
+            <Link to="/school/اعلانات">
               <Button variant="ghost" size="sm">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
+                مشاهده همه <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
               <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : announcements.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No announcements yet</p>
+            ) : اعلانات.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No اعلانات yet</p>
             ) : (
-              announcements.map((announcement) => (
+              اعلانات.map((announcement) => (
                 <div key={announcement.id} className="border-b pb-3 last:border-0 last:pb-0">
                   <div className="flex items-start justify-between gap-2">
                     <h4 className="font-medium text-sm">{announcement.title}</h4>
@@ -194,7 +194,7 @@ export default function SchoolDashboard() {
             </div>
             <Link to="/school/deadlines">
               <Button variant="ghost" size="sm">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
+                مشاهده همه <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </Link>
           </CardHeader>

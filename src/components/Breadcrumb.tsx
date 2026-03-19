@@ -36,19 +36,19 @@ export default function Breadcrumb({ items = [], className }: BreadcrumbProps) {
       // Format segment name
       const formatSegment = (seg: string): string => {
         const labelMap: Record<string, string> = {
-          'school': 'مدرسه',
+          'school': 'مکتب',
           'district': 'منطقه',
           'province': 'استان',
           'ministry': 'وزارت',
-          'dashboard': 'داشبورد',
+          'dashboard': 'صفحه اصلی',
           'statistics': 'آمار',
           'reports': 'گزارش‌ها',
           'forms': 'فرم‌ها',
-          'announcements': 'اعلان‌ها',
+          'اعلانات': 'اعلان‌ها',
           'documents': 'اسناد',
           'deadlines': 'مهلت‌ها',
           'submissions': 'ارسال‌ها',
-          'manage-schools': 'مدیریت مدارس',
+          'manage-schools': 'مدیریت مکاتب',
           'pending-verification': 'در انتظار تایید',
           'setup-profile': 'تکمیل پروفایل',
         };

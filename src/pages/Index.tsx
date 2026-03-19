@@ -105,7 +105,7 @@ export default function Index() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Get instant announcements and news from the center directly in your dashboard.
+                Get instant اعلانات and news from the center directly in your dashboard.
               </CardDescription>
             </CardContent>
           </Card>

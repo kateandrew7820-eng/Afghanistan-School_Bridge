@@ -192,7 +192,7 @@ All UI components are Persian (Farsi/Dari):
 - SetupProfile form: "فرم تنظیم پروفایل"
 - PendingVerification: "حساب شما در حال بررسی است"
 - VerificationPanel: "صف تایید کاربران"
-- Role labels: "دانش‌آموز", "معلم", "مدیر مدرسه", etc.
+- Role labels: "دانش‌آموز", "معلم", "مدیر مکتب", etc.
 - Status messages: Localized approval instructions
 
 ## Usage Examples

@@ -33,7 +33,7 @@ export default function DistrictLayout({ children }: DistrictLayoutProps) {
     { href: '/district/submissions', icon: BarChart3, label: t('district.schoolSubmissions') },
     { href: '/district/verify', icon: CheckSquare, label: t('common.confirm') },
     { href: '/district/schools', icon: School, label: t('district.schoolsManagement') },
-    { href: '/district/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/district/اعلانات', icon: Bell, label: t('navigation.اعلانات') },
     { href: '/district/documents', icon: FileDown, label: t('navigation.documents') },
     { href: '/district/deadlines', icon: Calendar, label: t('navigation.deadlines') },
   ];

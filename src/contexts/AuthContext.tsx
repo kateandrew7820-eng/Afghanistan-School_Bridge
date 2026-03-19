@@ -370,7 +370,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       id: 'dev-quick-user-' + Date.now(),
       email: 'developer@test.local',
       user_metadata: {
-        full_name: 'سازنده توسعہ'
+        full_name: 'سازنده توسعه'
       },
       app_metadata: {},
       aud: 'authenticated',
@@ -381,11 +381,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const mockDevProfile: Profile = {
       id: 'dev-profile-' + Date.now(),
       user_id: mockDevUser.id,
-      full_name: 'سازنده توسعہ',
+      full_name: 'سازنده توسعه',
       school_id: null,
-      district: 'منطقہ توسعہ',
+      district: 'منطقہ توسعه',
       province: 'کابل',
-      school_name: 'مکتب توسعہ',
+      school_name: 'مکتب توسعه',
       role: 'teacher',
       phone_number: '+93 700 000 000',
       status: 'verified',

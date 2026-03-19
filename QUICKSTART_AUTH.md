@@ -53,11 +53,11 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │ 8. USER SEES DASHBOARD ✨                                        │
 │    See: School Dashboard with Persian menu:                     │
-│         - داشبورد (Dashboard)                                   │
+│         - صفحه اصلی (Dashboard)                                   │
 │         - ارسال آمار (Submit Statistics)                        │
 │         - ارسال گزارشات (Submit Reports)                        │
 │         - ارسال فرم‌ها (Submit Forms)                           │
-│         - اطلاعیه‌ها (Announcements)                            │
+│         - اطلاعیه‌ها (اعلانات)                            │
 │         - اسناد (Documents)                                      │
 │         - مهلت‌ها (Deadlines)                                    │
 │    Status: ✅ Ready to test the app!                            │

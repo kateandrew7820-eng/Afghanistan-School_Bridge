@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "پل آموزش افغانستان",
-    "description": "پورتال داده‌های مدارس افغانستان"
+    "description": "پورتال داده‌های مکاتب افغانستان"
   },
   "auth": {
     "signIn": "ورود",
@@ -38,12 +38,12 @@
     "province_admin": "مدیر استان",
     "ministry_admin": "مدیر وزارت",
     "admin": "مدیر سیستم",
-    "school": "مدرسه"
+    "school": "مکتب"
   },
   "navigation": {
     "home": "صفحه اول",
-    "dashboard": "داشبورد",
-    "announcements": "اطلاعیه‌ها",
+    "dashboard": "صفحه اصلی",
+    "اعلانات": "اطلاعیه‌ها",
     "documents": "اسناد",
     "deadlines": "مهلت‌ها",
     "submissions": "ارسالی‌ها",
@@ -52,8 +52,8 @@
     "forms": "فرم‌ها",
     "profile": "پروفایل",
     "settings": "تنظیمات",
-    "manageSchools": "مدیریت مدارس",
-    "schoolName": "نام مدرسه",
+    "manageSchools": "مدیریت مکاتب",
+    "schoolName": "نام مکتب",
     "districtName": "نام ناحیه",
     "provinceName": "نام استان"
   },
@@ -90,49 +90,49 @@
     "error_occurred": "خطایی رخ داده است"
   },
   "school": {
-    "dashboard": "داشبورد مدرسه",
+    "dashboard": "صفحه اصلی مکتب",
     "submitStatistics": "ارسال آمار و اطلاعات",
     "submitReports": "ارسال گزارشات",
     "submitForms": "ارسال فرم‌ها",
-    "recentAnnouncements": "اطلاعیه‌های اخیر",
+    "recentاعلانات": "اطلاعیه‌های اخیر",
     "upcomingDeadlines": "مهلت‌های آینده",
     "submissions": "ارسالی‌ها",
     "recentSubmissions": "ارسالی‌های اخیر",
     "viewAll": "مشاهده همه",
     "statisticsForm": "فرم آموار و اطلاعات",
     "reportsForm": "فرم گزارشات",
-    "noAnnouncements": "اطلاعیه‌ای موجود نیست",
+    "noاعلانات": "اطلاعیه‌ای موجود نیست",
     "noDeadlines": "مهلتی موجود نیست",
     "noSubmissions": "ارسالی موجود نیست"
   },
   "district": {
-    "dashboard": "داشبورد ناحیه",
-    "schoolSubmissions": "ارسالی‌های مدارس",
-    "schoolsManagement": "مدیریت مدارس",
+    "dashboard": "صفحه اصلی ناحیه",
+    "schoolSubmissions": "ارسالی‌های مکاتب",
+    "schoolsManagement": "مدیریت مکاتب",
     "viewSubmissions": "مشاهده ارسالی‌ها",
     "approveSubmissions": "تأیید ارسالی‌ها",
     "rejectSubmissions": "رد ارسالی‌ها",
-    "schoolCount": "تعداد مدارس",
+    "schoolCount": "تعداد مکاتب",
     "submissionCount": "تعداد ارسالی‌ها",
     "pendingCount": "تعداد در حال انتظار"
   },
   "province": {
-    "dashboard": "داشبورد استان",
+    "dashboard": "صفحه اصلی استان",
     "districtOverview": "نمای کلی ناحیه‌ها",
     "analytics": "تجزیه و تحلیل",
     "districtCount": "تعداد ناحیه‌ها",
-    "schoolCount": "تعداد مدارس",
+    "schoolCount": "تعداد مکاتب",
     "totalSubmissions": "کل ارسالی‌ها"
   },
   "ministry": {
-    "dashboard": "داشبورد وزارت",
+    "dashboard": "صفحه اصلی وزارت",
     "nationalOverview": "نمای کلی ملی",
     "userManagement": "مدیریت کاربران",
-    "schoolRegistration": "ثبت نام مدارس",
+    "schoolRegistration": "ثبت نام مکاتب",
     "reportExport": "صادرات گزارشات",
     "allProvinces": "تمام استان‌ها",
     "allDistricts": "تمام ناحیه‌ها",
-    "allSchools": "تمام مدارس"
+    "allSchools": "تمام مکاتب"
   },
   "errors": {
     "roleNotAssigned": "نقش شما هنوز تعیین نشده است. لطفاً با مدیر تماس بگیرید.",

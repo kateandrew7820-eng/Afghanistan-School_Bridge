@@ -326,7 +326,7 @@ export function VerificationPanel({
                     <p className="font-medium">{pendingUser.role}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">مدرسه:</span>
+                    <span className="text-muted-foreground">مکتب:</span>
                     <p className="font-medium">{pendingUser.school_name}</p>
                   </div>
                   <div>

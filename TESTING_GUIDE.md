@@ -44,7 +44,7 @@ http://localhost:5173
 5. [ ] Redirects to `/school` dashboard
 6. [ ] School layout visible with navigation menu
 7. [ ] Menu items in Persian:
-   - داشبورد (Dashboard)
+   - صفحه اصلی (Dashboard)
    - ارسال آمار و اطلاعات (Submit Statistics)
    - ارسال گزارشات (Submit Reports)
    - ارسال فرم‌ها (Submit Forms)
