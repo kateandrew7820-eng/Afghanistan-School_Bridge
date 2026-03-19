@@ -1,23 +1,65 @@
 <!doctype html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SchoolBridge Afghanistan</title>
-    <meta name="description" content="Afghanistan Schools Data Portal - Connecting education across the nation" />
+    <title>پل آموزش افغانستان</title>
+    <meta name="description" content="پورتال داده‌های مدارس افغانستان - اتصال آموزش در سراسر کشور" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <meta name="author" content="Lovable" />
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <meta name="author" content="SchoolBridge Afghanistan" />
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:title" content="پل آموزش افغانستان" />
+    <meta property="og:description" content="پورتال داده‌های مدارس افغانستان" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
+
+    <style>
+      /* RTL and Persian Font Support */
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        direction: rtl;
+        font-family: 'Vazirmatn', 'Roboto', sans-serif;
+      }
+
+      html.ltr {
+        direction: ltr;
+        text-align: left;
+      }
+
+      html.rtl {
+        direction: rtl;
+        text-align: right;
+      }
+
+      body {
+        direction: rtl;
+        text-align: right;
+      }
+
+      body.ltr {
+        direction: ltr;
+        text-align: left;
+      }
+
+      /* Fix for inputs and textareas */
+      input, textarea, select {
+        direction: inherit;
+        text-align: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
   </head>
 

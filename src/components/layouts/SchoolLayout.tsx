@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { 
@@ -22,20 +23,21 @@ interface SchoolLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { href: '/school', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/school/statistics', icon: BarChart3, label: 'Submit Statistics' },
-  { href: '/school/reports', icon: FileText, label: 'Submit Reports' },
-  { href: '/school/forms', icon: ClipboardList, label: 'Submit Forms' },
-  { href: '/school/announcements', icon: Bell, label: 'Announcements' },
-  { href: '/school/documents', icon: FileDown, label: 'Documents' },
-  { href: '/school/deadlines', icon: Calendar, label: 'Deadlines' },
-];
-
 export default function SchoolLayout({ children }: SchoolLayoutProps) {
+  const { t } = useTranslation();
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { href: '/school', icon: LayoutDashboard, label: t('navigation.dashboard') },
+    { href: '/school/statistics', icon: BarChart3, label: t('school.submitStatistics') },
+    { href: '/school/reports', icon: FileText, label: t('school.submitReports') },
+    { href: '/school/forms', icon: ClipboardList, label: t('school.submitForms') },
+    { href: '/school/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/school/documents', icon: FileDown, label: t('navigation.documents') },
+    { href: '/school/deadlines', icon: Calendar, label: t('navigation.deadlines') },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,7 +46,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         <div className="flex items-center gap-2">
           <School className="h-6 w-6 text-primary" />
           <span className="font-semibold text-sm truncate max-w-[150px]">
-            {profile?.schools?.name || 'School Portal'}
+            {profile?.schools?.name || t('navigation.schoolName')}
           </span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -67,7 +69,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
           {/* Logo */}
           <div className="h-16 flex items-center gap-2 px-4 border-b">
             <School className="h-6 w-6 text-primary" />
-            <span className="font-heading font-semibold truncate">{profile?.schools?.name || 'School Portal'}</span>
+            <span className="font-heading font-semibold truncate">{profile?.schools?.name || t('navigation.schoolName')}</span>
           </div>
 
           {/* Navigation */}
@@ -98,7 +100,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
             </div>
             <Button variant="outline" className="w-full" onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('auth.signOut')}
             </Button>
           </div>
         </div>

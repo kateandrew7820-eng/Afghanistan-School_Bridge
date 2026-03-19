@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { 
@@ -18,37 +19,41 @@ import {
   TrendingUp,
   Download,
   Menu,
-  X
+  X,
+  Landmark,
+  ClipboardList,
+  FileDown
 } from 'lucide-react';
 
 interface MinistryLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { href: '/ministry', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/ministry/analytics', icon: TrendingUp, label: 'National Analytics' },
-  { href: '/ministry/provinces', icon: Map, label: 'Provinces' },
-  { href: '/ministry/submissions', icon: BarChart3, label: 'All Submissions' },
-  { href: '/ministry/announcements', icon: Bell, label: 'Announcements' },
-  { href: '/ministry/documents', icon: FileUp, label: 'Documents' },
-  { href: '/ministry/deadlines', icon: Calendar, label: 'Deadlines' },
-  { href: '/ministry/users', icon: Users, label: 'Manage Users' },
-  { href: '/ministry/schools', icon: School, label: 'Manage Schools' },
-  { href: '/ministry/export', icon: Download, label: 'Export Reports' },
-];
-
 export default function MinistryLayout({ children }: MinistryLayoutProps) {
+  const { t } = useTranslation();
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { href: '/ministry', icon: LayoutDashboard, label: t('navigation.dashboard') },
+    { href: '/ministry/analytics', icon: TrendingUp, label: t('province.analytics') },
+    { href: '/ministry/provinces', icon: Map, label: t('ministry.allProvinces') },
+    { href: '/ministry/submissions', icon: BarChart3, label: t('navigation.submissions') },
+    { href: '/ministry/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/ministry/documents', icon: FileDown, label: t('navigation.documents') },
+    { href: '/ministry/deadlines', icon: Calendar, label: t('navigation.deadlines') },
+    { href: '/ministry/users', icon: Users, label: t('ministry.userManagement') },
+    { href: '/ministry/schools', icon: School, label: t('ministry.allSchools') },
+    { href: '/ministry/export', icon: Download, label: t('ministry.reportExport') },
+  ];
 
   return (
     <div className="min-h-screen bg-background dark">
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Building2 className="h-6 w-6 text-primary" />
-          <span className="font-heading font-semibold text-sm">Ministry Admin</span>
+          <span className="font-heading font-semibold text-sm">{t('ministry.dashboard')}</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -67,7 +72,7 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
         <div className="flex flex-col h-full">
           <div className="h-16 flex items-center gap-2 px-4 border-b">
             <Building2 className="h-6 w-6 text-primary" />
-            <span className="font-heading font-semibold truncate">Ministry Portal</span>
+            <span className="font-heading font-semibold truncate">{t('ministry.dashboard')}</span>
           </div>
 
           <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -96,7 +101,7 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
             </div>
             <Button variant="outline" className="w-full" onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('auth.signOut')}
             </Button>
           </div>
         </div>

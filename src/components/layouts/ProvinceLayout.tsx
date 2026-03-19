@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { 
@@ -22,27 +23,28 @@ interface ProvinceLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { href: '/province', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/province/districts', icon: MapPin, label: 'Districts' },
-  { href: '/province/analytics', icon: TrendingUp, label: 'Analytics' },
-  { href: '/province/submissions', icon: BarChart3, label: 'Submissions' },
-  { href: '/province/announcements', icon: Bell, label: 'Announcements' },
-  { href: '/province/documents', icon: FileDown, label: 'Documents' },
-  { href: '/province/deadlines', icon: Calendar, label: 'Deadlines' },
-];
-
 export default function ProvinceLayout({ children }: ProvinceLayoutProps) {
+  const { t } = useTranslation();
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { href: '/province', icon: LayoutDashboard, label: t('navigation.dashboard') },
+    { href: '/province/districts', icon: MapPin, label: t('province.districtOverview') },
+    { href: '/province/analytics', icon: TrendingUp, label: t('province.analytics') },
+    { href: '/province/submissions', icon: BarChart3, label: t('navigation.submissions') },
+    { href: '/province/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/province/documents', icon: FileDown, label: t('navigation.documents') },
+    { href: '/province/deadlines', icon: Calendar, label: t('navigation.deadlines') },
+  ];
 
   return (
     <div className="min-h-screen bg-background dark">
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Map className="h-6 w-6 text-primary" />
-          <span className="font-heading font-semibold text-sm">Province Admin</span>
+          <span className="font-heading font-semibold text-sm">{t('province.dashboard')}</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -90,7 +92,7 @@ export default function ProvinceLayout({ children }: ProvinceLayoutProps) {
             </div>
             <Button variant="outline" className="w-full" onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('auth.signOut')}
             </Button>
           </div>
         </div>

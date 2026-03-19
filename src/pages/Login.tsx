@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,31 +15,31 @@ import { School, Building2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-re
 // VALIDATION HELPERS
 // ============================================================================
 
-const validateEmail = (email: string): { valid: boolean; message?: string } => {
+const validateEmail = (email: string, t: any): { valid: boolean; message?: string } => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!email || !emailRegex.test(email)) {
-    return { valid: false, message: 'Please enter a valid email address' };
+    return { valid: false, message: t('auth.invalidEmail') };
   }
   return { valid: true };
 };
 
-const validatePassword = (password: string, minLength: number = 6): { valid: boolean; message?: string } => {
+const validatePassword = (password: string, minLength: number = 6, t: any): { valid: boolean; message?: string } => {
   if (!password) {
-    return { valid: false, message: 'Password is required' };
+    return { valid: false, message: t('auth.passwordRequired') };
   }
   if (password.length < minLength) {
-    return { valid: false, message: `Password must be at least ${minLength} characters` };
+    return { valid: false, message: t('auth.passwordMin', { minLength }) };
   }
   return { valid: true };
 };
 
-const validateFullName = (fullName: string): { valid: boolean; message?: string } => {
+const validateFullName = (fullName: string, t: any): { valid: boolean; message?: string } => {
   const trimmed = fullName.trim();
   if (!trimmed) {
-    return { valid: false, message: 'Full name is required' };
+    return { valid: false, message: t('auth.fullNameRequired') };
   }
   if (trimmed.split(' ').length < 2) {
-    return { valid: false, message: 'Please enter your first and last name' };
+    return { valid: false, message: t('auth.firstAndLastName') };
   }
   return { valid: true };
 };
@@ -48,6 +49,8 @@ const validateFullName = (fullName: string): { valid: boolean; message?: string 
 // ============================================================================
 
 export default function Login() {
+  const { t } = useTranslation();
+
   // Sign In State
   const [signInEmail, setSignInEmail] = useState('');
   const [signInPassword, setSignInPassword] = useState('');
@@ -78,8 +81,8 @@ export default function Login() {
     
     // Validate inputs
     const errors: typeof signInErrors = {};
-    const emailValidation = validateEmail(signInEmail);
-    const passwordValidation = validatePassword(signInPassword);
+    const emailValidation = validateEmail(signInEmail, t);
+    const passwordValidation = validatePassword(signInPassword, 6, t);
 
     if (!emailValidation.valid) errors.email = emailValidation.message;
     if (!passwordValidation.valid) errors.password = passwordValidation.message;
@@ -96,7 +99,7 @@ export default function Login() {
     
     if (error) {
       toast({
-        title: "Sign In Failed",
+        title: t('auth.signInFailed'),
         description: error.message,
         variant: "destructive"
       });
@@ -105,8 +108,8 @@ export default function Login() {
     }
 
     toast({
-      title: "Success!",
-      description: "You have been signed in. Redirecting..."
+      title: t('common.success'),
+      description: t('auth.loadingAuth')
     });
 
     setIsLoading(false);
@@ -122,9 +125,9 @@ export default function Login() {
 
     // Validate all inputs
     const errors: typeof signUpErrors = {};
-    const nameValidation = validateFullName(signUpFullName);
-    const emailValidation = validateEmail(signUpEmail);
-    const passwordValidation = validatePassword(signUpPassword);
+    const nameValidation = validateFullName(signUpFullName, t);
+    const emailValidation = validateEmail(signUpEmail, t);
+    const passwordValidation = validatePassword(signUpPassword, 6, t);
 
     if (!nameValidation.valid) errors.name = nameValidation.message;
     if (!emailValidation.valid) errors.email = emailValidation.message;
@@ -132,7 +135,7 @@ export default function Login() {
 
     // Check password match
     if (signUpPassword !== signUpConfirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = t('auth.passwordNotMatch');
     }
 
     if (Object.keys(errors).length > 0) {
@@ -147,7 +150,7 @@ export default function Login() {
     
     if (error) {
       toast({
-        title: "Account Creation Failed",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive"
       });
@@ -162,8 +165,8 @@ export default function Login() {
     setSignUpConfirmPassword('');
     
     toast({
-      title: "Account Created!",
-      description: "Your account has been created successfully. Please sign in with your credentials.",
+      title: t('common.success'),
+      description: t('auth.signUpSuccess'),
     });
 
     // Auto-switch to sign in tab after 2 seconds
@@ -189,15 +192,15 @@ export default function Login() {
             <School className="h-10 w-10 text-primary" />
             <Building2 className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-2xl font-heading font-bold text-foreground">SchoolBridge Afghanistan</h1>
-          <p className="text-muted-foreground">پورتال مکاتب افغانستان</p>
+          <h1 className="text-2xl font-heading font-bold text-foreground">{t('app.title')}</h1>
+          <p className="text-muted-foreground">{t('app.description')}</p>
         </div>
 
         <Card className="border-2">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-xl">Welcome to SchoolBridge</CardTitle>
+            <CardTitle className="text-xl">{t('app.title')}</CardTitle>
             <CardDescription>
-              Sign in to your account or create a new one to get started
+              {t('auth.noAccount')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -214,22 +217,22 @@ export default function Login() {
               <Alert className="mb-4 bg-green-50 border-green-200">
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  Account created successfully! Switching to sign in...
+                  {t('auth.signUpSuccess')}
                 </AlertDescription>
               </Alert>
             )}
 
             <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Create Account</TabsTrigger>
+                <TabsTrigger value="signin">{t('auth.signIn')}</TabsTrigger>
+                <TabsTrigger value="signup">{t('auth.signUp')}</TabsTrigger>
               </TabsList>
 
               {/* ========== SIGN IN TAB ========== */}
               <TabsContent value="signin" className="space-y-4">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email Address</Label>
+                    <Label htmlFor="signin-email">{t('auth.email')}</Label>
                     <Input
                       id="signin-email"
                       type="email"
@@ -250,7 +253,7 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="signin-password">{t('auth.password')}</Label>
                     <Input
                       id="signin-password"
                       type="password"
@@ -278,10 +281,10 @@ export default function Login() {
                     {isLoading || authLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
+                        {t('common.loading')}
                       </>
                     ) : (
-                      'Sign In'
+                      t('auth.signIn')
                     )}
                   </Button>
                 </form>
@@ -291,11 +294,11 @@ export default function Login() {
               <TabsContent value="signup" className="space-y-4">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Label htmlFor="signup-name">{t('auth.fullName')}</Label>
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="John Doe"
+                      placeholder="محمد احمد"
                       value={signUpFullName}
                       onChange={(e) => {
                         setSignUpFullName(e.target.value);
@@ -312,7 +315,7 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email Address</Label>
+                    <Label htmlFor="signup-email">{t('auth.email')}</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -333,7 +336,7 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">{t('auth.password')}</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -351,11 +354,11 @@ export default function Login() {
                     {signUpErrors.password && (
                       <p className="text-sm text-red-500 mt-1">{signUpErrors.password}</p>
                     )}
-                    <p className="text-xs text-muted-foreground">At least 6 characters</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('auth.passwordMin', { minLength: 6 })}</p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                    <Label htmlFor="signup-confirm-password">{t('auth.confirmPassword')}</Label>
                     <Input
                       id="signup-confirm-password"
                       type="password"
@@ -383,10 +386,10 @@ export default function Login() {
                     {isLoading || authLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating account...
+                        {t('common.loading')}
                       </>
                     ) : (
-                      'Create Account'
+                      t('auth.signUp')
                     )}
                   </Button>
                 </form>
@@ -394,7 +397,7 @@ export default function Login() {
             </Tabs>
 
             <p className="text-center text-xs text-muted-foreground mt-4">
-              By signing in, you agree to our Terms of Service and Privacy Policy
+              {t('common.success')}
             </p>
           </CardContent>
         </Card>

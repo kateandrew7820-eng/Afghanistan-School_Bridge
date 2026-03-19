@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { 
@@ -21,27 +22,28 @@ interface DistrictLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { href: '/district', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/district/submissions', icon: BarChart3, label: 'School Submissions' },
-  { href: '/district/verify', icon: CheckSquare, label: 'Verify Data' },
-  { href: '/district/schools', icon: School, label: 'Schools' },
-  { href: '/district/announcements', icon: Bell, label: 'Announcements' },
-  { href: '/district/documents', icon: FileDown, label: 'Documents' },
-  { href: '/district/deadlines', icon: Calendar, label: 'Deadlines' },
-];
-
 export default function DistrictLayout({ children }: DistrictLayoutProps) {
+  const { t } = useTranslation();
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { href: '/district', icon: LayoutDashboard, label: t('navigation.dashboard') },
+    { href: '/district/submissions', icon: BarChart3, label: t('district.schoolSubmissions') },
+    { href: '/district/verify', icon: CheckSquare, label: t('common.confirm') },
+    { href: '/district/schools', icon: School, label: t('district.schoolsManagement') },
+    { href: '/district/announcements', icon: Bell, label: t('navigation.announcements') },
+    { href: '/district/documents', icon: FileDown, label: t('navigation.documents') },
+    { href: '/district/deadlines', icon: Calendar, label: t('navigation.deadlines') },
+  ];
 
   return (
     <div className="min-h-screen bg-background dark">
       <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b z-50 flex items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <MapPin className="h-6 w-6 text-primary" />
-          <span className="font-heading font-semibold text-sm">District Admin</span>
+          <span className="font-heading font-semibold text-sm">{t('district.dashboard')}</span>
         </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -89,7 +91,7 @@ export default function DistrictLayout({ children }: DistrictLayoutProps) {
             </div>
             <Button variant="outline" className="w-full" onClick={signOut}>
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('auth.signOut')}
             </Button>
           </div>
         </div>

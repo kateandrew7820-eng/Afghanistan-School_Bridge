@@ -4,12 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { LocalizationProvider } from "@/contexts/LocalizationContext";
 import { getRoleTier } from "@/lib/supabase";
 
 // Pages
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import AccessError from "./pages/AccessError";
 
 // Layouts
 import SchoolLayout from "./components/layouts/SchoolLayout";
@@ -50,7 +52,7 @@ const queryClient = new QueryClient();
 type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
 
 function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; allowedTier: AllowedTier }) {
-  const { user, role, loading, roleTier } = useAuth();
+  const { user, role, loading, roleTier, error } = useAuth();
 
   if (loading) {
     return (
@@ -60,10 +62,17 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
     );
   }
 
-  if (!user || !role || !roleTier) {
+  // Check if user is authenticated
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  // Check if role is missing or failed to load
+  if (!role || !roleTier) {
+    return <AccessError type="missing_role" />;
+  }
+
+  // Check if user has the required tier access
   if (roleTier !== allowedTier) {
     // Redirect to appropriate tier dashboard
     const redirectMap: Record<string, string> = {
@@ -280,15 +289,17 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <LocalizationProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </LocalizationProvider>
   </QueryClientProvider>
 );
 

@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { School, Building2, ArrowRight, Send, FileText, Bell, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { getRoleTier } from '@/lib/supabase';
 
 export default function Index() {
+  const { t } = useTranslation();
   const { user, roleTier, loading } = useAuth();
 
   // Get the correct dashboard route based on role tier
@@ -41,10 +43,10 @@ export default function Index() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <School className="h-6 w-6 text-primary" />
-            <span className="font-heading font-bold">SchoolBridge Afghanistan</span>
+            <span className="font-heading font-bold">{t('app.title')}</span>
           </div>
           <Link to="/login">
-            <Button>Sign In</Button>
+            <Button>{t('auth.signIn')}</Button>
           </Link>
         </div>
       </header>
@@ -61,19 +63,18 @@ export default function Index() {
             </div>
           </div>
           
-           <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-tight">
-             SchoolBridge Afghanistan
+          <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-tight">
+            {t('app.title')}
           </h1>
-          <p className="text-xl text-muted-foreground">پورتال معلومات مکاتب افغانستان</p>
+          <p className="text-xl text-muted-foreground">{t('app.description')}</p>
           
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Connecting schools across Afghanistan with the central education ministry. 
-            Submit data digitally, receive updates, and eliminate the need for long distance paper transfers.
+            {t('app.description')} - تام کردن ارتباط آموزش در سراسر افغانستان
           </p>
 
           <Link to="/login">
             <Button size="lg" className="mt-4">
-              Get Started
+              {t('auth.signUp')}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>
