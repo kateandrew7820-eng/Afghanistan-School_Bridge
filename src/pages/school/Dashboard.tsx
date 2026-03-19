@@ -8,6 +8,8 @@ import { getVerificationQueueFilter } from '@/lib/verificationHierarchy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import Breadcrumb from '@/components/Breadcrumb';
+import PageHeader from '@/components/PageHeader';
 import { 
   BarChart3, 
   FileText, 
@@ -16,7 +18,8 @@ import {
   Calendar,
   ArrowRight,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  School
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -82,24 +85,31 @@ export default function SchoolDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Welcome back!</h1>
-        <p className="text-muted-foreground">
-          {profile?.schools?.name} - {profile?.schools?.province}, {profile?.schools?.district}
-        </p>
-      </div>
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb items={[
+        { label: 'خانه', href: '/' },
+        { label: 'مدرسه', href: '/school' },
+        { label: 'داشبورد' }
+      ]} />
+
+      {/* Page Header */}
+      <PageHeader
+        title="داشبورد مدرسه"
+        description={`${profile?.schools?.name} - ${profile?.schools?.province}، ${profile?.schools?.district}`}
+        icon={<School className="h-6 w-6" />}
+        backButton={false}
+      />
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
         <Link to="/school/statistics">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Submit Statistics</CardTitle>
+              <CardTitle className="text-sm font-medium">ارسال آمار</CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Enter student counts and attendance data</p>
+              <p className="text-xs text-muted-foreground">وارد کردن تعداد دانش‌آموز و حاضری</p>
             </CardContent>
           </Card>
         </Link>
@@ -107,11 +117,11 @@ export default function SchoolDashboard() {
         <Link to="/school/reports">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Upload Reports</CardTitle>
+              <CardTitle className="text-sm font-medium">آپلود گزارش‌ها</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Upload monthly reports and documents</p>
+              <p className="text-xs text-muted-foreground">آپلود گزارش‌ها و اسناد ماهانه</p>
             </CardContent>
           </Card>
         </Link>
@@ -119,11 +129,11 @@ export default function SchoolDashboard() {
         <Link to="/school/forms">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Fill Forms</CardTitle>
+              <CardTitle className="text-sm font-medium">تکمیل فرم‌ها</CardTitle>
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Complete required forms</p>
+              <p className="text-xs text-muted-foreground">تکمیل فرم‌های الزامی</p>
             </CardContent>
           </Card>
         </Link>

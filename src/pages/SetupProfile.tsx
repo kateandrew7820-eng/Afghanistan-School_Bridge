@@ -9,7 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { Loader2, AlertCircle, Zap } from 'lucide-react';
+import Breadcrumb from '@/components/Breadcrumb';
+import PageHeader from '@/components/PageHeader';
+import { Loader2, AlertCircle, Zap, ArrowRight } from 'lucide-react';
 
 const ROLES = [
   { id: 'student', label: 'دانش‌آموز', value: 'student' },
