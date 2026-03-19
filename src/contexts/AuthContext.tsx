@@ -9,6 +9,13 @@ interface Profile {
   school_id: string | null;
   district: string | null;
   province: string | null;
+  school_name?: string | null;
+  role?: string | null;
+  phone_number?: string | null;
+  status?: string;
+  verified_by_user_id?: string | null;
+  verified_at?: string | null;
+  rejection_reason?: string | null;
   schools?: {
     id: string;
     name: string;

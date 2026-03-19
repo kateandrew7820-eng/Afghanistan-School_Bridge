@@ -13,6 +13,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
 import Demo from "./pages/Demo";
+import SetupProfile from "./pages/SetupProfile";
+import PendingVerification from "./pages/PendingVerification";
 
 // Layouts
 import SchoolLayout from "./components/layouts/SchoolLayout";
@@ -115,6 +117,10 @@ function AppRoutes() {
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
       <Route path="/login" element={user && roleTier ? <Navigate to={getDashboardRoute()} replace /> : <Login />} />
+
+      {/* User Setup & Verification Routes */}
+      <Route path="/setup-profile" element={<SetupProfile />} />
+      <Route path="/pending-verification" element={<PendingVerification />} />
 
       {/* Demo/Testing Mode - Choose role and see dashboards without auth */}
       {/* Only available in development environment */}

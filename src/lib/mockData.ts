@@ -78,7 +78,7 @@ export const mockSubmissions = [
   },
   {
     id: '2',
-    type: 'گزارش فعالیت‌های کلاسی',
+    type: 'گزارش فعالیت‌های صنفی',
     status: 'در انتظار تأیید',
     date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     submittedBy: 'فاطمه علوی',

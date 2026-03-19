@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { School, Building2, Loader2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // ============================================================================
 // VALIDATION HELPERS
@@ -49,6 +50,7 @@ const validateFullName = (fullName: string, t: any): { valid: boolean; message?:
 
 export default function Login() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   // Sign In State
   const [signInEmail, setSignInEmail] = useState('');
@@ -155,34 +157,17 @@ export default function Login() {
       return;
     }
 
-    // FIX: Success! Auth context will automatically update and redirect to dashboard
-    // Because signUp() now includes auto-login, the auth state listener will:
-    // 1. Receive the new session (onAuthStateChange)
-    // 2. Load user data and role (automatically via useAuth hook)
-    // 3. App.tsx will detect user && roleTier and redirect to correct dashboard
-    
+    // Success! Account created and auto-login successful
+    // Now redirect to setup profile form
     toast({
       title: t('common.success'),
-      description: 'Creating your account and signing you in...',
+      description: 'Account created! Please complete your profile.',
     });
 
-    // FIX: Add safety timeout to prevent infinite loading
-    // If auth state doesn't update within 5 seconds, something went wrong
-    // Reset loading state so user can see error or try again
-    const timeoutId = setTimeout(() => {
-      console.error('Signup: Auth state did not update within 5 seconds - possible network or backend issue');
-      setIsLoading(false);
-      toast({
-        title: t('common.error'),
-        description: 'Account created but automatic login took too long. Please try signing in manually.',
-        variant: "destructive"
-      });
-    }, 5000);
-
-    // Return cleanup function to clear timeout if component unmounts
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    // Wait a moment to ensure auth state is updated, then redirect
+    setTimeout(() => {
+      navigate('/setup-profile');
+    }, 1000);
   };
 
   // ============================================================================
