@@ -115,6 +115,17 @@ function AppRoutes() {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={user && roleTier ? <Navigate to={getDashboardRoute()} replace /> : <Login />} />
 
+      {/* DEVELOPER BYPASS: Access dashboard without login for testing/development */}
+      {/* TO REMOVE: Delete this route when auth is fully working */}
+      <Route path="/dev-dashboard" element={
+        <SchoolLayout>
+          <div className="absolute top-4 right-4 bg-red-100 border-2 border-red-500 rounded px-3 py-2 text-sm text-red-700 font-bold">
+            ⚠️ DEV MODE - No Auth Required
+          </div>
+          <SchoolDashboard />
+        </SchoolLayout>
+      } />
+
       {/* Legacy admin redirect */}
       <Route path="/admin/*" element={<Navigate to="/ministry" replace />} />
 

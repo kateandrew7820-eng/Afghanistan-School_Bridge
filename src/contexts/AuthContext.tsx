@@ -194,12 +194,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Sign up with email, password, and full name
    * Creates account and automatically logs user in (modern UX pattern)
    * Database triggers create profile and role automatically
+   * 
+   * FIX: Properly propagates auto-login errors back to caller
    */
   const signUp = async (email: string, password: string, fullName: string): Promise<{ error: Error | null }> => {
     try {
       setError(null);
 
-      // Sign up the user
+      // Step 1: Sign up the user
       const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -217,37 +219,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         const error = new Error(message);
         setError(error);
+        console.error('Sign up error:', error);
         return { error };
       }
 
       if (!newUser) {
         const error = new Error('Failed to create account. Please try again.');
         setError(error);
+        console.error('Sign up error:', error);
         return { error };
       }
 
+      console.log('Account created, userId:', newUser.id);
+
+      // Step 2: Wait for database triggers to create profile/role
       // OPTIMIZED: Minimal delay (200ms instead of 1000ms)
       // Database triggers start immediately and don't block auth flow
       // Role/profile load in parallel in background via auth listener
       await new Promise(resolve => setTimeout(resolve, 200));
 
-      // AUTOMATIC LOGIN: Sign the user in immediately after signup (modern UX)
-      // This creates a session and triggers onAuthStateChange listener
-      // which loads user data in parallel and redirects to dashboard automatically
+      // Step 3: Auto-login - creates session and triggers onAuthStateChange listener
+      // CRITICAL FIX: If auto-login fails, PROPAGATE THE ERROR back to caller
+      // Don't silently swallow the error - user needs to know signup failed
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (signInError) {
-        // If auto-login fails, still consider signup successful
-        // User can manually sign in from login page
-        console.warn('Auto-login after signup failed:', signInError);
-        // Don't return error here - signup was successful, just auto-login didn't work
-        return { error: null };
+        const message = `Account created but auto-login failed: ${signInError.message}. Please try signing in manually.`;
+        const error = new Error(message);
+        setError(error);
+        console.error('Auto-login after signup failed:', error);
+        // FIX: Return the error so Login component can show it
+        // User created account successfully but needs to manually sign in
+        return { error };
       }
 
+      // Success! Auto-login worked
+      // Auth listener will fire and update state automatically
       setError(null);
+      console.log('Auto-login successful after signup');
       return { error: null };
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Sign up failed');
