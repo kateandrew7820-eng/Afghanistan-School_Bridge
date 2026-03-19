@@ -71,7 +71,7 @@ export default function AdminDocuments() {
 
     if (uploadError) {
       toast({
-        title: "Upload Failed",
+        title: "آپلود ناموفق",
         description: uploadError.message,
         variant: "destructive"
       });
@@ -92,11 +92,11 @@ export default function AdminDocuments() {
     setIsSubmitting(false);
 
     if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
+      toast({ title: "ناموفق", description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({ title: "Document Uploaded", description: "Now available to all schools." });
+    toast({ title: "سند آپلود شد", description: "اکنون برای تمام مکاتب در دسترس است." });
     setIsAddDialogOpen(false);
     setNewDocument({ title: '', description: '', category: 'general' });
     setSelectedFile(null);
@@ -108,11 +108,11 @@ export default function AdminDocuments() {
     const { error } = await supabase.from('center_documents').delete().eq('id', id);
     
     if (error) {
-      toast({ title: "Failed to delete", description: error.message, variant: "destructive" });
+      toast({ title: "حذف ناموفق", description: error.message, variant: "destructive" });
       return;
     }
     
-    toast({ title: "Deleted" });
+    toast({ title: "حذف شد" });
     fetchDocuments();
   };
 
@@ -134,55 +134,55 @@ export default function AdminDocuments() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <FileUp className="h-6 w-6" />
-            Documents
+            اسناد
           </h1>
-          <p className="text-muted-foreground">Share documents with all schools</p>
+          <p className="text-muted-foreground">اسناد را با تمام مکاتب به اشتراک بگذارید</p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Upload Document
+              آپلود سند
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Upload Document</DialogTitle>
-              <DialogDescription>This will be available to all schools</DialogDescription>
+              <DialogTitle>آپلود سند</DialogTitle>
+              <DialogDescription>این برای تمام مکاتب در دسترس خواهد بود</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddDocument} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">عنوان *</Label>
                 <Input
                   id="title"
                   value={newDocument.title}
                   onChange={(e) => setNewDocument({ ...newDocument, title: e.target.value })}
-                  placeholder="Document title"
+                  placeholder="عنوان سند"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">دسته‌بندی</Label>
                 <Input
                   id="category"
                   value={newDocument.category}
                   onChange={(e) => setNewDocument({ ...newDocument, category: e.target.value })}
-                  placeholder="e.g., Policy, Curriculum, Guidelines"
+                  placeholder="مثلاً: سیاست، برنامه درسی، دستورالعمل"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">توضیح</Label>
                 <Textarea
                   id="description"
                   value={newDocument.description}
                   onChange={(e) => setNewDocument({ ...newDocument, description: e.target.value })}
-                  placeholder="Brief description..."
+                  placeholder="توضیح کوتاه..."
                   rows={3}
                 />
               </div>
               <div className="space-y-2">
-                <Label>File *</Label>
+                <Label>پرونده *</Label>
                 <div 
                   className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary transition-colors"
                   onClick={() => fileInputRef.current?.click()}
@@ -198,7 +198,7 @@ export default function AdminDocuments() {
                   ) : (
                     <div>
                       <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
-                      <p className="text-sm text-muted-foreground">Click to select</p>
+                      <p className="text-sm text-muted-foreground">برای انتخاب کلیک کنید</p>
                     </div>
                   )}
                 </div>
@@ -207,10 +207,10 @@ export default function AdminDocuments() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
+                    در حال آپلود...
                   </>
                 ) : (
-                  'Upload'
+                  'آپلود'
                 )}
               </Button>
             </form>
@@ -219,11 +219,11 @@ export default function AdminDocuments() {
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">در حال بارگذاری...</p>
       ) : documents.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No documents uploaded yet</p>
+            <p className="text-muted-foreground">هنوز سندی آپلود نشده است</p>
           </CardContent>
         </Card>
       ) : (
@@ -247,7 +247,7 @@ export default function AdminDocuments() {
                 {doc.description && <p className="text-sm text-muted-foreground mb-3">{doc.description}</p>}
                 <Button variant="outline" size="sm" onClick={() => downloadDocument(doc.file_path, doc.file_name)}>
                   <Download className="mr-2 h-4 w-4" />
-                  {doc.file_name}
+                  دانلود
                 </Button>
               </CardContent>
             </Card>

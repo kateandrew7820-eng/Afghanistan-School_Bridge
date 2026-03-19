@@ -45,10 +45,10 @@ export default function AdminSubmissions() {
   const updateStatus = async (table: 'statistics_submissions' | 'report_submissions' | 'form_submissions', id: string, status: string) => {
     const { error } = await supabase.from(table).update({ status }).eq('id', id);
     if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
+      toast({ title: "ناموفق", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Status Updated" });
+    toast({ title: "وضعیت بروزرسانی شد" });
     fetchSubmissions();
   };
 
@@ -76,22 +76,22 @@ export default function AdminSubmissions() {
       <CardContent>
         {type === 'statistics' && (
           <div className="text-sm space-y-1 mb-3">
-            <p>Year: {submission.academic_year}</p>
-            <p>Total Students: {submission.total_students}</p>
-            <p>Teachers: {submission.total_teachers}</p>
-            {submission.attendance_rate && <p>Attendance: {submission.attendance_rate}%</p>}
+            <p>سال: {submission.academic_year}</p>
+            <p>کل دانش‌آموزان: {submission.total_students}</p>
+            <p>معلمان: {submission.total_teachers}</p>
+            {submission.attendance_rate && <p>حضور: {submission.attendance_rate}%</p>}
           </div>
         )}
         {type === 'report' && (
           <div className="text-sm space-y-1 mb-3">
             <p className="font-medium">{submission.title}</p>
             {submission.description && <p className="text-muted-foreground">{submission.description}</p>}
-            <p className="text-xs text-muted-foreground">File: {submission.file_name}</p>
+            <p className="text-xs text-muted-foreground">پرونده: {submission.file_name}</p>
           </div>
         )}
         {type === 'form' && (
           <div className="text-sm space-y-1 mb-3">
-            <p>Type: {submission.form_type}</p>
+            <p>نوع: {submission.form_type}</p>
             {submission.form_data?.title && <p className="font-medium">{submission.form_data.title}</p>}
           </div>
         )}
@@ -104,9 +104,9 @@ export default function AdminSubmissions() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="reviewed">Reviewed</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="pending">درانتظار</SelectItem>
+              <SelectItem value="reviewed">بررسی‌شده</SelectItem>
+              <SelectItem value="approved">تایید‌شده</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -117,31 +117,31 @@ export default function AdminSubmissions() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">View Submissions</h1>
-        <p className="text-muted-foreground">Review data submitted by schools</p>
+        <h1 className="text-2xl font-bold">مشاهده ارسال‌ها</h1>
+        <p className="text-muted-foreground">داده‌های ارسال شده توسط مکاتب را بررسی کنید</p>
       </div>
 
       <Tabs defaultValue="statistics">
         <TabsList>
           <TabsTrigger value="statistics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Statistics ({statistics.length})
+            آمار ({statistics.length})
           </TabsTrigger>
           <TabsTrigger value="reports" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Reports ({reports.length})
+            گزارش‌ها ({reports.length})
           </TabsTrigger>
           <TabsTrigger value="forms" className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4" />
-            Forms ({forms.length})
+            فرم‌ها ({forms.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="statistics" className="mt-4">
           {loading ? (
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">درحال بارگذاری...</p>
           ) : statistics.length === 0 ? (
-            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">No statistics submissions</p></CardContent></Card>
+            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">ارسالی آماری وجود ندارد</p></CardContent></Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {statistics.map((s) => <SubmissionCard key={s.id} submission={s} type="statistics" />)}
@@ -151,9 +151,9 @@ export default function AdminSubmissions() {
 
         <TabsContent value="reports" className="mt-4">
           {loading ? (
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">درحال بارگذاری...</p>
           ) : reports.length === 0 ? (
-            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">No report submissions</p></CardContent></Card>
+            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">ارسالی گزارش وجود ندارد</p></CardContent></Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {reports.map((s) => <SubmissionCard key={s.id} submission={s} type="report" />)}
@@ -163,9 +163,9 @@ export default function AdminSubmissions() {
 
         <TabsContent value="forms" className="mt-4">
           {loading ? (
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">درحال بارگذاری...</p>
           ) : forms.length === 0 ? (
-            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">No form submissions</p></CardContent></Card>
+            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">ارسالی فرم وجود ندارد</p></CardContent></Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {forms.map((s) => <SubmissionCard key={s.id} submission={s} type="form" />)}

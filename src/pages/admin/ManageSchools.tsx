@@ -194,7 +194,7 @@ export default function ManageSchools() {
         <Card>
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">
-              {searchQuery ? 'No schools match your search' : 'No schools registered yet'}
+              {searchQuery ? 'مکتبی با این جستجو یافت نشد' : 'مکتبی ثبت نشده است'}
             </p>
           </CardContent>
         </Card>
