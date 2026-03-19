@@ -107,12 +107,15 @@ export interface FetchUserProfileResponse {
 /**
  * Fetch user profile with comprehensive error handling
  * Returns object with both profile and error for caller to decide how to handle
+ * OPTIMIZED: Removed schools relationship for faster initial load
  */
 export async function getUserProfile(userId: string): Promise<FetchUserProfileResponse> {
   try {
+    // OPTIMIZED: Don't fetch schools relationship on initial load - defer that to dashboard
+    // Reduces query time and allows faster redirect to dashboard
     const { data, error } = await supabase
       .from('profiles')
-      .select('*, schools(*)')
+      .select('id, user_id, full_name, school_id, district, province')
       .eq('user_id', userId)
       .single();
     
