@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           {/* Logo */}
           <div className="h-16 flex items-center gap-2 px-4 border-b">
             <Building2 className="h-6 w-6 text-primary" />
-            <span className="font-semibold">Center Admin Portal</span>
+            <span className="font-heading font-semibold">Center Admin Portal</span>
           </div>
 
           {/* Navigation */}

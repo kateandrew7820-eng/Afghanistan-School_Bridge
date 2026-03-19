@@ -67,7 +67,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
           {/* Logo */}
           <div className="h-16 flex items-center gap-2 px-4 border-b">
             <School className="h-6 w-6 text-primary" />
-            <span className="font-semibold truncate">{profile?.schools?.name || 'School Portal'}</span>
+            <span className="font-heading font-semibold truncate">{profile?.schools?.name || 'School Portal'}</span>
           </div>
 
           {/* Navigation */}
