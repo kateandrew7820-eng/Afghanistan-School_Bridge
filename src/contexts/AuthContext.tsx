@@ -26,6 +26,7 @@ interface AuthContextType {
   roleTier: 'school' | 'district' | 'province' | 'ministry' | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   defaultRoute: string;
 }
@@ -86,6 +87,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const signUp = async (email: string, password: string, fullName: string) => {
+    try {
+      // Sign up the user
+      const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+
+      if (signUpError) return { error: signUpError };
+      if (!newUser) return { error: new Error('Failed to create user') };
+
+      // Create a profile for the new user
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            user_id: newUser.id,
+            full_name: fullName
+          }
+        ]);
+
+      if (profileError) return { error: profileError };
+
+      // Create a default school role for the new user
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert([
+          {
+            user_id: newUser.id,
+            role: 'school'
+          }
+        ]);
+
+      if (roleError) return { error: roleError };
+
+      return { error: null };
+    } catch (err) {
+      return { error: err instanceof Error ? err : new Error('Signup failed') };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -95,7 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, role, roleTier, loading, signIn, signOut, defaultRoute }}>
+    <AuthContext.Provider value={{ user, session, profile, role, roleTier, loading, signIn, signUp, signOut, defaultRoute }}>
       {children}
     </AuthContext.Provider>
   );
