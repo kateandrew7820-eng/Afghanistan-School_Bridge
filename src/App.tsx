@@ -50,7 +50,7 @@ const queryClient = new QueryClient();
 type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
 
 function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; allowedTier: AllowedTier }) {
-  const { user, role, loading, defaultRoute } = useAuth();
+  const { user, role, loading, roleTier } = useAuth();
 
   if (loading) {
     return (
@@ -60,20 +60,26 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
     );
   }
 
-  if (!user || !role) {
+  if (!user || !role || !roleTier) {
     return <Navigate to="/login" replace />;
   }
 
-  const userTier = getRoleTier(role);
-  if (userTier !== allowedTier) {
-    return <Navigate to={defaultRoute} replace />;
+  if (roleTier !== allowedTier) {
+    // Redirect to appropriate tier dashboard
+    const redirectMap: Record<string, string> = {
+      'school': '/school',
+      'district': '/district',
+      'province': '/province',
+      'ministry': '/ministry'
+    };
+    return <Navigate to={redirectMap[roleTier] || '/login'} replace />;
   }
 
   return <>{children}</>;
 }
 
 function AppRoutes() {
-  const { user, role, loading, defaultRoute } = useAuth();
+  const { user, loading, roleTier } = useAuth();
 
   if (loading) {
     return (
@@ -83,11 +89,23 @@ function AppRoutes() {
     );
   }
 
+  // Determine redirect destination based on role tier
+  const getDefaultRoute = (): string => {
+    if (!roleTier) return '/login';
+    const redirectMap: Record<string, string> = {
+      'school': '/school',
+      'district': '/district',
+      'province': '/province',
+      'ministry': '/ministry'
+    };
+    return redirectMap[roleTier] || '/login';
+  };
+
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={user ? <Navigate to={defaultRoute} replace /> : <Login />} />
+      <Route path="/login" element={user && roleTier ? <Navigate to={getDefaultRoute()} replace /> : <Login />} />
 
       {/* Legacy admin redirect */}
       <Route path="/admin/*" element={<Navigate to="/ministry" replace />} />
