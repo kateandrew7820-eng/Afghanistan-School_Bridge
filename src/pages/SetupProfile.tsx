@@ -131,28 +131,25 @@ export default function SetupProfile() {
       // ========================================
       const DEV_MODE = import.meta.env.MODE === 'development';
       
-      // Update user profile with setup information
-      // Use type casting to handle schema version mismatch during development
-      const updateData: any = {
+      // Prepare profile data for upsert
+      // Use upsert so it works even if profile record doesn't exist yet
+      const profileData: any = {
+        user_id: user.id,
         full_name: formData.full_name,
         district: formData.district,
         province: formData.province,
+        role: formData.role,
+        school_name: formData.school_name,
+        phone_number: formData.phone_number || null,
+        status: DEV_MODE ? 'verified' : 'pending_verification',
+        updated_at: new Date().toISOString(),
       };
       
-      // Add new fields only if they're in the database schema
-      // (They may not be if migration hasn't been deployed)
-      updateData.role = formData.role;
-      updateData.school_name = formData.school_name;
-      updateData.phone_number = formData.phone_number || null;
-      
-      // DEV MODE: Auto-verify users in development to enable testing
-      // PRODUCTION: Users must be manually approved by admins
-      updateData.status = DEV_MODE ? 'verified' : 'pending_verification';
-      
+      // Use upsert instead of update to handle case where profile doesn't exist
+      // This fixes the issue where profiles table doesn't auto-create on signup
       const { error } = await supabase
         .from('profiles')
-        .update(updateData as any)
-        .eq('user_id', user.id);
+        .upsert(profileData, { onConflict: 'user_id' });
 
       if (error) {
         throw error;
@@ -192,11 +189,36 @@ export default function SetupProfile() {
         navigate('/pending-verification');
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'خطایی در ذخیره پروفایل رخ داد';
-      console.error('Setup error:', err);
+      // Extract detailed error information
+      let errorMessage = 'خطایی در ذخیره پروفایل رخ داد';
+      let errorDetails = '';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        errorDetails = err.toString();
+      } else if (typeof err === 'object' && err !== null) {
+        // Handle Supabase error objects
+        const errorObj = err as any;
+        if (errorObj.message) {
+          errorMessage = errorObj.message;
+          errorDetails = JSON.stringify(errorObj, null, 2);
+        }
+      }
+      
+      console.error('❌ Profile setup error:', {
+        message: errorMessage,
+        details: errorDetails,
+        fullError: err,
+      });
+      
+      // Show user-friendly error message
+      const userMessage = errorMessage.startsWith('$1.') 
+        ? 'یکی از فیلدهای فرم نامعتبر است'
+        : errorMessage;
+        
       toast({
         title: 'خطا',
-        description: message,
+        description: userMessage || 'خطایی نامشخص رخ داد',
         variant: 'destructive',
       });
     } finally {
