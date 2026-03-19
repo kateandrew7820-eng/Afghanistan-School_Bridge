@@ -31,8 +31,8 @@ export default function Index() {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Afghanistan Schools Data Portal
+           <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-tight">
+             SchoolBridge Afghanistan
           </h1>
           <p className="text-xl text-muted-foreground">پورتال معلومات مکاتب افغانستان</p>
           
