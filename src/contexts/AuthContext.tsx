@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, getUserRole, getUserProfile, UserRole } from '@/lib/supabase';
+import { supabase, getUserRole, getUserProfile, UserRole, getRoleTier, getRoleDefaultRoute } from '@/lib/supabase';
 
 interface Profile {
   id: string;
   user_id: string;
   full_name: string | null;
   school_id: string | null;
+  district: string | null;
+  province: string | null;
   schools?: {
     id: string;
     name: string;
@@ -21,9 +23,11 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   role: UserRole | null;
+  roleTier: 'school' | 'district' | 'province' | 'ministry' | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  defaultRoute: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,21 +39,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const roleTier = role ? getRoleTier(role) : null;
+  const defaultRoute = role ? getRoleDefaultRoute(role) : '/login';
+
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch role and profile
           const [userRole, userProfile] = await Promise.all([
             getUserRole(session.user.id),
             getUserProfile(session.user.id)
           ]);
           setRole(userRole);
-          setProfile(userProfile);
+          setProfile(userProfile as Profile | null);
         } else {
           setRole(null);
           setProfile(null);
@@ -58,7 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -69,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           getUserProfile(session.user.id)
         ]);
         setRole(userRole);
-        setProfile(userProfile);
+        setProfile(userProfile as Profile | null);
       }
       setLoading(false);
     });
@@ -91,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, role, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, role, roleTier, loading, signIn, signOut, defaultRoute }}>
       {children}
     </AuthContext.Provider>
   );

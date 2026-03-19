@@ -11,7 +11,7 @@ export default function Index() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <School className="h-6 w-6 text-primary" />
-            <span className="font-bold">Afghanistan Schools Portal</span>
+            <span className="font-heading font-bold">SchoolBridge Afghanistan</span>
           </div>
           <Link to="/login">
             <Button>Sign In</Button>
@@ -31,8 +31,8 @@ export default function Index() {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Afghanistan Schools Data Portal
+           <h1 className="text-4xl md:text-5xl font-heading font-bold tracking-tight">
+             SchoolBridge Afghanistan
           </h1>
           <p className="text-xl text-muted-foreground">پورتال معلومات مکاتب افغانستان</p>
           
@@ -52,7 +52,7 @@ export default function Index() {
 
       {/* Features */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-2xl font-bold text-center mb-12">How It Works</h2>
+        <h2 className="text-2xl font-heading font-bold text-center mb-12">How It Works</h2>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
           <Card>

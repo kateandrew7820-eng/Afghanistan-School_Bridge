@@ -154,24 +154,30 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          district: string | null
           full_name: string | null
           id: string
+          province: string | null
           school_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          district?: string | null
           full_name?: string | null
           id?: string
+          province?: string | null
           school_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          district?: string | null
           full_name?: string | null
           id?: string
+          province?: string | null
           school_id?: string | null
           updated_at?: string
           user_id?: string
@@ -359,7 +365,14 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "school"
+      app_role:
+        | "admin"
+        | "school"
+        | "teacher"
+        | "principal"
+        | "district_admin"
+        | "province_admin"
+        | "ministry_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -487,7 +500,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "school"],
+      app_role: [
+        "admin",
+        "school",
+        "teacher",
+        "principal",
+        "district_admin",
+        "province_admin",
+        "ministry_admin",
+      ],
     },
   },
 } as const
