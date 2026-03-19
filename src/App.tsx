@@ -79,7 +79,7 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
 }
 
 function AppRoutes() {
-  const { user, loading, roleTier } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -89,23 +89,11 @@ function AppRoutes() {
     );
   }
 
-  // Determine redirect destination based on role tier
-  const getDefaultRoute = (): string => {
-    if (!roleTier) return '/login';
-    const redirectMap: Record<string, string> = {
-      'school': '/school',
-      'district': '/district',
-      'province': '/province',
-      'ministry': '/ministry'
-    };
-    return redirectMap[roleTier] || '/login';
-  };
-
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={user && roleTier ? <Navigate to={getDefaultRoute()} replace /> : <Login />} />
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
 
       {/* Legacy admin redirect */}
       <Route path="/admin/*" element={<Navigate to="/ministry" replace />} />
