@@ -50,7 +50,7 @@ export default function Login() {
             <School className="h-10 w-10 text-primary" />
             <Building2 className="h-10 w-10 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Afghanistan Schools Portal</h1>
+          <h1 className="text-2xl font-heading font-bold text-foreground">SchoolBridge Afghanistan</h1>
           <p className="text-muted-foreground">پورتال مکاتب افغانستان</p>
         </div>
 

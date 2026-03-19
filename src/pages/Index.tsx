@@ -52,7 +52,7 @@ export default function Index() {
 
       {/* Features */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-2xl font-bold text-center mb-12">How It Works</h2>
+        <h2 className="text-2xl font-heading font-bold text-center mb-12">How It Works</h2>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
           <Card>
