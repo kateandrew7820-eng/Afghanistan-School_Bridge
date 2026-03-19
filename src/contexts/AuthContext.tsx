@@ -104,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!newUser) return { error: new Error('Failed to create user') };
 
       // Create a profile for the new user
+      // The user_role will be created automatically via a database trigger
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([
@@ -114,18 +115,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ]);
 
       if (profileError) return { error: profileError };
-
-      // Create a default school role for the new user
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([
-          {
-            user_id: newUser.id,
-            role: 'school'
-          }
-        ]);
-
-      if (roleError) return { error: roleError };
 
       return { error: null };
     } catch (err) {
