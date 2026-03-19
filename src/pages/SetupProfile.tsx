@@ -125,6 +125,12 @@ export default function SetupProfile() {
     setIsLoading(true);
 
     try {
+      // ========================================
+      // DEV MODE: Auto-verify for testing
+      // Set to false for production
+      // ========================================
+      const DEV_MODE = import.meta.env.MODE === 'development';
+      
       // Update user profile with setup information
       // Use type casting to handle schema version mismatch during development
       const updateData: any = {
@@ -138,7 +144,10 @@ export default function SetupProfile() {
       updateData.role = formData.role;
       updateData.school_name = formData.school_name;
       updateData.phone_number = formData.phone_number || null;
-      updateData.status = 'pending_verification';
+      
+      // DEV MODE: Auto-verify users in development to enable testing
+      // PRODUCTION: Users must be manually approved by admins
+      updateData.status = DEV_MODE ? 'verified' : 'pending_verification';
       
       const { error } = await supabase
         .from('profiles')
@@ -149,13 +158,39 @@ export default function SetupProfile() {
         throw error;
       }
 
-      toast({
-        title: 'موفقیت',
-        description: 'پروفایل شما ذخیره شد. اکنون به تایید اختیار رسانی منتظر هستید.',
-      });
+      // DEV MODE: Skip verification process, go directly to dashboard
+      if (DEV_MODE) {
+        toast({
+          title: 'موفقیت',
+          description: '[DEV MODE] پروفایل شما تأیید شد. به داشبورد منتقل می‌شوید...',
+        });
 
-      // Redirect to pending verification page
-      navigate('/pending-verification');
+        // Determine dashboard route based on role
+        const dashboardRoutes: Record<string, string> = {
+          'student': '/school',
+          'teacher': '/school',
+          'principal': '/school',
+          'district_admin': '/district',
+          'province_admin': '/province',
+          'ministry_admin': '/ministry',
+        };
+        
+        const dashboardRoute = dashboardRoutes[formData.role] || '/school';
+        
+        // Redirect directly to dashboard (skip pending verification)
+        setTimeout(() => {
+          navigate(dashboardRoute);
+        }, 500);
+      } else {
+        // PRODUCTION: Normal flow - user waits for admin approval
+        toast({
+          title: 'موفقیت',
+          description: 'پروفایل شما ذخیره شد. اکنون به تایید اختیار رسانی منتظر هستید.',
+        });
+
+        // Redirect to pending verification page
+        navigate('/pending-verification');
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطایی در ذخیره پروفایل رخ داد';
       console.error('Setup error:', err);
@@ -179,6 +214,24 @@ export default function SetupProfile() {
             لطفاً اطلاعات خود را وارد کنید تا حساب کاربری شما تایید شود
           </p>
         </div>
+
+        {/* DEV MODE WARNING */}
+        {import.meta.env.MODE === 'development' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0">
+                <span className="text-xl">⚙️</span>
+              </div>
+              <div>
+                <h3 className="font-medium text-amber-900">حالت توسعه فعال</h3>
+                <p className="text-sm text-amber-800 mt-1">
+                  در حالت توسعه، پروفایل شما بلافاصله تأیید می‌شود و به داشبورد منتقل می‌شوید.
+                  این فقط برای آزمایش است.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Card>
           <CardHeader>
