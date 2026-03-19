@@ -40,6 +40,8 @@ interface AuthContextType {
   isDemoMode: boolean;
   setDemoMode: (role: UserRole, tier: 'school' | 'district' | 'province' | 'ministry') => void;
   exitDemoMode: () => void;
+  isDevQuickMode: boolean;
+  setDevQuickMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,11 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [demoTier, setDemoTier] = useState<'school' | 'district' | 'province' | 'ministry' | null>(null);
 
-  // Use demo role/tier if in demo mode, otherwise use actual role
-  const effectiveRole = isDemoMode ? demoRole : role;
-  const effectiveTier = isDemoMode ? demoTier : getRoleTier(role);
+  // Dev quick mode state (for fast development testing)
+  const [isDevQuickMode, setIsDevQuickModeState] = useState(false);
+  const [devQuickProfile, setDevQuickProfile] = useState<Profile | null>(null);
+
+  // Use demo role/tier if in demo mode, otherwise use dev quick mode, otherwise use actual role
+  const effectiveRole = isDemoMode ? demoRole : (isDevQuickMode ? 'teacher' : role);
+  const effectiveTier = isDemoMode ? demoTier : (isDevQuickMode ? 'school' : getRoleTier(role));
   const roleTier = effectiveTier;
-  const defaultRoute = getRoleDefaultRoute(role);
+  const defaultRoute = getRoleDefaultRoute(effectiveRole);
 
   /**
    * Load user role and profile from database
@@ -345,11 +351,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(null);
   };
 
+  /**
+   * Enter dev quick mode for fast development testing
+   * Creates a mock user without authentication
+   * Only works in development environment
+   */
+  const setDevQuickModeFunc = () => {
+    // Check if running in development environment
+    if (import.meta.env.MODE !== 'development') {
+      console.warn('Quick mode is only available in development environment');
+      return;
+    }
+    
+    console.log('Entering dev quick mode...');
+    
+    // Create mock dev user
+    const mockDevUser = {
+      id: 'dev-quick-user-' + Date.now(),
+      email: 'developer@test.local',
+      user_metadata: {
+        full_name: 'توسعه دهنده'
+      },
+      app_metadata: {},
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    } as any;
+
+    // Create mock dev profile
+    const mockDevProfile: Profile = {
+      id: 'dev-profile-' + Date.now(),
+      user_id: mockDevUser.id,
+      full_name: 'توسعه دهنده',
+      school_id: null,
+      district: 'منطقه توسعه',
+      province: 'کابل',
+      school_name: 'مدرسه توسعه',
+      role: 'teacher',
+      phone_number: '+93 700 000 000',
+      status: 'verified',
+      verified_by_user_id: null,
+      verified_at: new Date().toISOString(),
+      rejection_reason: null,
+      schools: null,
+    };
+
+    // Set state for dev quick mode
+    setUser(mockDevUser);
+    setProfile(mockDevProfile);
+    setRole('teacher');
+    setIsDevQuickModeState(true);
+    setDevQuickProfile(mockDevProfile);
+    setLoading(false);
+    setError(null);
+
+    console.log('Dev quick mode activated with mock user:', mockDevUser.id);
+  };
+
+  /**
+   * Exit dev quick mode
+   */
+  const exitDevQuickModeFunc = () => {
+    console.log('Exiting dev quick mode');
+    setIsDevQuickModeState(false);
+    setUser(null);
+    setProfile(null);
+    setRole(null);
+    setDevQuickProfile(null);
+    setLoading(false);
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       session,
-      profile,
+      profile: isDevQuickMode ? devQuickProfile : profile,
       role: effectiveRole,
       roleTier,
       loading,
@@ -357,10 +432,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signUp,
       signOut,
-      defaultRoute: isDemoMode ? (demoTier === 'school' ? '/school' : `/${demoTier}`) : getRoleDefaultRoute(role),
+      defaultRoute: isDemoMode ? (demoTier === 'school' ? '/school' : `/${demoTier}`) : (isDevQuickMode ? '/setup-profile?quickMode=true' : getRoleDefaultRoute(role)),
       isDemoMode,
       setDemoMode: setDemoModeFunc,
       exitDemoMode: exitDemoModeFunc,
+      isDevQuickMode,
+      setDevQuickMode: setDevQuickModeFunc,
     }}>
       {children}
     </AuthContext.Provider>

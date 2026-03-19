@@ -68,7 +68,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState('signin');
 
-  const { signIn, signUp, error: authError, loading: authLoading } = useAuth();
+  const { signIn, signUp, error: authError, loading: authLoading, setDevQuickMode } = useAuth();
   const { toast } = useToast();
 
   // ============================================================================
@@ -216,9 +216,11 @@ export default function Login() {
                   </p>
                   <Button
                     onClick={() => {
-                      // Immediately navigate to quick setup
-                      // The auth guard will be bypassed via the dev flag in AuthContext
-                      navigate('/setup-profile?quickMode=true');
+                      // Activate dev quick mode and navigate to setup
+                      setDevQuickMode();
+                      setTimeout(() => {
+                        navigate('/setup-profile?quickMode=true');
+                      }, 100);
                     }}
                     className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-semibold h-10"
                   >
