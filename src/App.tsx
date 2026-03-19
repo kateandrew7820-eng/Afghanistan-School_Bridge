@@ -4,14 +4,20 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { getRoleTier } from "@/lib/supabase";
 
 // Pages
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
-// School Pages
+// Layouts
 import SchoolLayout from "./components/layouts/SchoolLayout";
+import DistrictLayout from "./components/layouts/DistrictLayout";
+import ProvinceLayout from "./components/layouts/ProvinceLayout";
+import MinistryLayout from "./components/layouts/MinistryLayout";
+
+// School Pages
 import SchoolDashboard from "./pages/school/Dashboard";
 import SubmitStatistics from "./pages/school/SubmitStatistics";
 import SubmitReports from "./pages/school/SubmitReports";
@@ -20,9 +26,19 @@ import SchoolAnnouncements from "./pages/school/Announcements";
 import SchoolDocuments from "./pages/school/Documents";
 import SchoolDeadlines from "./pages/school/Deadlines";
 
-// Admin Pages
-import AdminLayout from "./components/layouts/AdminLayout";
-import AdminDashboard from "./pages/admin/Dashboard";
+// District Pages
+import DistrictDashboard from "./pages/district/Dashboard";
+
+// Province Pages
+import ProvinceDashboard from "./pages/province/Dashboard";
+
+// Ministry Pages
+import MinistryDashboard from "./pages/ministry/Dashboard";
+
+// Shared
+import PlaceholderPage from "./components/PlaceholderPage";
+
+// Legacy Admin Pages (will be used under ministry)
 import AdminSubmissions from "./pages/admin/Submissions";
 import AdminAnnouncements from "./pages/admin/Announcements";
 import AdminDocuments from "./pages/admin/Documents";
@@ -31,8 +47,10 @@ import ManageSchools from "./pages/admin/ManageSchools";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; allowedRole: 'admin' | 'school' }) {
-  const { user, role, loading } = useAuth();
+type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
+
+function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; allowedTier: AllowedTier }) {
+  const { user, role, loading, defaultRoute } = useAuth();
 
   if (loading) {
     return (
@@ -42,19 +60,20 @@ function ProtectedRoute({ children, allowedRole }: { children: React.ReactNode; 
     );
   }
 
-  if (!user) {
+  if (!user || !role) {
     return <Navigate to="/login" replace />;
   }
 
-  if (role !== allowedRole) {
-    return <Navigate to={role === 'admin' ? '/admin' : '/school'} replace />;
+  const userTier = getRoleTier(role);
+  if (userTier !== allowedTier) {
+    return <Navigate to={defaultRoute} replace />;
   }
 
   return <>{children}</>;
 }
 
 function AppRoutes() {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, defaultRoute } = useAuth();
 
   if (loading) {
     return (
@@ -68,74 +87,171 @@ function AppRoutes() {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={user ? <Navigate to={role === 'admin' ? '/admin' : '/school'} replace /> : <Login />} />
+      <Route path="/login" element={user ? <Navigate to={defaultRoute} replace /> : <Login />} />
 
-      {/* School Routes */}
+      {/* Legacy admin redirect */}
+      <Route path="/admin/*" element={<Navigate to="/ministry" replace />} />
+
+      {/* School Routes (teacher & principal) */}
       <Route path="/school" element={
-        <ProtectedRoute allowedRole="school">
+        <ProtectedRoute allowedTier="school">
           <SchoolLayout><SchoolDashboard /></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/statistics" element={
-        <ProtectedRoute allowedRole="school">
+        <ProtectedRoute allowedTier="school">
           <SchoolLayout><SubmitStatistics /></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/reports" element={
-        <ProtectedRoute allowedRole="school">
+        <ProtectedRoute allowedTier="school">
           <SchoolLayout><SubmitReports /></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/forms" element={
-        <ProtectedRoute allowedRole="school">
+        <ProtectedRoute allowedTier="school">
           <SchoolLayout><SubmitForms /></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/announcements" element={
-        <ProtectedRoute allowedRole="school">
+        <ProtectedRoute allowedTier="school">
           <SchoolLayout><SchoolAnnouncements /></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/documents" element={
-        <ProtectedRoute allowedRole="school">
+        <ProtectedRoute allowedTier="school">
           <SchoolLayout><SchoolDocuments /></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/deadlines" element={
-        <ProtectedRoute allowedRole="school">
+        <ProtectedRoute allowedTier="school">
           <SchoolLayout><SchoolDeadlines /></SchoolLayout>
         </ProtectedRoute>
       } />
 
-      {/* Admin Routes */}
-      <Route path="/admin" element={
-        <ProtectedRoute allowedRole="admin">
-          <AdminLayout><AdminDashboard /></AdminLayout>
+      {/* District Routes */}
+      <Route path="/district" element={
+        <ProtectedRoute allowedTier="district">
+          <DistrictLayout><DistrictDashboard /></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/admin/submissions" element={
-        <ProtectedRoute allowedRole="admin">
-          <AdminLayout><AdminSubmissions /></AdminLayout>
+      <Route path="/district/submissions" element={
+        <ProtectedRoute allowedTier="district">
+          <DistrictLayout><PlaceholderPage title="School Submissions" description="View and verify submissions from schools in your district" /></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/admin/announcements" element={
-        <ProtectedRoute allowedRole="admin">
-          <AdminLayout><AdminAnnouncements /></AdminLayout>
+      <Route path="/district/verify" element={
+        <ProtectedRoute allowedTier="district">
+          <DistrictLayout><PlaceholderPage title="Verify Data" description="Review and approve school data submissions" /></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/admin/documents" element={
-        <ProtectedRoute allowedRole="admin">
-          <AdminLayout><AdminDocuments /></AdminLayout>
+      <Route path="/district/schools" element={
+        <ProtectedRoute allowedTier="district">
+          <DistrictLayout><PlaceholderPage title="Schools" description="Manage schools in your district" /></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/admin/deadlines" element={
-        <ProtectedRoute allowedRole="admin">
-          <AdminLayout><AdminDeadlines /></AdminLayout>
+      <Route path="/district/announcements" element={
+        <ProtectedRoute allowedTier="district">
+          <DistrictLayout><SchoolAnnouncements /></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/admin/schools" element={
-        <ProtectedRoute allowedRole="admin">
-          <AdminLayout><ManageSchools /></AdminLayout>
+      <Route path="/district/documents" element={
+        <ProtectedRoute allowedTier="district">
+          <DistrictLayout><SchoolDocuments /></DistrictLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/district/deadlines" element={
+        <ProtectedRoute allowedTier="district">
+          <DistrictLayout><SchoolDeadlines /></DistrictLayout>
+        </ProtectedRoute>
+      } />
+
+      {/* Province Routes */}
+      <Route path="/province" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><ProvinceDashboard /></ProvinceLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/province/districts" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><PlaceholderPage title="Districts" description="View and manage districts in your province" /></ProvinceLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/province/analytics" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><PlaceholderPage title="Analytics" description="Province-level analytics and trend data" /></ProvinceLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/province/submissions" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><PlaceholderPage title="Submissions" description="View aggregated submissions from all districts" /></ProvinceLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/province/announcements" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><SchoolAnnouncements /></ProvinceLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/province/documents" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><SchoolDocuments /></ProvinceLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/province/deadlines" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><SchoolDeadlines /></ProvinceLayout>
+        </ProtectedRoute>
+      } />
+
+      {/* Ministry Routes */}
+      <Route path="/ministry" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><MinistryDashboard /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/analytics" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><PlaceholderPage title="National Analytics" description="Nation-wide data analysis and trends" /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/provinces" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><PlaceholderPage title="Provinces" description="View all 34 provinces and their data" /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/submissions" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><AdminSubmissions /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/announcements" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><AdminAnnouncements /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/documents" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><AdminDocuments /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/deadlines" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><AdminDeadlines /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/users" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><PlaceholderPage title="Manage Users" description="Create and manage user accounts for all levels" /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/schools" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><ManageSchools /></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/export" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><PlaceholderPage title="Export Reports" description="Generate and download national reports in Excel and PDF" /></MinistryLayout>
         </ProtectedRoute>
       } />
 
