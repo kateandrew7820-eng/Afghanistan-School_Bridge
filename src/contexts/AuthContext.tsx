@@ -30,6 +30,9 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   defaultRoute: string;
+  isDemoMode: boolean;
+  setDemoMode: (role: UserRole, tier: 'school' | 'district' | 'province' | 'ministry') => void;
+  exitDemoMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,8 +44,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  // Demo mode state
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [demoRole, setDemoRole] = useState<UserRole | null>(null);
+  const [demoTier, setDemoTier] = useState<'school' | 'district' | 'province' | 'ministry' | null>(null);
 
-  const roleTier = getRoleTier(role);
+  // Use demo role/tier if in demo mode, otherwise use actual role
+  const effectiveRole = isDemoMode ? demoRole : role;
+  const effectiveTier = isDemoMode ? demoTier : getRoleTier(role);
+  const roleTier = effectiveTier;
   const defaultRoute = getRoleDefaultRoute(role);
 
   /**
@@ -280,6 +291,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       setRole(null);
       setError(null);
+      // Also exit demo mode on sign out
+      setIsDemoMode(false);
+      setDemoRole(null);
+      setDemoTier(null);
     } catch (err) {
       const signOutError = err instanceof Error ? err : new Error('Sign out failed');
       console.error('Sign out error:', signOutError);
@@ -287,19 +302,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  /**
+   * Enter demo mode with specified role and tier
+   * Used for development/testing without authentication
+   * Only works in development environment
+   */
+  const setDemoModeFunc = (role: UserRole, tier: 'school' | 'district' | 'province' | 'ministry') => {
+    // Check if running in development environment
+    if (import.meta.env.MODE !== 'development') {
+      console.warn('Demo mode is only available in development environment');
+      return;
+    }
+    
+    console.log('Entering demo mode with role:', role, 'tier:', tier);
+    setDemoRole(role);
+    setDemoTier(tier);
+    setIsDemoMode(true);
+    setLoading(false);
+    // Mock user for demo mode
+    setUser({
+      id: 'demo-user',
+      email: 'demo@example.com',
+    } as any);
+  };
+
+  /**
+   * Exit demo mode and return to normal auth flow
+   */
+  const exitDemoModeFunc = () => {
+    console.log('Exiting demo mode');
+    setIsDemoMode(false);
+    setDemoRole(null);
+    setDemoTier(null);
+    setUser(null);
+    setRole(null);
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
       session,
       profile,
-      role,
+      role: effectiveRole,
       roleTier,
       loading,
       error,
       signIn,
       signUp,
       signOut,
-      defaultRoute
+      defaultRoute: isDemoMode ? (demoTier === 'school' ? '/school' : `/${demoTier}`) : getRoleDefaultRoute(role),
+      isDemoMode,
+      setDemoMode: setDemoModeFunc,
+      exitDemoMode: exitDemoModeFunc,
     }}>
       {children}
     </AuthContext.Provider>

@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
+import Demo from "./pages/Demo";
 
 // Layouts
 import SchoolLayout from "./components/layouts/SchoolLayout";
@@ -115,16 +116,11 @@ function AppRoutes() {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={user && roleTier ? <Navigate to={getDashboardRoute()} replace /> : <Login />} />
 
-      {/* DEVELOPER BYPASS: Access dashboard without login for testing/development */}
-      {/* TO REMOVE: Delete this route when auth is fully working */}
-      <Route path="/dev-dashboard" element={
-        <SchoolLayout>
-          <div className="absolute top-4 right-4 bg-red-100 border-2 border-red-500 rounded px-3 py-2 text-sm text-red-700 font-bold">
-            ⚠️ DEV MODE - No Auth Required
-          </div>
-          <SchoolDashboard />
-        </SchoolLayout>
-      } />
+      {/* Demo/Testing Mode - Choose role and see dashboards without auth */}
+      {/* Only available in development environment */}
+      {import.meta.env.MODE === 'development' && (
+        <Route path="/demo" element={<Demo />} />
+      )}
 
       {/* Legacy admin redirect */}
       <Route path="/admin/*" element={<Navigate to="/ministry" replace />} />
