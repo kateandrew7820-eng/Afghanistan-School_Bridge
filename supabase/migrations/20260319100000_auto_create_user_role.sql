@@ -9,12 +9,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Create trigger that fires when a new profile is created
+-- Drop existing trigger if it exists
 DROP TRIGGER IF EXISTS assign_default_role_trigger ON public.profiles;
+
+-- Create trigger that fires when a new profile is created
 CREATE TRIGGER assign_default_role_trigger
 AFTER INSERT ON public.profiles
 FOR EACH ROW
 EXECUTE FUNCTION public.assign_default_role();
 
--- Allow the trigger function to bypass RLS by using SECURITY DEFINER
-GRANT EXECUTE ON FUNCTION public.assign_default_role() TO authenticated, anon;

@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      // Sign up the user
+      // Sign up the user - profile and role will be created automatically by database triggers
       const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -102,19 +102,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (signUpError) return { error: signUpError };
       if (!newUser) return { error: new Error('Failed to create user') };
-
-      // Create a profile for the new user
-      // The user_role will be created automatically via a database trigger
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            user_id: newUser.id,
-            full_name: fullName
-          }
-        ]);
-
-      if (profileError) return { error: profileError };
 
       return { error: null };
     } catch (err) {
