@@ -79,7 +79,7 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
 }
 
 function AppRoutes() {
-  const { user, loading } = useAuth();
+  const { user, role, roleTier, loading } = useAuth();
 
   if (loading) {
     return (
@@ -89,11 +89,22 @@ function AppRoutes() {
     );
   }
 
+  // Get the correct dashboard route based on role tier
+  const getDashboardRoute = (): string => {
+    switch (roleTier) {
+      case 'school': return '/school';
+      case 'district': return '/district';
+      case 'province': return '/province';
+      case 'ministry': return '/ministry';
+      default: return '/login';
+    }
+  };
+
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/login" element={user && roleTier ? <Navigate to={getDashboardRoute()} replace /> : <Login />} />
 
       {/* Legacy admin redirect */}
       <Route path="/admin/*" element={<Navigate to="/ministry" replace />} />
