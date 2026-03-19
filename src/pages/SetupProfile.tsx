@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Zap } from 'lucide-react';
 
 const ROLES = [
   { id: 'student', label: 'دانش‌آموز', value: 'student' },
@@ -56,21 +56,37 @@ const PROVINCES = [
 
 export default function SetupProfile() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
 
+  // Check if this is quick mode (for dev testing)
+  const isQuickMode = searchParams.get('quickMode') === 'true';
+
+  // Initialize form with either defaults (quick mode) or current profile
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || '',
-    role: '',
-    school_name: '',
-    district: '',
-    province: '',
-    phone_number: '',
+    full_name: isQuickMode ? 'توسعه دهنده' : (profile?.full_name || ''),
+    role: isQuickMode ? 'teacher' : '',
+    school_name: isQuickMode ? 'مدرسه توسعه' : '',
+    district: isQuickMode ? 'منطقه توسعه' : '',
+    province: isQuickMode ? 'کابل' : '',
+    phone_number: isQuickMode ? '+93 700 000 000' : '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Auto-submit if in quick mode (one-click confirmation)
+  useEffect(() => {
+    if (isQuickMode && !isLoading) {
+      // Small delay to ensure form is rendered, then auto-click submit
+      const timer = setTimeout(() => {
+        handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isQuickMode]);
 
   if (!user) {
     navigate('/login');
@@ -225,6 +241,97 @@ export default function SetupProfile() {
       setIsLoading(false);
     }
   };
+
+  // Quick Mode: Show summary and one-click enter button
+  if (isQuickMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
+        <div className="w-full max-w-md space-y-6">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-primary/10 rounded-full">
+                <Zap className="w-8 h-8 text-primary" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold">ورود سریع</h1>
+            <p className="text-muted-foreground">
+              برای تست سیستم با یک کلیک وارد شوید
+            </p>
+          </div>
+
+          {/* Quick Mode Info Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">اطلاعات ورود سریع</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-muted-foreground">نام:</span>
+                  <span className="font-medium">{formData.full_name}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-muted-foreground">نقش:</span>
+                  <span className="font-medium">معلم</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-muted-foreground">مدرسه:</span>
+                  <span className="font-medium">{formData.school_name}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b">
+                  <span className="text-muted-foreground">استان:</span>
+                  <span className="font-medium">{formData.province}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-muted-foreground">منطقه:</span>
+                  <span className="font-medium">{formData.district}</span>
+                </div>
+              </div>
+
+              {/* Warning Alert */}
+              <Alert className="border-blue-200 bg-blue-50 mt-4">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800 text-sm">
+                  این یک حساب توسعه برای تست سیستم است. تمام داده‌ها بلافاصله تأیید می‌شود.
+                </AlertDescription>
+              </Alert>
+
+              {/* One-Click Enter Button */}
+              <Button
+                onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
+                disabled={isLoading}
+                size="lg"
+                className="w-full mt-6 h-12 text-base font-semibold"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    در حال ورود...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="mr-2 h-5 w-5" />
+                    ورود به سیستم
+                  </>
+                )}
+              </Button>
+
+              {/* Back Button */}
+              <Button
+                variant="outline"
+                onClick={() => navigate('/login')}
+                disabled={isLoading}
+                className="w-full"
+              >
+                بازگشت به ورود
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">

@@ -203,6 +203,32 @@ export default function Login() {
               </Alert>
             )}
 
+            {/* DEV MODE: Quick Enter Button */}
+            {import.meta.env.MODE === 'development' && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 rounded-lg">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⚡</span>
+                    <h3 className="font-semibold text-amber-900">ورود سریع برای توسعه‌دهندگان</h3>
+                  </div>
+                  <p className="text-sm text-amber-800 mb-3">
+                    یک کلیک برای ورود سریع و تست سیستم به عنوان معلم
+                  </p>
+                  <Button
+                    onClick={() => {
+                      // Immediately navigate to quick setup
+                      // The auth guard will be bypassed via the dev flag in AuthContext
+                      navigate('/setup-profile?quickMode=true');
+                    }}
+                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-semibold h-10"
+                  >
+                    <Zap className="mr-2 h-4 w-4" />
+                    ورود سریع (Quick Enter)
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin">{t('auth.signIn')}</TabsTrigger>
