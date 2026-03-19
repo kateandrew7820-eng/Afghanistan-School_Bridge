@@ -209,10 +209,10 @@ export default function Login() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">⚡</span>
-                    <h3 className="font-semibold text-amber-900">ورود سریع برای توسعه‌دهندگان</h3>
+                    <h3 className="font-semibold text-amber-900">ورود تیز برای سازندگان</h3>
                   </div>
                   <p className="text-sm text-amber-800 mb-3">
-                    یک کلیک برای ورود سریع و تست سیستم به عنوان معلم
+                    یک کلیک برای ورود تیز و تجربہ سیستم بمثابہ مولوی
                   </p>
                   <Button
                     onClick={() => {
@@ -225,7 +225,7 @@ export default function Login() {
                     className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-semibold h-10"
                   >
                     <Zap className="mr-2 h-4 w-4" />
-                    ورود سریع (Quick Enter)
+                    ورود تیز (Quick Enter)
                   </Button>
                 </div>
               </div>
