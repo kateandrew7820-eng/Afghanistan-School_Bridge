@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { School, Building2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { School, Building2, Loader2, AlertCircle } from 'lucide-react';
 
 // ============================================================================
 // VALIDATION HELPERS
@@ -62,14 +61,12 @@ export default function Login() {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState('');
   const [signUpErrors, setSignUpErrors] = useState<{ name?: string; email?: string; password?: string; confirmPassword?: string }>({});
-  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
 
   // Loading and UI state
   const [isLoading, setIsLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState('signin');
 
   const { signIn, signUp, error: authError, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   // ============================================================================
@@ -158,25 +155,21 @@ export default function Login() {
       return;
     }
 
-    // Show success message and switch to signin tab
-    setShowSignupSuccess(true);
-    setSignUpFullName('');
-    setSignUpPassword('');
-    setSignUpConfirmPassword('');
+    // Success! Auth context will automatically update and redirect to dashboard
+    // Because signUp() now includes auto-login, the auth state listener will:
+    // 1. Receive the new session (onAuthStateChange)
+    // 2. Load user data and role (automatically via useAuth hook)
+    // 3. App.tsx will detect user && roleTier and redirect to correct dashboard
+    // No need to manually switch tabs or show success message - it just happens!
     
     toast({
       title: t('common.success'),
-      description: t('auth.signUpSuccess'),
+      description: 'Creating your account and signing you in...',
     });
 
-    // Auto-switch to sign in tab after 2 seconds
-    setTimeout(() => {
-      setCurrentTab('signin');
-      setSignInEmail(signUpEmail);
-      setShowSignupSuccess(false);
-    }, 2000);
-
-    setIsLoading(false);
+    // Leave isLoading true - let the login page show loading spinner
+    // as auth state updates and redirect happens
+    // The app will navigate away from login page automatically
   };
 
   // ============================================================================
@@ -209,16 +202,6 @@ export default function Login() {
               <Alert variant="destructive" className="mb-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{authError.message}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Success Alert after signup */}
-            {showSignupSuccess && (
-              <Alert className="mb-4 bg-green-50 border-green-200">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <AlertDescription className="text-green-800">
-                  {t('auth.signUpSuccess')}
-                </AlertDescription>
               </Alert>
             )}
 

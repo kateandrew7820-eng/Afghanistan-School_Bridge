@@ -187,7 +187,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Sign up with email, password, and full name
-   * Automatically creates profile and role through database triggers
+   * Creates account and automatically logs user in (modern UX pattern)
+   * Database triggers create profile and role automatically
    */
   const signUp = async (email: string, password: string, fullName: string): Promise<{ error: Error | null }> => {
     try {
@@ -223,6 +224,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Give database triggers time to create profile and role
       // They run automatically on auth.users INSERT
       await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // AUTOMATIC LOGIN: Sign the user in immediately after signup (modern UX)
+      // This creates a session and triggers onAuthStateChange listener
+      // which will load user data and redirect to dashboard automatically
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (signInError) {
+        // If auto-login fails, still consider signup successful
+        // User can manually sign in from login page
+        console.warn('Auto-login after signup failed:', signInError);
+        // Don't return error here - signup was successful, just auto-login didn't work
+        return { error: null };
+      }
 
       setError(null);
       return { error: null };
