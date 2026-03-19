@@ -98,36 +98,36 @@ export default function AdminDeadlines() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Calendar className="h-6 w-6" />
-            Deadlines
+            مهلت‌ها
           </h1>
-          <p className="text-muted-foreground">Set important dates for schools</p>
+          <p className="text-muted-foreground">تعیین تاریخ‌های مهم برای مکاتب</p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add Deadline
+              افزودن مهلت
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Deadline</DialogTitle>
-              <DialogDescription>Set a deadline for schools</DialogDescription>
+              <DialogTitle>افزودن مهلت</DialogTitle>
+              <DialogDescription>تعیین مهلت برای مکاتب</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddDeadline} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">عنوان *</Label>
                 <Input
                   id="title"
                   value={newDeadline.title}
                   onChange={(e) => setNewDeadline({ ...newDeadline, title: e.target.value })}
-                  placeholder="Monthly Report Submission"
+                  placeholder="ارسال گزارش ماهیانه"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="due_date">Due Date *</Label>
+                <Label htmlFor="due_date">تاریخ مهلت *</Label>
                 <Input
                   id="due_date"
                   type="date"
@@ -137,12 +137,12 @@ export default function AdminDeadlines() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">توضیحات</Label>
                 <Textarea
                   id="description"
                   value={newDeadline.description}
                   onChange={(e) => setNewDeadline({ ...newDeadline, description: e.target.value })}
-                  placeholder="Additional details..."
+                  placeholder="جزئیات اضافی..."
                   rows={3}
                 />
               </div>
@@ -150,10 +150,10 @@ export default function AdminDeadlines() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding...
+                    درحال افزودن...
                   </>
                 ) : (
-                  'Add Deadline'
+                  'افزودن مهلت'
                 )}
               </Button>
             </form>
@@ -162,11 +162,11 @@ export default function AdminDeadlines() {
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">درحال بارگذاری...</p>
       ) : deadlines.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No deadlines set</p>
+            <p className="text-muted-foreground">مهلتی تعریف نشده است</p>
           </CardContent>
         </Card>
       ) : (
@@ -180,7 +180,7 @@ export default function AdminDeadlines() {
                     <div>
                       <CardTitle>{deadline.title}</CardTitle>
                       <CardDescription>
-                        Due: {format(new Date(deadline.due_date), 'EEEE, MMMM d, yyyy')}
+                        مهلت: {format(new Date(deadline.due_date), 'EEEE, MMMM d, yyyy')}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">

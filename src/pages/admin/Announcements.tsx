@@ -74,8 +74,8 @@ export default function Adminاعلانات() {
     }
 
     toast({
-      title: "Announcement Posted",
-      description: "Your announcement is now visible to all schools."
+      title: "اطلاعیه منتشر شد",
+      description: "اطلاعیه شما اکنون برای تمام مکاتب قابل دید است."
     });
 
     setIsAddDialogOpen(false);
@@ -87,11 +87,11 @@ export default function Adminاعلانات() {
     const { error } = await supabase.from('اعلانات').delete().eq('id', id);
     
     if (error) {
-      toast({ title: "Failed to delete", description: error.message, variant: "destructive" });
+      toast({ title: "حذف ناموفق", description: error.message, variant: "destructive" });
       return;
     }
     
-    toast({ title: "Deleted", description: "Announcement removed." });
+    toast({ title: "حذف شد", description: "اطلاعیه حذف شد." });
     fetchاعلانات();
   };
 
@@ -112,34 +112,34 @@ export default function Adminاعلانات() {
             <Bell className="h-6 w-6" />
             اعلانات
           </h1>
-          <p className="text-muted-foreground">Post updates for all schools</p>
+          <p className="text-muted-foreground">درج اطلاعات برای تمام مکاتب</p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              New Announcement
+              اطلاعیه جدید
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Post Announcement</DialogTitle>
-              <DialogDescription>This will be visible to all schools</DialogDescription>
+              <DialogTitle>درج اطلاعیه</DialogTitle>
+              <DialogDescription>این برای تمام مکاتب قابل دید خواهد بود</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddAnnouncement} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="title">عنوان *</Label>
                 <Input
                   id="title"
                   value={newAnnouncement.title}
                   onChange={(e) => setNewAnnouncement({ ...newAnnouncement, title: e.target.value })}
-                  placeholder="Announcement title"
+                  placeholder="عنوان اطلاعیه"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
+                <Label htmlFor="priority">اولویت</Label>
                 <Select 
                   value={newAnnouncement.priority} 
                   onValueChange={(value) => setNewAnnouncement({ ...newAnnouncement, priority: value })}
@@ -148,20 +148,20 @@ export default function Adminاعلانات() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="low">پایین</SelectItem>
+                    <SelectItem value="normal">معمولی</SelectItem>
+                    <SelectItem value="high">بالا</SelectItem>
+                    <SelectItem value="urgent">فوری</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="content">Content *</Label>
+                <Label htmlFor="content">محتوا *</Label>
                 <Textarea
                   id="content"
                   value={newAnnouncement.content}
                   onChange={(e) => setNewAnnouncement({ ...newAnnouncement, content: e.target.value })}
-                  placeholder="Announcement content..."
+                  placeholder="محتوای اطلاعیه..."
                   rows={5}
                   required
                 />
@@ -169,11 +169,12 @@ export default function Adminاعلانات() {
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
+                  <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Posting...
+                    درحال درج...
                   </>
                 ) : (
-                  'Post Announcement'
+                  'درج اطلاعیه'
                 )}
               </Button>
             </form>
@@ -182,11 +183,11 @@ export default function Adminاعلانات() {
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">درحال بارگذاری...</p>
       ) : اعلانات.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No اعلانات yet</p>
+            <p className="text-muted-foreground">اطلاعیه‌ای هنوز موجود نیست</p>
           </CardContent>
         </Card>
       ) : (

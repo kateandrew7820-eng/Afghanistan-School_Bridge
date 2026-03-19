@@ -64,7 +64,7 @@ export default function ManageSchools() {
 
     if (error) {
       toast({
-        title: "Failed to Add School",
+        title: "افزودن مکتب ناموفق",
         description: error.message,
         variant: "destructive"
       });
@@ -72,9 +72,8 @@ export default function ManageSchools() {
     }
 
     toast({
-      title: "School Added",
-      description: `${newSchool.name} has been added successfully.`
-    });
+        title: "مکتب افزوده شد",
+        description: `${newSchool.name} با موفقیت افزوده شد.`
 
     setIsAddDialogOpen(false);
     setNewSchool({ name: '', code: '', province: '', district: '', contact_email: '' });
@@ -93,37 +92,37 @@ export default function ManageSchools() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <School className="h-6 w-6" />
-            Manage Schools
+            مدیریت مکاتب
           </h1>
-          <p className="text-muted-foreground">Add and manage school accounts</p>
+          <p className="text-muted-foreground">افزودن و مدیریت حسابهای مکتب</p>
         </div>
 
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add School
+              افزودن مکتب
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New School</DialogTitle>
-              <DialogDescription>Register a new school in the system</DialogDescription>
+              <DialogTitle>افزودن مکتب جدید</DialogTitle>
+              <DialogDescription>ثبت نام یک مکتب جدید در سیستم</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddSchool} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">School Name *</Label>
+                <Label htmlFor="name">نام مکتب *</Label>
                 <Input
                   id="name"
                   value={newSchool.name}
                   onChange={(e) => setNewSchool({ ...newSchool, name: e.target.value })}
-                  placeholder="Ahmad Shah Baba High School"
+                  placeholder="دبرستان احمد شاه"
                   required
                 />
               </div>
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="code">School Code</Label>
+                  <Label htmlFor="code">کد مکتب</Label>
                   <Input
                     id="code"
                     value={newSchool.code}
@@ -132,7 +131,7 @@ export default function ManageSchools() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contact_email">Contact Email</Label>
+                  <Label htmlFor="contact_email">ایمیل تماس</Label>
                   <Input
                     id="contact_email"
                     type="email"
@@ -144,21 +143,21 @@ export default function ManageSchools() {
               </div>
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="province">Province</Label>
+                  <Label htmlFor="province">استان</Label>
                   <Input
                     id="province"
                     value={newSchool.province}
                     onChange={(e) => setNewSchool({ ...newSchool, province: e.target.value })}
-                    placeholder="Kabul"
+                    placeholder="کابل"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="district">District</Label>
+                  <Label htmlFor="district">ناحیه</Label>
                   <Input
                     id="district"
                     value={newSchool.district}
                     onChange={(e) => setNewSchool({ ...newSchool, district: e.target.value })}
-                    placeholder="District 1"
+                    placeholder="ناحیه 1"
                   />
                 </div>
               </div>
@@ -166,10 +165,10 @@ export default function ManageSchools() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding...
+                    درحال افزودن...
                   </>
                 ) : (
-                  'Add School'
+                  'افزودن مکتب'
                 )}
               </Button>
             </form>
@@ -181,7 +180,7 @@ export default function ManageSchools() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search schools..."
+          placeholder="جستجوی مکاتب..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10"
@@ -190,7 +189,7 @@ export default function ManageSchools() {
 
       {/* Schools List */}
       {loading ? (
-        <p className="text-muted-foreground">Loading schools...</p>
+        <p className="text-muted-foreground">درحال بارگذاری مکاتب...</p>
       ) : filteredSchools.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
@@ -207,18 +206,18 @@ export default function ManageSchools() {
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg">{school.name}</CardTitle>
                   <Badge variant={school.is_active ? 'default' : 'secondary'}>
-                    {school.is_active ? 'Active' : 'Inactive'}
+                    {school.is_active ? 'فعال' : 'غیرفعال'}
                   </Badge>
                 </div>
                 {school.code && (
-                  <CardDescription>Code: {school.code}</CardDescription>
+                  <CardDescription>کد: {school.code}</CardDescription>
                 )}
               </CardHeader>
               <CardContent>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  {school.province && <p>Province: {school.province}</p>}
-                  {school.district && <p>District: {school.district}</p>}
-                  {school.contact_email && <p>Email: {school.contact_email}</p>}
+                  {school.province && <p>استان: {school.province}</p>}
+                  {school.district && <p>ناحیه: {school.district}</p>}
+                  {school.contact_email && <p>ایمیل: {school.contact_email}</p>}
                 </div>
               </CardContent>
             </Card>

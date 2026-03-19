@@ -101,53 +101,53 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Center Admin Dashboard</h1>
-        <p className="text-muted-foreground">Overview of all school activities</p>
+        <h1 className="text-2xl font-bold">صفحه اصلی مدیر مرکز</h1>
+        <p className="text-muted-foreground">نمای کلی تمام فعالیت‌های مکاتب</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Schools</CardTitle>
+            <CardTitle className="text-sm font-medium">کل مکاتب</CardTitle>
             <School className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalSchools}</div>
-            <p className="text-xs text-muted-foreground">Registered schools</p>
+            <p className="text-xs text-muted-foreground">مکاتب ثبت‌شده</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+            <CardTitle className="text-sm font-medium">کل ارسالی‌ها</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalSubmissions}</div>
-            <p className="text-xs text-muted-foreground">All submissions</p>
+            <p className="text-xs text-muted-foreground">تمام ارسالی‌ها</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+            <CardTitle className="text-sm font-medium">در انتظار بررسی</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.pendingSubmissions}</div>
-            <p className="text-xs text-muted-foreground">Awaiting review</p>
+            <p className="text-xs text-muted-foreground">درحال بررسی</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active اعلانات</CardTitle>
+            <CardTitle className="text-sm font-medium">اطلاعیه‌های فعال</CardTitle>
             <Bell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeاعلانات}</div>
-            <p className="text-xs text-muted-foreground">Published</p>
+            <p className="text-xs text-muted-foreground">منتشر شده</p>
           </CardContent>
         </Card>
       </div>

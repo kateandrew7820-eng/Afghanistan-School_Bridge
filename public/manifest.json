@@ -47,9 +47,9 @@
   ],
   "shortcuts": [
     {
-      "name": "داشبورد",
-      "short_name": "داشبورد",
-      "description": "رفتن به داشبورد",
+      "name": "دشبورد",
+      "short_name": "دشبورد",
+      "description": "رفتن به دشبورد",
       "url": "/school",
       "icons": [
         {
