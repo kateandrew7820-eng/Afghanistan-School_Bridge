@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { School, Building2, Loader2, AlertCircle } from 'lucide-react';
+import { School, Building2, Loader2, AlertCircle, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // ============================================================================
