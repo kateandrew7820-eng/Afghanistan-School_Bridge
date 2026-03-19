@@ -11,7 +11,7 @@ export default function Index() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <School className="h-6 w-6 text-primary" />
-            <span className="font-bold">Afghanistan Schools Portal</span>
+            <span className="font-heading font-bold">SchoolBridge Afghanistan</span>
           </div>
           <Link to="/login">
             <Button>Sign In</Button>
