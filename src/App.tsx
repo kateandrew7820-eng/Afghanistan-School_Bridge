@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocalizationProvider } from "@/contexts/LocalizationContext";
 import { getRoleTier } from "@/lib/supabase";
+import { useVerification } from "@/hooks/useVerification";
 
 // Pages
 import Login from "./pages/Login";
@@ -54,8 +55,13 @@ const queryClient = new QueryClient();
 
 type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
 
+/**
+ * ProtectedRoute: Checks authentication, user role/tier, and verification status
+ * If user is not verified and not in demo mode, redirects to /pending-verification
+ */
 function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; allowedTier: AllowedTier }) {
-  const { user, role, loading, roleTier, error } = useAuth();
+  const { user, role, loading, roleTier, isDemoMode } = useAuth();
+  const verification = useVerification();
 
   if (loading) {
     return (
@@ -85,6 +91,18 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
       'ministry': '/ministry'
     };
     return <Navigate to={redirectMap[roleTier] || '/login'} replace />;
+  }
+
+  // Check verification status (unless in demo mode, which bypasses verification)
+  if (!isDemoMode && !verification.canAccessDashboard) {
+    // User is verified OR in demo mode - allow access
+    // Otherwise they need to complete setup or await verification
+    if (verification.needsSetup) {
+      return <Navigate to="/setup-profile" replace />;
+    } else if (verification.isPending) {
+      return <Navigate to="/pending-verification" replace />;
+    }
+    // If rejected, still show the pending page to inform them
   }
 
   return <>{children}</>;

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVerification } from '@/hooks/useVerification';
 import { supabase } from '@/lib/supabase';
+import { VerificationPanel } from '@/components/VerificationPanel';
+import { getVerificationQueueFilter } from '@/lib/verificationHierarchy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +15,8 @@ import {
   Bell, 
   Calendar,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -32,10 +36,14 @@ interface Deadline {
 }
 
 export default function SchoolDashboard() {
-  const { profile } = useAuth();
+  const { profile, role } = useAuth();
+  const verification = useVerification();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Get the role filter for verification queue based on user's role
+  const verificationQueueRole = role ? getVerificationQueueFilter(role) : null;
 
   useEffect(() => {
     async function fetchData() {
@@ -216,6 +224,42 @@ export default function SchoolDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Account Status Banner */}
+      {verification.isVerified && (
+        <Card className="border-green-200 bg-green-50/50">
+          <CardContent className="pt-6 flex items-center gap-3">
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-sm text-green-900">Account Verified</p>
+              <p className="text-xs text-green-700">Your account has been approved and is fully active.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* User Verification Queue - Only show if user has approval responsibilities */}
+      {verificationQueueRole && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-blue-600" />
+              <div>
+                <CardTitle>User Verification Queue</CardTitle>
+                <CardDescription>
+                  Pending {verificationQueueRole} accounts requiring your approval
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <VerificationPanel 
+              filterRole={verificationQueueRole}
+              limit={10}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

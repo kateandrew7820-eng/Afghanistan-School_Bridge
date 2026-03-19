@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { VerificationPanel } from '@/components/VerificationPanel';
+import { getVerificationQueueFilter } from '@/lib/verificationHierarchy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +18,8 @@ import {
   ArrowRight,
   Users,
   CheckCircle,
-  Clock
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -35,6 +39,7 @@ interface RecentSubmission {
 }
 
 export default function AdminDashboard() {
+  const { profile, role } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalSchools: 0,
     totalSubmissions: 0,
@@ -43,6 +48,9 @@ export default function AdminDashboard() {
   });
   const [recentSubmissions, setRecentSubmissions] = useState<RecentSubmission[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Get the role filter for verification queue based on admin's role
+  const verificationQueueRole = role ? getVerificationQueueFilter(role) : null;
 
   useEffect(() => {
     async function fetchData() {
@@ -240,6 +248,29 @@ export default function AdminDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* User Verification Queue - Only show if admin has approval responsibilities */}
+      {verificationQueueRole && (
+        <Card className="border-blue-200 bg-blue-50/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-blue-600" />
+              <div>
+                <CardTitle>User Verification Queue</CardTitle>
+                <CardDescription>
+                  Pending {verificationQueueRole} accounts requiring your approval
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <VerificationPanel 
+              filterRole={verificationQueueRole}
+              limit={10}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
