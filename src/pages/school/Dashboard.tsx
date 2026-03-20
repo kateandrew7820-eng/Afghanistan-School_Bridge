@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
 import { useVerification } from '@/hooks/useVerification';
 import { supabase } from '@/lib/supabase';
 import { VerificationPanel } from '@/components/VerificationPanel';
@@ -8,18 +9,9 @@ import { getVerificationQueueFilter } from '@/lib/verificationHierarchy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import Breadcrumb from '@/components/Breadcrumb';
-import PageHeader from '@/components/PageHeader';
 import { 
-  BarChart3, 
-  FileText, 
-  ClipboardList, 
-  Bell, 
-  Calendar,
-  ArrowRight,
-  AlertCircle,
-  CheckCircle2,
-  School
+  BarChart3, FileText, ClipboardList, Bell, Calendar,
+  ArrowLeft, AlertCircle, CheckCircle2, School
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -40,12 +32,12 @@ interface Deadline {
 
 export default function SchoolDashboard() {
   const { profile, role } = useAuth();
+  const { t } = useTranslation();
   const verification = useVerification();
-  const [اعلانات, setاعلانات] = useState<Announcement[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Get the role filter for verification queue based on user's role
   const verificationQueueRole = role ? getVerificationQueueFilter(role) : null;
 
   useEffect(() => {
@@ -66,7 +58,7 @@ export default function SchoolDashboard() {
           .limit(5)
       ]);
 
-      if (announcementsRes.data) setاعلانات(announcementsRes.data as any);
+      if (announcementsRes.data) setAnnouncements(announcementsRes.data as any);
       if (deadlinesRes.data) setDeadlines(deadlinesRes.data);
       setLoading(false);
     }
@@ -85,96 +77,86 @@ export default function SchoolDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb Navigation */}
-      <Breadcrumb items={[
-        { label: 'خانه', href: '/' },
-        { label: 'مکتب', href: '/school' },
-        { label: 'صفحه اصلی' }
-      ]} />
-
-      {/* Page Header */}
-      <PageHeader
-        title="صفحه اصلی مکتب"
-        description={`${profile?.schools?.name} - ${profile?.schools?.province}، ${profile?.schools?.district}`}
-        icon={<School className="h-6 w-6" />}
-        backButton={false}
-      />
+      <div>
+        <h1 className="text-2xl font-heading font-bold">{t('school.dashboard')}</h1>
+        <p className="text-muted-foreground text-sm">
+          {profile?.schools?.name} — {profile?.schools?.province}، {profile?.schools?.district}
+        </p>
+      </div>
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
         <Link to="/school/statistics">
-          <Card className="hover:border-primary transition-colors cursor-pointer">
+          <Card className="hover:border-primary transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">ارسال آمار</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('school.submitStatistics')}</CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">وارد کردن تعداد دانش‌آموز و حاضری</p>
+              <p className="text-xs text-muted-foreground">{t('school.enterStudentData')}</p>
             </CardContent>
           </Card>
         </Link>
 
         <Link to="/school/reports">
-          <Card className="hover:border-primary transition-colors cursor-pointer">
+          <Card className="hover:border-primary transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">آپلود گزارش‌ها</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('school.submitReports')}</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">آپلود گزارش‌ها و اسناد ماهانه</p>
+              <p className="text-xs text-muted-foreground">{t('school.uploadMonthlyReports')}</p>
             </CardContent>
           </Card>
         </Link>
 
         <Link to="/school/forms">
-          <Card className="hover:border-primary transition-colors cursor-pointer">
+          <Card className="hover:border-primary transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">تکمیل فرم‌ها</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('school.submitForms')}</CardTitle>
               <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">تکمیل فرم‌های الزامی</p>
+              <p className="text-xs text-muted-foreground">{t('school.fillRequiredForms')}</p>
             </CardContent>
           </Card>
         </Link>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent اعلانات */}
+        {/* Announcements */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
                 <Bell className="h-5 w-5" />
-                Latest اعلانات
+                {t('school.recentAnnouncements')}
               </CardTitle>
-              <CardDescription>Updates from the center</CardDescription>
+              <CardDescription>{t('school.updatesFromCenter')}</CardDescription>
             </div>
-            <Link to="/school/اعلانات">
+            <Link to="/school/announcements">
               <Button variant="ghost" size="sm">
-                مشاهده همه <ArrowRight className="ml-1 h-4 w-4" />
+                {t('common.viewAll')} <ArrowLeft className="mr-1 h-4 w-4" />
               </Button>
             </Link>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : اعلانات.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No اعلانات yet</p>
+              <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+            ) : announcements.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t('school.noAnnouncements')}</p>
             ) : (
-              اعلانات.map((announcement) => (
-                <div key={announcement.id} className="border-b pb-3 last:border-0 last:pb-0">
+              announcements.map((a) => (
+                <div key={a.id} className="border-b pb-3 last:border-0 last:pb-0">
                   <div className="flex items-start justify-between gap-2">
-                    <h4 className="font-medium text-sm">{announcement.title}</h4>
-                    <Badge variant={getPriorityColor(announcement.priority) as any}>
-                      {announcement.priority}
+                    <h4 className="font-medium text-sm">{a.title}</h4>
+                    <Badge variant={getPriorityColor(a.priority) as any}>
+                      {a.priority}
                     </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                    {announcement.content}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.content}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {format(new Date(announcement.created_at), 'MMM d, yyyy')}
+                    {format(new Date(a.created_at), 'yyyy/MM/dd')}
                   </p>
                 </div>
               ))
@@ -182,27 +164,27 @@ export default function SchoolDashboard() {
           </CardContent>
         </Card>
 
-        {/* Upcoming Deadlines */}
+        {/* Deadlines */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base">
                 <Calendar className="h-5 w-5" />
-                Upcoming Deadlines
+                {t('school.upcomingDeadlines')}
               </CardTitle>
-              <CardDescription>Don't miss these dates</CardDescription>
+              <CardDescription>{t('school.dontMissDeadlines')}</CardDescription>
             </div>
             <Link to="/school/deadlines">
               <Button variant="ghost" size="sm">
-                مشاهده همه <ArrowRight className="ml-1 h-4 w-4" />
+                {t('common.viewAll')} <ArrowLeft className="mr-1 h-4 w-4" />
               </Button>
             </Link>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
             ) : deadlines.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No upcoming deadlines</p>
+              <p className="text-sm text-muted-foreground">{t('school.noDeadlines')}</p>
             ) : (
               deadlines.map((deadline) => {
                 const daysLeft = Math.ceil(
@@ -218,11 +200,11 @@ export default function SchoolDashboard() {
                       <p className="text-xs text-muted-foreground">{deadline.description}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs font-medium">
-                          {format(new Date(deadline.due_date), 'MMM d, yyyy')}
+                          {format(new Date(deadline.due_date), 'yyyy/MM/dd')}
                         </span>
                         {daysLeft <= 3 && (
                           <Badge variant="destructive" className="text-xs">
-                            {daysLeft === 0 ? 'Today!' : `${daysLeft} days left`}
+                            {daysLeft === 0 ? t('school.today') : t('school.daysLeft', { count: daysLeft })}
                           </Badge>
                         )}
                       </div>
@@ -235,38 +217,33 @@ export default function SchoolDashboard() {
         </Card>
       </div>
 
-      {/* Account Status Banner */}
+      {/* Verified Banner */}
       {verification.isVerified && (
-        <Card className="border-green-200 bg-green-50/50">
+        <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-800">
           <CardContent className="pt-6 flex items-center gap-3">
             <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
             <div>
-              <p className="font-medium text-sm text-green-900">Account Verified</p>
-              <p className="text-xs text-green-700">Your account has been approved and is fully active.</p>
+              <p className="font-medium text-sm">{t('school.accountVerified')}</p>
+              <p className="text-xs text-muted-foreground">{t('school.accountVerifiedDesc')}</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* User Verification Queue - Only show if user has approval responsibilities */}
+      {/* Verification Queue */}
       {verificationQueueRole && (
-        <Card className="border-blue-200 bg-blue-50/50">
+        <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-blue-600" />
               <div>
-                <CardTitle>User Verification Queue</CardTitle>
-                <CardDescription>
-                  Pending {verificationQueueRole} accounts requiring your approval
-                </CardDescription>
+                <CardTitle>{t('school.verificationQueue')}</CardTitle>
+                <CardDescription>{t('school.pendingApproval')}</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <VerificationPanel 
-              filterRole={verificationQueueRole}
-              limit={10}
-            />
+            <VerificationPanel filterRole={verificationQueueRole} limit={10} />
           </CardContent>
         </Card>
       )}
