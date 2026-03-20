@@ -54,7 +54,7 @@ export default function Adminاعلانات() {
     if (!user) return;
     setIsSubmitting(true);
 
-    const { error } = await supabase.from('اعلانات').insert({
+    const { error } = await supabase.from('announcements').insert({
       title: newAnnouncement.title,
       content: newAnnouncement.content,
       priority: newAnnouncement.priority,
