@@ -84,7 +84,7 @@ export default function Adminاعلانات() {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('اعلانات').delete().eq('id', id);
+    const { error } = await supabase.from('announcements').delete().eq('id', id);
     
     if (error) {
       toast({ title: "حذف ناموفق", description: error.message, variant: "destructive" });

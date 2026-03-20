@@ -20,12 +20,12 @@ export default function Schoolاعلانات() {
   useEffect(() => {
     async function fetchاعلانات() {
       const { data } = await supabase
-        .from('اعلانات')
+        .from('announcements')
         .select('*')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
       
-      if (data) setاعلانات(data);
+      if (data) setاعلانات(data as any);
       setLoading(false);
     }
 
