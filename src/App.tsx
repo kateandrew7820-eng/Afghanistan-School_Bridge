@@ -1,3 +1,4 @@
+import React, { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +12,6 @@ import { getRoleTier } from "@/lib/supabase";
 import { useVerification } from "@/hooks/useVerification";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorSimulationPanel } from "@/lib/errorSimulation";
-import { Suspense, lazy } from "react";
 
 // Pages - Core pages loaded immediately, others lazy-loaded for performance
 import Login from "./pages/Login";
