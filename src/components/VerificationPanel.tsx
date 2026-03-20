@@ -71,10 +71,9 @@ export function VerificationPanel({
       setError(null);
 
       // Try to fetch with all fields including new ones from migration
-      let query = supabase
+      let query: any = supabase
         .from('profiles')
-        .select('id, user_id, full_name, district, province, created_at') as any;
-        .eq('status', 'pending_verification');
+        .select('id, user_id, full_name, district, province, created_at');
 
       if (filterRole) {
         query = query.eq('role', filterRole);
