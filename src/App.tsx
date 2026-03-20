@@ -9,6 +9,8 @@ import { ConfirmationProvider } from "@/contexts/ConfirmationContext";
 import { SmartConfirmationDialog } from "@/components/SmartConfirmationDialog";
 import { getRoleTier } from "@/lib/supabase";
 import { useVerification } from "@/hooks/useVerification";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorSimulationPanel } from "@/lib/errorSimulation";
 import { Suspense, lazy } from "react";
 
 // Pages - Core pages loaded immediately, others lazy-loaded for performance
@@ -346,22 +348,25 @@ function AppRoutes() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <LocalizationProvider>
-      <ConfirmationProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <SmartConfirmationDialog />
-          <BrowserRouter>
-            <AuthProvider>
-              <AppRoutes />
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ConfirmationProvider>
-    </LocalizationProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <LocalizationProvider>
+        <ConfirmationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <SmartConfirmationDialog />
+            {import.meta.env.DEV && <ErrorSimulationPanel />}
+            <BrowserRouter>
+              <AuthProvider>
+                <AppRoutes />
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ConfirmationProvider>
+      </LocalizationProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

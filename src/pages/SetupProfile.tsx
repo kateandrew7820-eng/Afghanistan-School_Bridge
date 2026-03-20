@@ -12,6 +12,10 @@ import { supabase } from '@/lib/supabase';
 import Breadcrumb from '@/components/Breadcrumb';
 import PageHeader from '@/components/PageHeader';
 import { Loader2, AlertCircle, Zap, ArrowRight } from 'lucide-react';
+import { useAPIError } from '@/hooks/useAPIError';
+import { useErrorToast } from '@/lib/errorToast';
+import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
+import { validateField, validateForm as validateFormFields } from '@/lib/validation';
 
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
@@ -62,6 +66,8 @@ export default function SetupProfile() {
   const { user, profile } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { executeWithErrorHandling } = useAPIError();
+  const { showErrorToast, showSuccessToast } = useErrorToast();
 
   // Check if this is quick mode (for dev testing)
   const isQuickMode = searchParams.get('quickMode') === 'true';
@@ -77,6 +83,7 @@ export default function SetupProfile() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   // Auto-submit if in quick mode (one-click confirmation)
@@ -101,13 +108,73 @@ export default function SetupProfile() {
       ...prev,
       [name]: value,
     }));
-    // Clear error for this field
+    // Mark field as touched and clear its error
+    setTouched(prev => ({
+      ...prev,
+      [name]: true,
+    }));
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: '',
       }));
     }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name } = e.target;
+    // Mark as touched on blur
+    setTouched(prev => ({
+      ...prev,
+      [name]: true,
+    }));
+    // Validate single field on blur
+    validateSingleField(name);
+  };
+
+  const validateSingleField = (fieldName: string): boolean => {
+    const newErrors = { ...errors };
+
+    switch (fieldName) {
+      case 'full_name':
+        if (!formData.full_name?.trim()) {
+          newErrors.full_name = 'نام مکمل الزامی است';
+        } else {
+          delete newErrors.full_name;
+        }
+        break;
+      case 'role':
+        if (!formData.role) {
+          newErrors.role = 'نقش انتخاب کردن الزامی است';
+        } else {
+          delete newErrors.role;
+        }
+        break;
+      case 'school_name':
+        if (!formData.school_name?.trim()) {
+          newErrors.school_name = 'نام مکتب الزامی است';
+        } else {
+          delete newErrors.school_name;
+        }
+        break;
+      case 'district':
+        if (!formData.district?.trim()) {
+          newErrors.district = 'نام ناحیه الزامی است';
+        } else {
+          delete newErrors.district;
+        }
+        break;
+      case 'province':
+        if (!formData.province) {
+          newErrors.province = 'ولایت انتخاب کردن الزامی است';
+        } else {
+          delete newErrors.province;
+        }
+        break;
+    }
+
+    setErrors(newErrors);
+    return !newErrors[fieldName];
   };
 
   const validateForm = (): boolean => {
@@ -137,6 +204,7 @@ export default function SetupProfile() {
     e.preventDefault();
 
     if (!validateForm()) {
+      showErrorToast('خطای اعتبارسنجی', 'لطفاً تمام فیلدهای الزامی را پر کنید');
       return;
     }
 
@@ -163,11 +231,12 @@ export default function SetupProfile() {
         updated_at: new Date().toISOString(),
       };
       
-      // Use upsert instead of update to handle case where profile doesn't exist
-      // This fixes the issue where profiles table doesn't auto-create on signup
-      const { error } = await supabase
-        .from('profiles')
-        .upsert(profileData, { onConflict: 'user_id' });
+      // Use executeWithErrorHandling for API call with automatic error handling
+      const { error } = await executeWithErrorHandling(
+        () => supabase
+          .from('profiles')
+          .upsert(profileData, { onConflict: 'user_id' })
+      );
 
       if (error) {
         throw error;
@@ -175,10 +244,7 @@ export default function SetupProfile() {
 
       // DEV MODE: Skip verification process, go directly to dashboard
       if (DEV_MODE) {
-        toast({
-          title: 'موفق',
-          description: '[حالت توسعه] پروفایل شما تأیید شد. به صفحه اصلی منتقل می‌شود...',
-        });
+        showSuccessToast('موفق', '[حالت توسعه] پروفایل شما تأیید شد. به صفحه اصلی منتقل می‌شود...');
 
         // Determine dashboard route based on role
         const dashboardRoutes: Record<string, string> = {
@@ -198,41 +264,16 @@ export default function SetupProfile() {
         }, 500);
       } else {
         // PRODUCTION: Normal flow - user waits for admin approval
-        toast({
-          title: 'موفقیت',
-          description: 'پروفایل شما ذخیره شد. اکنون به تایید اختیار رسانی منتظر هستید.',
-        });
+        showSuccessToast('موفقیت', 'پروفایل شما ذخیره شد. اکنون به تایید اختیار رسانی منتظر هستید.');
 
         // Redirect to pending verification page
         navigate('/pending-verification');
       }
     } catch (err) {
-      // Extract detailed error information
-      let errorMessage = 'خطایی در ذخیره پروفایل رخ داد';
-      let errorDetails = '';
-      
-      if (err instanceof Error) {
-        errorMessage = err.message;
-        errorDetails = err.toString();
-      } else if (typeof err === 'object' && err !== null) {
-        // Handle Supabase error objects
-        const errorObj = err as any;
-        if (errorObj.message) {
-          errorMessage = errorObj.message;
-          errorDetails = JSON.stringify(errorObj, null, 2);
-        }
-      }
-      
-      // Show user-friendly error message
-      const userMessage = errorMessage.startsWith('$1.') 
-        ? 'یکی از فیلدهای فرم نامعتبر است'
-        : errorMessage;
-        
-      toast({
-        title: 'خطا',
-        description: userMessage || 'خطایی نامشخص رخ داد',
-        variant: 'destructive',
-      });
+      // Error is already handled by executeWithErrorHandling and showErrorToast
+      // This catch is for any unexpected errors
+      console.error('Unexpected error:', err);
+      showErrorToast('خطا', 'خطایی در ذخیره پروفایل رخ داد. دوباره تلاش کنید.');
     } finally {
       setIsLoading(false);
     }
@@ -367,35 +408,44 @@ export default function SetupProfile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Summary */}
+              {Object.keys(errors).length > 0 && (
+                <FormErrorSummary errors={Object.values(errors)} />
+              )}
+
               {/* Full Name */}
-              <div className="space-y-2">
-                <Label htmlFor="full_name">نام مکمل</Label>
+              <FormFieldWrapper 
+                label="نام مکمل" 
+                error={touched.full_name ? errors.full_name : undefined}
+              >
                 <Input
                   id="full_name"
                   name="full_name"
                   value={formData.full_name}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="نام و نام‌خانوادگی"
                   disabled={isLoading}
-                  className={errors.full_name ? 'border-red-500' : ''}
+                  aria-invalid={!!errors.full_name}
                 />
-                {errors.full_name && (
-                  <p className="text-sm text-red-500">{errors.full_name}</p>
-                )}
-              </div>
+              </FormFieldWrapper>
 
               {/* Role Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="role">نقش</Label>
+              <FormFieldWrapper 
+                label="نقش" 
+                error={touched.role ? errors.role : undefined}
+              >
                 <select
                   id="role"
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={isLoading}
                   className={`w-full px-3 py-2 border rounded-md bg-background ${
                     errors.role ? 'border-red-500' : 'border-input'
                   }`}
+                  aria-invalid={!!errors.role}
                 >
                   <option value="">انتخاب نقش</option>
                   {ROLES.map(role => (
@@ -404,57 +454,58 @@ export default function SetupProfile() {
                     </option>
                   ))}
                 </select>
-                {errors.role && (
-                  <p className="text-sm text-red-500">{errors.role}</p>
-                )}
-              </div>
+              </FormFieldWrapper>
 
               {/* School Name */}
-              <div className="space-y-2">
-                <Label htmlFor="school_name">نام مکتب</Label>
+              <FormFieldWrapper 
+                label="نام مکتب" 
+                error={touched.school_name ? errors.school_name : undefined}
+              >
                 <Input
                   id="school_name"
                   name="school_name"
                   value={formData.school_name}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="نام مکتب یا موسسه آموزشی"
                   disabled={isLoading}
-                  className={errors.school_name ? 'border-red-500' : ''}
+                  aria-invalid={!!errors.school_name}
                 />
-                {errors.school_name && (
-                  <p className="text-sm text-red-500">{errors.school_name}</p>
-                )}
-              </div>
+              </FormFieldWrapper>
 
               {/* District */}
-              <div className="space-y-2">
-                <Label htmlFor="district">ناحیه</Label>
+              <FormFieldWrapper 
+                label="ناحیه" 
+                error={touched.district ? errors.district : undefined}
+              >
                 <Input
                   id="district"
                   name="district"
                   value={formData.district}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="نام ناحیه"
                   disabled={isLoading}
-                  className={errors.district ? 'border-red-500' : ''}
+                  aria-invalid={!!errors.district}
                 />
-                {errors.district && (
-                  <p className="text-sm text-red-500">{errors.district}</p>
-                )}
-              </div>
+              </FormFieldWrapper>
 
               {/* Province Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="province">استان</Label>
+              <FormFieldWrapper 
+                label="استان" 
+                error={touched.province ? errors.province : undefined}
+              >
                 <select
                   id="province"
                   name="province"
                   value={formData.province}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={isLoading}
                   className={`w-full px-3 py-2 border rounded-md bg-background ${
                     errors.province ? 'border-red-500' : 'border-input'
                   }`}
+                  aria-invalid={!!errors.province}
                 >
                   <option value="">انتخاب استان</option>
                   {PROVINCES.map(province => (
@@ -463,24 +514,23 @@ export default function SetupProfile() {
                     </option>
                   ))}
                 </select>
-                {errors.province && (
-                  <p className="text-sm text-red-500">{errors.province}</p>
-                )}
-              </div>
+              </FormFieldWrapper>
 
               {/* Phone Number (Optional) */}
-              <div className="space-y-2">
-                <Label htmlFor="phone_number">شماره تلفن (اختیاری)</Label>
+              <FormFieldWrapper 
+                label="شماره تلفن (اختیاری)" 
+              >
                 <Input
                   id="phone_number"
                   name="phone_number"
                   type="tel"
                   value={formData.phone_number}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   placeholder="+93 123 456 7890"
                   disabled={isLoading}
                 />
-              </div>
+              </FormFieldWrapper>
 
               {/* Info Alert */}
               <Alert className="border-blue-200 bg-blue-50">

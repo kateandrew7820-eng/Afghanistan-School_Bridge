@@ -7,12 +7,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Loader2, CheckCircle, Upload } from 'lucide-react';
+import { FileText, Loader2, CheckCircle, Upload, AlertCircle } from 'lucide-react';
+import { useAPIError } from '@/hooks/useAPIError';
+import { useErrorToast } from '@/lib/errorToast';
+import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
+import { validateFileSize, validateFileType, validateRequired } from '@/lib/validation';
 
 export default function SubmitReports() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { executeWithErrorHandling } = useAPIError();
+  const { showErrorToast, showSuccessToast } = useErrorToast();
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -20,63 +27,113 @@ export default function SubmitReports() {
     title: '',
     description: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // Validate title
+    const titleError = validateRequired(formData.title);
+    if (titleError) newErrors.title = titleError;
+
+    // Validate file
+    if (!selectedFile) {
+      newErrors.file = 'فایل الزامی است';
+    } else {
+      const fileSizeError = validateFileSize(selectedFile.size, MAX_FILE_SIZE);
+      if (fileSizeError) newErrors.file = fileSizeError;
+
+      const fileTypeError = validateFileType(selectedFile.type, ALLOWED_FILE_TYPES);
+      if (fileTypeError) newErrors.file = fileTypeError;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setTouched(prev => ({ ...prev, [name]: true }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
+      setTouched(prev => ({ ...prev, file: true }));
+      if (errors.file) {
+        setErrors(prev => ({ ...prev, file: '' }));
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?.school_id || !user || !selectedFile) return;
+    if (!profile?.school_id || !user) {
+      showErrorToast('خطا', 'اطلاعات نیمرفتار کامل نیست');
+      return;
+    }
+
+    if (!validateForm()) {
+      showErrorToast('خطای اعتبارسنجی', 'لطفاً تمام فیلدهای الزامی را بررسی کنید');
+      return;
+    }
 
     setIsSubmitting(true);
 
-    // Upload file to storage
-    const fileExt = selectedFile.name.split('.').pop();
-    const filePath = `${profile.school_id}/${Date.now()}.${fileExt}`;
+    try {
+      if (!selectedFile) {
+        throw new Error('فایل انتخاب نشده است');
+      }
 
-    const { error: uploadError } = await supabase.storage
-      .from('school-reports')
-      .upload(filePath, selectedFile);
+      // Upload file to storage
+      const fileExt = selectedFile.name.split('.').pop();
+      const filePath = `${profile.school_id}/${Date.now()}.${fileExt}`;
 
-    if (uploadError) {
-      toast({
-        title: "Upload Failed",
-        description: uploadError.message,
-        variant: "destructive"
-      });
+      const { error: uploadError } = await executeWithErrorHandling(
+        () => supabase.storage
+          .from('school-reports')
+          .upload(filePath, selectedFile)
+      );
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Create database record
+      const { error } = await executeWithErrorHandling(
+        () => supabase.from('report_submissions').insert({
+          school_id: profile.school_id,
+          submitted_by: user.id,
+          title: formData.title,
+          description: formData.description || null,
+          file_path: filePath,
+          file_name: selectedFile.name
+        })
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      setSubmitted(true);
+      showSuccessToast('موفقیت', 'گزارش شما با موفقیت ارسال شد');
+    } catch (err) {
+      console.error('Error submitting report:', err);
+      showErrorToast('خطا در ارسال', 'خطایی در ارسال گزارش رخ داد. دوباره تلاش کنید.');
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    // Create database record
-    const { error } = await supabase.from('report_submissions').insert({
-      school_id: profile.school_id,
-      submitted_by: user.id,
-      title: formData.title,
-      description: formData.description || null,
-      file_path: filePath,
-      file_name: selectedFile.name
-    });
-
-    setIsSubmitting(false);
-
-    if (error) {
-      toast({
-        title: "Submission Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSubmitted(true);
-    toast({
-      title: "Report Submitted",
-      description: "Your report has been uploaded successfully."
-    });
   };
 
   if (submitted) {
@@ -86,10 +143,16 @@ export default function SubmitReports() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-              <h2 className="text-xl font-semibold">Report Uploaded Successfully!</h2>
-              <p className="text-muted-foreground">Your report has been sent to the center.</p>
-              <Button onClick={() => { setSubmitted(false); setFormData({ title: '', description: '' }); setSelectedFile(null); }}>
-                Upload Another
+              <h2 className="text-xl font-semibold">گزارش با موفقیت ارسال شد!</h2>
+              <p className="text-muted-foreground">گزارش شما به مرکز ارسال شده است.</p>
+              <Button onClick={() => { 
+                setSubmitted(false); 
+                setFormData({ title: '', description: '' }); 
+                setSelectedFile(null);
+                setErrors({});
+                setTouched({});
+              }}>
+                ارسال گزارش دیگری
               </Button>
             </div>
           </CardContent>
@@ -103,44 +166,65 @@ export default function SubmitReports() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <FileText className="h-6 w-6" />
-          Submit Reports
+          ارسال گزارش‌ها
         </h1>
-        <p className="text-muted-foreground">Upload documents and reports to the center</p>
+        <p className="text-muted-foreground">اسناد و گزارش‌ها را به مرکز آپلود کنید</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Upload Report</CardTitle>
-          <CardDescription>Supported formats: PDF, DOC, DOCX, XLS, XLSX</CardDescription>
+          <CardTitle>آپلود گزارش</CardTitle>
+          <CardDescription>فرمت‌های پشتیبانی شده: PDF, DOC, DOCX, XLS, XLSX - حداکثر 10MB</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Report Title *</Label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Summary */}
+            {Object.keys(errors).length > 0 && (
+              <FormErrorSummary errors={Object.values(errors)} />
+            )}
+
+            {/* Title Field */}
+            <FormFieldWrapper 
+              label="عنوان گزارش *" 
+              error={touched.title ? errors.title : undefined}
+            >
               <Input
                 id="title"
+                name="title"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Monthly Attendance Report - January 2024"
-                required
+                onChange={handleChange}
+                placeholder="گزارش حضور و غیاب - ژانویه 1402"
+                disabled={isSubmitting}
+                aria-invalid={!!errors.title}
               />
-            </div>
+            </FormFieldWrapper>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+            {/* Description Field */}
+            <FormFieldWrapper 
+              label="توضیحات (اختیاری)" 
+            >
               <Textarea
                 id="description"
+                name="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Brief description of the report..."
+                onChange={handleChange}
+                placeholder="توضیح مختصری در مورد گزارش..."
                 rows={3}
+                disabled={isSubmitting}
               />
-            </div>
+            </FormFieldWrapper>
 
+            {/* File Upload Field */}
             <div className="space-y-2">
-              <Label>File *</Label>
+              <Label className={errors.file ? 'text-red-500' : ''}>
+                فایل *
+              </Label>
               <div 
-                className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                  errors.file 
+                    ? 'border-red-500 bg-red-50' 
+                    : 'border-input hover:border-primary'
+                }`}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <input
@@ -149,6 +233,7 @@ export default function SubmitReports() {
                   className="hidden"
                   accept=".pdf,.doc,.docx,.xls,.xlsx"
                   onChange={handleFileChange}
+                  disabled={isSubmitting}
                 />
                 {selectedFile ? (
                   <div>
@@ -161,21 +246,32 @@ export default function SubmitReports() {
                 ) : (
                   <div>
                     <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">Click to select a file</p>
-                    <p className="text-sm text-muted-foreground">PDF, DOC, DOCX, XLS, XLSX up to 10MB</p>
+                    <p className="text-muted-foreground">فایل را انتخاب کنید</p>
+                    <p className="text-sm text-muted-foreground">PDF, DOC, DOCX, XLS, XLSX تا 10MB</p>
                   </div>
                 )}
               </div>
+              {touched.file && errors.file && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-red-500">
+                  <AlertCircle className="h-4 w-4" />
+                  {errors.file}
+                </div>
+              )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting || !selectedFile}>
+            {/* Submit Button */}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting || !selectedFile}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
+                  در حال آپلود...
                 </>
               ) : (
-                'Submit Report'
+                'ارسال گزارش'
               )}
             </Button>
           </form>
