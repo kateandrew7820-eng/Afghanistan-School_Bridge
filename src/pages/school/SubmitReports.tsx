@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Loader2, CheckCircle, Upload, AlertCircle } from 'lucide-react';
+import { FileText, Loader2, CheckCircle, Upload, AlertCircle, Zap } from 'lucide-react';
 import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
+import { FileUploadProgress } from '@/components/FileUploadProgress';
 import { validateFileSize, validateFileType, validateRequired } from '@/lib/validation';
 
 export default function SubmitReports() {
@@ -96,41 +97,39 @@ export default function SubmitReports() {
         throw new Error('فایل انتخاب نشده است');
       }
 
-      // Upload file to storage
+      // Upload file to storage with proper error handling
       const fileExt = selectedFile.name.split('.').pop();
       const filePath = `${profile.school_id}/${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await executeWithErrorHandling(
-        () => supabase.storage
-          .from('school-reports')
-          .upload(filePath, selectedFile)
-      );
+      const { data, error: uploadError } = await supabase.storage
+        .from('school-reports')
+        .upload(filePath, selectedFile);
 
       if (uploadError) {
         throw uploadError;
       }
 
       // Create database record
-      const { error } = await executeWithErrorHandling(
-        () => supabase.from('report_submissions').insert({
-          school_id: profile.school_id,
-          submitted_by: user.id,
-          title: formData.title,
-          description: formData.description || null,
-          file_path: filePath,
-          file_name: selectedFile.name
-        })
-      );
+      const { error: dbError } = await supabase.from('report_submissions').insert({
+        school_id: profile.school_id,
+        submitted_by: user.id,
+        title: formData.title,
+        description: formData.description || null,
+        file_path: data.path,
+        file_name: selectedFile.name,
+        status: 'pending'
+      });
 
-      if (error) {
-        throw error;
+      if (dbError) {
+        throw dbError;
       }
 
       setSubmitted(true);
       showSuccessToast('موفقیت', 'گزارش شما با موفقیت ارسال شد');
     } catch (err) {
       console.error('Error submitting report:', err);
-      showErrorToast('خطا در ارسال', 'خطایی در ارسال گزارش رخ داد. دوباره تلاش کنید.');
+      const errorMsg = err instanceof Error ? err.message : 'خطایی نامعلوم رخ داد';
+      showErrorToast('خطا در ارسال', errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -217,46 +216,19 @@ export default function SubmitReports() {
             {/* File Upload Field */}
             <div className="space-y-2">
               <Label className={errors.file ? 'text-red-500' : ''}>
-                فایل *
+                فایل گزارش *
               </Label>
-              <div 
-                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                  errors.file 
-                    ? 'border-red-500 bg-red-50' 
-                    : 'border-input hover:border-primary'
-                }`}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx"
-                  onChange={handleFileChange}
-                  disabled={isSubmitting}
-                />
-                {selectedFile ? (
-                  <div>
-                    <FileText className="h-8 w-8 mx-auto text-primary mb-2" />
-                    <p className="font-medium">{selectedFile.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">فایل را انتخاب کنید</p>
-                    <p className="text-sm text-muted-foreground">PDF, DOC, DOCX, XLS, XLSX تا 10MB</p>
-                  </div>
-                )}
-              </div>
-              {touched.file && errors.file && (
-                <div className="flex items-center gap-2 mt-2 text-sm text-red-500">
-                  <AlertCircle className="h-4 w-4" />
-                  {errors.file}
-                </div>
-              )}
+              <FileUploadProgress
+                onFileSelect={(file) => {
+                  setSelectedFile(file);
+                  setTouched(prev => ({ ...prev, file: true }));
+                  if (errors.file) {
+                    setErrors(prev => ({ ...prev, file: '' }));
+                  }
+                }}
+                maxFileSize={10 * 1024 * 1024}
+                acceptedFileTypes={['.pdf', '.doc', '.docx', '.xls', '.xlsx']}
+              />
             </div>
 
             {/* Submit Button */}
@@ -268,10 +240,13 @@ export default function SubmitReports() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  در حال آپلود...
+                  در حال ارسال...
                 </>
               ) : (
-                'ارسال گزارش'
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  ارسال گزارش
+                </>
               )}
             </Button>
           </form>
