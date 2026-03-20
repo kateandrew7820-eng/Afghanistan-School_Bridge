@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -156,6 +156,7 @@ function useErrorSimulation() {
 /**
  * Error Simulation Panel Component
  * Only shown in development mode
+ * Can be minimized to show only a button
  */
 export const ErrorSimulationPanel: React.FC = () => {
   if (!DEV_MODE) return null;
@@ -163,6 +164,7 @@ export const ErrorSimulationPanel: React.FC = () => {
   const [selectedError, setSelectedError] = React.useState<string>('');
   const [delay, setDelay] = React.useState<number>(0);
   const [isActive, setIsActive] = React.useState(false);
+  const [isMinimized, setIsMinimized] = React.useState(true);
 
   const handleEnable = () => {
     if (!selectedError) return;
@@ -179,8 +181,25 @@ export const ErrorSimulationPanel: React.FC = () => {
     setIsActive(false);
   };
 
+  // Minimized button only
+  if (isMinimized) {
+    return (
+      <Button
+        onClick={() => setIsMinimized(false)}
+        className="fixed bottom-4 right-4 z-50 bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
+        size="sm"
+        title="Click to expand error simulation tools"
+      >
+        <AlertTriangle className="h-4 w-4 mr-2" />
+        🧪 Dev
+        <ChevronUp className="h-3 w-3 ml-1" />
+      </Button>
+    );
+  }
+
+  // Expanded panel
   return (
-    <Card className="fixed bottom-4 right-4 w-80 z-50 border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950">
+    <Card className="fixed bottom-4 right-4 w-80 z-50 border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950 shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -189,17 +208,28 @@ export const ErrorSimulationPanel: React.FC = () => {
               شبیه‌سازی خطا
             </CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              // Remove panel
-              const panel = document.querySelector('[data-error-simulation-panel]');
-              if (panel) panel.remove();
-            }}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMinimized(true)}
+              title="Minimize panel"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                // Remove panel
+                const panel = document.querySelector('[data-error-simulation-panel]');
+                if (panel) panel.remove();
+              }}
+              title="Close panel"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
 

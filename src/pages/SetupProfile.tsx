@@ -20,7 +20,7 @@ import { validateField, validateForm as validateFormFields } from '@/lib/validat
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
   { id: 'teacher', label: 'معلم', value: 'teacher' },
-  { id: 'principal', label: 'رئیسمدیر مکتب', value: 'principal' },
+  { id: 'principal', label: 'مدیر مکتب', value: 'principal' },
   { id: 'district_admin', label: 'رئیس معارف', value: 'district_admin' },
 ];
 
