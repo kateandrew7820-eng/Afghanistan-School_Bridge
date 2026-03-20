@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LocalizationProvider } from "@/contexts/LocalizationContext";
+import { ConfirmationProvider } from "@/contexts/ConfirmationContext";
+import { SmartConfirmationDialog } from "@/components/SmartConfirmationDialog";
 import { getRoleTier } from "@/lib/supabase";
 import { useVerification } from "@/hooks/useVerification";
 import { Suspense, lazy } from "react";
@@ -346,15 +348,18 @@ function AppRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LocalizationProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ConfirmationProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <SmartConfirmationDialog />
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ConfirmationProvider>
     </LocalizationProvider>
   </QueryClientProvider>
 );
