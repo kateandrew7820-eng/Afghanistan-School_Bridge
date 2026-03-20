@@ -214,13 +214,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Creates account and automatically logs user in (modern UX pattern)
    * Database triggers create profile and role automatically
    * 
-   * FIX: Properly propagates auto-login errors back to caller
+   * IMPROVED: Smart retry logic for auto-login with exponential backoff
+   * Handles slow connections and temporary service issues gracefully
    */
   const signUp = async (email: string, password: string, fullName: string): Promise<{ error: Error | null }> => {
     try {
       setError(null);
 
-      // Step 1: Sign up the user
+      // =========================================================================
+      // STEP 1: Create the account
+      // =========================================================================
       const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -234,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (signUpError) {
         let message = signUpError.message;
         if (signUpError.message.includes('already registered')) {
-          message = 'This email is already registered. Please sign in instead.';
+          message = 'This email is already registered. Please sign in with your existing account.';
         }
         const error = new Error(message);
         setError(error);
@@ -247,33 +250,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      // Step 2: Wait for database triggers to create profile/role
-      // OPTIMIZED: Minimal delay (200ms instead of 1000ms)
-      // Database triggers start immediately and don't block auth flow
-      // Role/profile load in parallel in background via auth listener
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // =========================================================================
+      // STEP 2: Auto-login with intelligent retry logic
+      // Database triggers may take time on slow connections or under load
+      // We implement exponential backoff: 300ms, 600ms, 900ms, 1200ms
+      // =========================================================================
+      const maxRetries = 4;
+      const initialDelayMs = 300;
+      let lastError: Error | null = null;
 
-      // Step 3: Auto-login - creates session and triggers onAuthStateChange listener
-      // CRITICAL FIX: If auto-login fails, PROPAGATE THE ERROR back to caller
-      // Don't silently swallow the error - user needs to know signup failed
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        // Wait with exponential backoff: 300ms * attempt
+        const delayMs = initialDelayMs * attempt;
+        await new Promise(resolve => setTimeout(resolve, delayMs));
 
-      if (signInError) {
-        const message = `Account created but auto-login failed: ${signInError.message}. Please try signing in manually.`;
-        const error = new Error(message);
-        setError(error);
-        // FIX: Return the error so Login component can show it
-        // User created account successfully but needs to manually sign in
-        return { error };
+        // Try auto-login
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (!signInError) {
+          // SUCCESS! Auto-login worked
+          // Auth listener will fire and update state automatically
+          setError(null);
+          return { error: null };
+        }
+
+        // Store error for final fallback message
+        lastError = signInError;
+
+        // If it's not a transient error, stop retrying immediately
+        // Common non-transient errors:
+        if (signInError.message.includes('Invalid login credentials')) {
+          // Credentials failed - this won't be fixed by waiting, stop retrying
+          break;
+        }
+
+        // Log retry attempt for debugging (only in dev)
+        if (import.meta.env.MODE === 'development') {
+          console.log(`Auto-login attempt ${attempt}/${maxRetries} failed, retrying in ${delayMs}ms...`, signInError.message);
+        }
       }
 
-      // Success! Auto-login worked
-      // Auth listener will fire and update state automatically
+      // =========================================================================
+      // STEP 3: All auto-login attempts failed
+      // Instead of showing error, treat signup as successful
+      // User will see success page with option to manually sign-in from there
+      // =========================================================================
+      
+      // Account is definitely created at this point
+      // Auto-login failed, but that won't be fixed by retrying more
+      // Set a success state anyway - user can manually sign in
       setError(null);
-      return { error: null };
+      
+      // Return special error object that indicates account was created
+      // but auto-login failed - caller can show appropriate message
+      const fallbackError = new Error('auto-login-failed');
+      fallbackError.name = 'AutoLoginFailedError';
+      return { error: fallbackError };
+
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Sign up failed');
       setError(error);
