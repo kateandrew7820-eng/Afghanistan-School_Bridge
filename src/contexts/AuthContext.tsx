@@ -371,7 +371,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user_id: mockDevUser.id,
       full_name: 'سازنده توسعه',
       school_id: null,
-      district: 'نحیه توسعه',
+      district: 'ناحیه توسعه',
       province: 'کابل',
       school_name: 'مکتب توسعه',
       role: 'teacher',

@@ -123,7 +123,7 @@ export default function SetupProfile() {
       newErrors.school_name = 'نام مکتب الزامی است';
     }
     if (!formData.district?.trim()) {
-      newErrors.district = 'نام نحیه الزامی است';
+      newErrors.district = 'نام ناحیه الزامی است';
     }
     if (!formData.province) {
       newErrors.province = 'ولایت انتخاب کردن الزامی است';
@@ -280,7 +280,7 @@ export default function SetupProfile() {
                   <span className="font-medium">{formData.province}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-muted-foreground">نحیه:</span>
+                  <span className="text-muted-foreground">ناحیه:</span>
                   <span className="font-medium">{formData.district}</span>
                 </div>
               </div>
@@ -308,7 +308,7 @@ export default function SetupProfile() {
                 ) : (
                   <>
                     <Zap className="mr-2 h-5 w-5" />
-                    وارد سیستم شوید
+                    ورود به سیستم
                   </>
                 )}
               </Button>
@@ -320,7 +320,7 @@ export default function SetupProfile() {
                 disabled={isLoading}
                 className="w-full"
               >
-                بازگشت به سجل‌ورود
+               بازگشت 
               </Button>
             </CardContent>
           </Card>
