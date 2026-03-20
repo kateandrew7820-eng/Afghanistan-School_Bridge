@@ -47,7 +47,7 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
     // Check file type by extension
     const fileExt = '.' + f.name.split('.').pop()?.toLowerCase();
     if (!acceptedFileTypes.includes(fileExt)) {
-      return `فقط فرمت‌های ${acceptedFileTypes.join(', ')} پشتیبانی می‌شوند`;
+      return `فقط فورمت‌های ${acceptedFileTypes.join(', ')} پشتیبانی می‌شوند`;
     }
 
     return null;
@@ -179,7 +179,7 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
                   </button>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  فرمت‌های پشتیبانی شده: {acceptedFileTypes.join(', ')} (حداکثر {Math.round(maxFileSize / 1024 / 1024)}MB)
+                  فورمت‌های پشتیبانی شده: {acceptedFileTypes.join(', ')} (حداکثر {Math.round(maxFileSize / 1024 / 1024)}MB)
                 </p>
               </div>
             </div>

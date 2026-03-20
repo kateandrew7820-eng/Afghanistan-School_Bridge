@@ -43,7 +43,7 @@ export default function Breadcrumb({ items = [], className }: BreadcrumbProps) {
           'dashboard': 'صفحه اصلی',
           'statistics': 'آمار',
           'reports': 'گزارش‌ها',
-          'forms': 'فرم‌ها',
+          'forms': 'فورم‌ها',
           'اعلانات': 'اعلان‌ها',
           'documents': 'اسناد',
           'deadlines': 'مهلت‌ها',

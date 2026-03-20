@@ -91,7 +91,7 @@ const handleApprove = async () => {
 2. **Quick Actions**:
    - Click "ارسال آمار" → Submit statistics
    - Click "ارسال گزارش" → Upload files
-   - Click "ارسال فرم" → Submit forms
+   - Click "ارسال فورم" → Submit forms
 3. **Form Submission**:
    - Fill required fields
    - Validation occurs on blur (touched state)
@@ -105,7 +105,7 @@ const handleApprove = async () => {
 1. **Login** → Redirected to `/district` dashboard
 2. **View Submissions**: Click "مشاهده ارسال‌ها"
 3. **Review Submissions**:
-   - See tabbed interface (آمار, گزارش‌ها, فرم‌ها)
+   - See tabbed interface (آمار, گزارش‌ها, فورم‌ها)
    - Each submission shows school name, type, status
 4. **Approve/Reject**:
    - Click "تایید" button to approve
@@ -137,7 +137,7 @@ const handleApprove = async () => {
 |--------|--------|--------|---|
 | **ارسال آمار** | Navigate to statistics form | ✅ Functional | Shows validation errors |
 | **ارسال گزارش** | Navigate to file upload | ✅ Functional | File size/type validation |
-| **ارسال فرم** | Navigate to form submission | ✅ Functional | Required field validation |
+| **ارسال فورم** | Navigate to form submission | ✅ Functional | Required field validation |
 | **ارسال** (Submit) | Validate → Upload → Confirm | ✅ Functional | Error toasts + retry |
 
 ### Approval Buttons

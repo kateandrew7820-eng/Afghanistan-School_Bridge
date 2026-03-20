@@ -100,7 +100,7 @@ export function useMockSubmission() {
       // Randomly succeed (90% success rate)
       if (Math.random() > 0.1) {
         const submissionId = `FORM-${Date.now()}`;
-        showSuccessToast('موفقیت', 'فرم با موفقیت ارسال شد');
+        showSuccessToast('موفقیت', 'فورم با موفقیت ارسال شد');
         return {
           success: true,
           message: 'Form submitted successfully',
@@ -112,7 +112,7 @@ export function useMockSubmission() {
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'خطایی نامعلوم رخ داد';
-      showErrorToast('خطا', 'خطایی در ارسال فرم رخ داد. دوباره تلاش کنید.');
+      showErrorToast('خطا', 'خطایی در ارسال فورم رخ داد. دوباره تلاش کنید.');
       return { success: false, message: errorMsg };
     } finally {
       setIsProcessing(false);

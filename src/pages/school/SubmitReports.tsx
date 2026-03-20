@@ -193,7 +193,7 @@ export default function SubmitReports() {
       <Card>
         <CardHeader>
           <CardTitle>آپلود گزارش</CardTitle>
-          <CardDescription>فرمت‌های پشتیبانی شده: PDF, DOC, DOCX, XLS, XLSX - حداکثر 10MB</CardDescription>
+          <CardDescription>فورمت‌های پشتیبانی شده: PDF, DOC, DOCX, XLS, XLSX - حداکثر 10MB</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

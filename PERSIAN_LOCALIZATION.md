@@ -123,7 +123,7 @@
   - صفحه اصلی (Dashboard)
   - ارسال آمار و اطلاعات (Submit Statistics)
   - ارسال گزارشات (Submit Reports)
-  - ارسال فرم‌ها (Submit Forms)
+  - ارسال فورم‌ها (Submit Forms)
   - اطلاعیه‌ها (اعلانات)
   - اسناد (Documents)
   - مهلت‌ها (Deadlines)
@@ -167,7 +167,7 @@ WHERE user_id = (SELECT id FROM auth.users WHERE email = 'test@example.com');
 **Expected Result**:
 - AccessError page displays:
   - Title: "خطا" (Error)
-  - Message: "نقش شما هنوز تعیین نشده است. لطفاً با مدیر تماس بگیرید." (Role not assigned)
+  - Message: "مقام شما هنوز تعیین نشده است. لطفاً با مدیر تماس بگیرید." (Role not assigned)
   - "برگشت" (Back) and "دوباره تلاش" (Retry) buttons
   - Text: "با مدیر تماس بگیرید" (Contact admin)
 

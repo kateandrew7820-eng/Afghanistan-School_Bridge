@@ -93,9 +93,9 @@ export default function Demo() {
         {/* Role Selection Grid */}
         <div className="space-y-4">
           <div>
-            <h2 className="text-xl font-semibold mb-4">نقش خود را انتخاب کنید:</h2>
+            <h2 className="text-xl font-semibold mb-4">مقام خود را انتخاب کنید:</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              نقشی را انتخاب کنید تا داشبرد مربوط به آن نقش را مشاهده کنید:
+              مقامی را انتخاب کنید تا داشبرد مربوط به آن مقام را مشاهده کنید:
             </p>
           </div>
 
@@ -138,7 +138,7 @@ export default function Demo() {
               onClick={() => selectedRole && handleSelectRole(selectedRole)}
               className="min-w-[200px]"
             >
-              {selectedRole ? 'ورود به داشبرد' : 'نقش را انتخاب کنید'}
+              {selectedRole ? 'ورود به داشبرد' : 'مقام را انتخاب کنید'}
             </Button>
             <Button
               size="lg"

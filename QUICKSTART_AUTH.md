@@ -56,7 +56,7 @@
 │         - صفحه اصلی (Dashboard)                                   │
 │         - ارسال آمار (Submit Statistics)                        │
 │         - ارسال گزارشات (Submit Reports)                        │
-│         - ارسال فرم‌ها (Submit Forms)                           │
+│         - ارسال فورم‌ها (Submit Forms)                           │
 │         - اطلاعیه‌ها (اعلانات)                            │
 │         - اسناد (Documents)                                      │
 │         - مهلت‌ها (Deadlines)                                    │

@@ -161,7 +161,7 @@ export function getRoleLabelFA(role: UserRole | null): string {
     case 'school':
       return 'کاربر مکتب';
     case 'district_admin':
-      return 'مدیر ناحیه';
+      return 'مدیر ولسوالی';
     case 'province_admin':
       return 'مدیر ولایت';
     case 'ministry_admin':

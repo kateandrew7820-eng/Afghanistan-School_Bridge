@@ -184,7 +184,7 @@ export default function SubmitStatistics() {
 
       <Card>
         <CardHeader>
-          <CardTitle>فرم آمار مکتب</CardTitle>
+          <CardTitle>فورم آمار مکتب</CardTitle>
           <CardDescription>تمام فیلدهایی که با * مشخص شده‌اند الزامی هستند</CardDescription>
         </CardHeader>
         <CardContent>

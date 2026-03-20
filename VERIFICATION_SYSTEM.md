@@ -189,7 +189,7 @@ if (isDemoMode) {
 ## Persian/RTL Support
 
 All UI components are Persian (Farsi/Dari):
-- SetupProfile form: "فرم تنظیم پروفایل"
+- SetupProfile form: "فورم تنظیم پروفایل"
 - PendingVerification: "حساب شما در حال بررسی است"
 - VerificationPanel: "صف تایید کاربران"
 - Role labels: "دانش‌آموز", "معلم", "مدیر مکتب", etc.

@@ -376,7 +376,7 @@ export default function SetupProfileWithErrorHandling() {
         {/* Debug: Show current form state (remove in production) */}
         {process.env.NODE_ENV === 'development' && (
           <details className="mt-8 p-4 bg-gray-100 dark:bg-gray-900 rounded">
-            <summary className="cursor-pointer font-semibold">حالت فرم (توسعه only)</summary>
+            <summary className="cursor-pointer font-semibold">حالت فورم (توسعه only)</summary>
             <pre className="mt-2 text-xs overflow-auto">
               {JSON.stringify({ formData, errors, touched, hasErrors }, null, 2)}
             </pre>

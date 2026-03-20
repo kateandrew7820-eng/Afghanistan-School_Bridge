@@ -81,7 +81,7 @@ export const SubmissionStatusCard: React.FC<SubmissionStatusCardProps> = ({
       case 'reports':
         return 'گزارش';
       case 'forms':
-        return 'فرم';
+        return 'فورم';
       case 'approval':
         return 'تأیید';
       default:

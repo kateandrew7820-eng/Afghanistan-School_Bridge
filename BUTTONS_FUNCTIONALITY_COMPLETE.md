@@ -82,7 +82,7 @@ All interactive elements, buttons, and functions are now fully operational with 
 ```
 ✓ ارسال آمار (Submit Statistics) → Navigate to form
 ✓ ارسال گزارش (Submit Reports) → Navigate to form  
-✓ ارسال فرم‌ها (Submit Forms) → Navigate to form
+✓ ارسال فورم‌ها (Submit Forms) → Navigate to form
 ✓ مشاهده اعلانات (View Announcements) → Navigate to page
 ✓ 🧪 آزمایش ارسال (Test Submission) → Simulate
 ✓ 🧪 آزمایش تایید (Test Verification) → Simulate

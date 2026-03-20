@@ -31,7 +31,7 @@ Or use **Quick Enter** feature for instant access to any role.
 3. View **Quick Actions cards**:
    - "ارسال آمار" card
    - "ارسال گزارش" card  
-   - "ارسال فرم" card
+   - "ارسال فورم" card
 
 **Expected Results**:
 - ✅ Cards are clickable
@@ -84,7 +84,7 @@ Or use **Quick Enter** feature for instant access to any role.
 
 **Test 2 - Invalid File**:
 1. Try to upload .exe file
-2. **Expected**: Red error message "فقط فرمت‌های .pdf, .doc, .docx, .xls, .xlsx پشتیبانی می‌شوند"
+2. **Expected**: Red error message "فقط فورمت‌های .pdf, .doc, .docx, .xls, .xlsx پشتیبانی می‌شوند"
 3. Try to upload 50MB file
 4. **Expected**: Red error message "اندازه فایل باید کمتر از 10MB باشد"
 
@@ -102,7 +102,7 @@ Or use **Quick Enter** feature for instant access to any role.
 
 **Test 1 - Validation**:
 1. Click submit without filling fields
-2. **Expected**: Error summary shows "نوع فرم الزامی است"
+2. **Expected**: Error summary shows "نوع فورم الزامی است"
 3. Select form type: "درخواست منابع"
 4. Click submit again
 5. **Expected**: New errors for title and details
@@ -138,7 +138,7 @@ Or use **Quick Enter** feature for instant access to any role.
 4. **Expected**: Redirect to `/admin/submissions`
 
 **Approval Test** (on Submissions page):
-1. See three tabs: آمار, گزارش‌ها, فرم‌ها
+1. See three tabs: آمار, گزارش‌ها, فورم‌ها
 2. Each tab shows submission cards
 3. Find a card with status "در انتظار بررسی"
 4. Click "تایید" button
@@ -167,7 +167,7 @@ Or use **Quick Enter** feature for instant access to any role.
 
 **Test**:
 1. View statistics cards:
-   - تعداد اناحیه (Districts)
+   - تعداد اولسوالی (Districts)
    - تعداد مکاتب (Schools)  
    - کل ارسال‌ها (Submissions)
    - در انتظار (Pending)

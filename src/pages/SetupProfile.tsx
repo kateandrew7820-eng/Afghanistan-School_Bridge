@@ -74,10 +74,10 @@ export default function SetupProfile() {
 
   // Initialize form with either defaults (quick mode) or current profile
   const [formData, setFormData] = useState({
-    full_name: isQuickMode ? 'سازنده توسعه' : (profile?.full_name || ''),
+    full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
     role: isQuickMode ? 'teacher' : '',
     school_name: isQuickMode ? 'مکتب توسعه' : '',
-    district: isQuickMode ? 'ناحیه تجربه' : '',
+    district: isQuickMode ? 'ولسوالی تجربه' : '',
     province: isQuickMode ? 'کابل' : '',
     phone_number: isQuickMode ? '+93 700 000 000' : '',
   });
@@ -145,7 +145,7 @@ export default function SetupProfile() {
         break;
       case 'role':
         if (!formData.role) {
-          newErrors.role = 'نقش انتخاب کردن الزامی است';
+          newErrors.role = 'مقام انتخاب کردن الزامی است';
         } else {
           delete newErrors.role;
         }
@@ -159,7 +159,7 @@ export default function SetupProfile() {
         break;
       case 'district':
         if (!formData.district?.trim()) {
-          newErrors.district = 'نام ناحیه الزامی است';
+          newErrors.district = 'نام ولسوالی الزامی است';
         } else {
           delete newErrors.district;
         }
@@ -184,13 +184,13 @@ export default function SetupProfile() {
       newErrors.full_name = 'نام مکمل الزامی است';
     }
     if (!formData.role) {
-      newErrors.role = 'نقش انتخاب کردن الزامی است';
+      newErrors.role = 'مقام انتخاب کردن الزامی است';
     }
     if (!formData.school_name?.trim()) {
       newErrors.school_name = 'نام مکتب الزامی است';
     }
     if (!formData.district?.trim()) {
-      newErrors.district = 'نام ناحیه الزامی است';
+      newErrors.district = 'نام ولسوالی الزامی است';
     }
     if (!formData.province) {
       newErrors.province = 'ولایت انتخاب کردن الزامی است';
@@ -309,7 +309,7 @@ export default function SetupProfile() {
                   <span className="font-medium">{formData.full_name}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
-                  <span className="text-muted-foreground">نقش:</span>
+                  <span className="text-muted-foreground">مقام:</span>
                   <span className="font-medium">معلم</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
@@ -321,7 +321,7 @@ export default function SetupProfile() {
                   <span className="font-medium">{formData.province}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-muted-foreground">ناحیه:</span>
+                  <span className="text-muted-foreground">ولسوالی:</span>
                   <span className="font-medium">{formData.district}</span>
                 </div>
               </div>
@@ -432,7 +432,7 @@ export default function SetupProfile() {
 
               {/* Role Selection */}
               <FormFieldWrapper 
-                label="نقش" 
+                label="مقام" 
                 error={touched.role ? errors.role : undefined}
               >
                 <select
@@ -447,7 +447,7 @@ export default function SetupProfile() {
                   }`}
                   aria-invalid={!!errors.role}
                 >
-                  <option value="">انتخاب نقش</option>
+                  <option value="">انتخاب مقام</option>
                   {ROLES.map(role => (
                     <option key={role.id} value={role.value}>
                       {role.label}
@@ -475,7 +475,7 @@ export default function SetupProfile() {
 
               {/* District */}
               <FormFieldWrapper 
-                label="ناحیه" 
+                label="ولسوالی" 
                 error={touched.district ? errors.district : undefined}
               >
                 <Input
@@ -484,7 +484,7 @@ export default function SetupProfile() {
                   value={formData.district}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  placeholder="نام ناحیه"
+                  placeholder="نام ولسوالی"
                   disabled={isLoading}
                   aria-invalid={!!errors.district}
                 />

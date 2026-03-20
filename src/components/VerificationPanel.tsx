@@ -318,7 +318,7 @@ export function VerificationPanel({
                 <h4 className="font-semibold text-lg">{pendingUser.full_name || 'نام نامشخص'}</h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-sm">
                   <div>
-                    <span className="text-muted-foreground">نقش:</span>
+                    <span className="text-muted-foreground">مقام:</span>
                     <p className="font-medium">{pendingUser.role}</p>
                   </div>
                   <div>

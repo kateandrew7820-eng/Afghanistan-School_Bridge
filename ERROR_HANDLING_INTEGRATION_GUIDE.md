@@ -7,8 +7,8 @@
 - **Centralized Error Library** (`/src/lib/errors.ts`) - تمام انواع خطاها و پیام‌های فارسی
 - **Error Boundary Component** (`/src/components/ErrorBoundary.tsx`) - جلوگیری از کریش‌های React
 - **API Error Hook** (`/src/hooks/useAPIError.ts`) - مدیریت خطاهای API با retry logic
-- **Validation Utilities** (`/src/lib/validation.ts`) - بررسی‌های فرم با پیام‌های فارسی
-- **Form Error Components** (`/src/components/FormFieldError.tsx`) - نمایش خطاهای فرم
+- **Validation Utilities** (`/src/lib/validation.ts`) - بررسی‌های فورم با پیام‌های فارسی
+- **Form Error Components** (`/src/components/FormFieldError.tsx`) - نمایش خطاهای فورم
 - **Error Simulation Tools** (`/src/lib/errorSimulation.ts`) - تست خطاها در حالت توسعه
 
 ## مروحل یکپارچگی سریع

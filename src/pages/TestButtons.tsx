@@ -134,13 +134,13 @@ export default function TestButtons() {
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">🧪 آزمایش دکمه‌ها و عملکردها</h1>
           <p className="text-muted-foreground">
-            تمام دکمه‌ها و عملکردهای نقش خود را آزمایش کنید
+            تمام دکمه‌ها و عملکردهای مقام خود را آزمایش کنید
           </p>
 
           {/* Current Role Info */}
           <div className="space-y-3">
             <div className="flex gap-2 flex-wrap">
-              <Badge variant="outline">نقش: {role || 'نامعلوم'}</Badge>
+              <Badge variant="outline">مقام: {role || 'نامعلوم'}</Badge>
               <Badge variant="outline">سطح‌دسترسی: {roleTier || 'نامعلوم'}</Badge>
               {isDemoMode && <Badge className="bg-blue-600">حالت نمایشی</Badge>}
             </div>
@@ -175,7 +175,7 @@ export default function TestButtons() {
                 },
                 {
                   id: 'submit-forms',
-                  label: 'ارسال فرم‌ها',
+                  label: 'ارسال فورم‌ها',
                   action: () => navigate('/school/submit-forms'),
                 },
                 {
@@ -297,7 +297,7 @@ export default function TestButtons() {
         {/* Common Actions */}
         <ButtonGroup
           title="⚙️ اقدام‌های عمومی"
-          description="اقدام‌های دسترسی‌پذیر برای تمام نقش‌ها"
+          description="اقدام‌های دسترسی‌پذیر برای تمام مقام‌ها"
           buttons={[
             {
               id: 'refresh-data',

@@ -204,7 +204,7 @@ export default function PendingVerification() {
                 <p className="font-semibold">{profile?.full_name || '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">نقش</p>
+                <p className="text-sm text-muted-foreground">مقام</p>
                 <p className="font-semibold">{profile?.role || '-'}</p>
               </div>
               <div>

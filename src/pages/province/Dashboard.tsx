@@ -209,8 +209,8 @@ export default function ProvinceDashboard() {
       {/* Districts Overview */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="font-heading">خلاصه ناحیه‌ها</CardTitle>
-          <Badge variant="outline">{districtSummaries.length} ناحیه</Badge>
+          <CardTitle className="font-heading">خلاصه ولسوالی‌ها</CardTitle>
+          <Badge variant="outline">{districtSummaries.length} ولسوالی</Badge>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -218,7 +218,7 @@ export default function ProvinceDashboard() {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : districtSummaries.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">هیچ اطلاعات ناحیه‌ای دراسترسی نیست</p>
+            <p className="text-muted-foreground text-sm text-center py-8">هیچ اطلاعات ولسوالی‌ای دراسترسی نیست</p>
           ) : (
             <div className="space-y-2">
               {districtSummaries.map(district => (

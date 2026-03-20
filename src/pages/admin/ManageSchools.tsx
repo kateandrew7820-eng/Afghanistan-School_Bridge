@@ -153,12 +153,12 @@ export default function ManageSchools() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="district">ناحیه</Label>
+                  <Label htmlFor="district">ولسوالی</Label>
                   <Input
                     id="district"
                     value={newSchool.district}
                     onChange={(e) => setNewSchool({ ...newSchool, district: e.target.value })}
-                    placeholder="ناحیه 1"
+                    placeholder="ولسوالی 1"
                   />
                 </div>
               </div>
@@ -217,7 +217,7 @@ export default function ManageSchools() {
               <CardContent>
                 <div className="text-sm text-muted-foreground space-y-1">
                   {school.province && <p>ولایت: {school.province}</p>}
-                  {school.district && <p>ناحیه: {school.district}</p>}
+                  {school.district && <p>ولسوالی: {school.district}</p>}
                   {school.contact_email && <p>ایمیل: {school.contact_email}</p>}
                 </div>
               </CardContent>

@@ -47,7 +47,7 @@ http://localhost:5173
    - صفحه اصلی (Dashboard)
    - ارسال آمار و اطلاعات (Submit Statistics)
    - ارسال گزارشات (Submit Reports)
-   - ارسال فرم‌ها (Submit Forms)
+   - ارسال فورم‌ها (Submit Forms)
 
 ### Test 4: Sign Out 🔓
 1. In dashboard, click "خروج" (Sign Out) button

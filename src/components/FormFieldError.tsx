@@ -95,7 +95,7 @@ export const FormErrorSummary: React.FC<ErrorSummaryProps> = ({
         <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
         <div className="flex-1">
           <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">
-            {errorCount} خطا در فرم
+            {errorCount} خطا در فورم
           </h3>
           <ul className="space-y-1 text-sm text-red-800 dark:text-red-200">
             {Object.entries(errors).map(([fieldName, error]) => (

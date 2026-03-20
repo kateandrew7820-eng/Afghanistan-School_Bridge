@@ -311,7 +311,7 @@ export default function AdminSubmissions() {
           </TabsTrigger>
           <TabsTrigger value="forms" className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4" />
-            <span className="hidden sm:inline">فرم‌ها</span>
+            <span className="hidden sm:inline">فورم‌ها</span>
             <Badge variant="outline" className="ml-1">{forms.length}</Badge>
           </TabsTrigger>
         </TabsList>
@@ -344,7 +344,7 @@ export default function AdminSubmissions() {
           {loading ? (
             <Card><CardContent className="pt-6 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /><p className="text-muted-foreground">درحال بارگذاری...</p></CardContent></Card>
           ) : forms.length === 0 ? (
-            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">ارسالی فرم وجود ندارد</p></CardContent></Card>
+            <Card><CardContent className="pt-6 text-center"><p className="text-muted-foreground">ارسالی فورم وجود ندارد</p></CardContent></Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {forms.map((s) => <SubmissionCard key={s.id} submission={s} type="form" />)}

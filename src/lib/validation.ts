@@ -121,7 +121,7 @@ export function validateMatch(value1: string, value2: string, fieldName: string 
 /**
  * Validate pattern (regex)
  */
-export function validatePattern(value: string, pattern: RegExp, errorMessage: string = 'فرمت نامعتبر است'): string | null {
+export function validatePattern(value: string, pattern: RegExp, errorMessage: string = 'فورمت نامعتبر است'): string | null {
   if (!value) return null;
   if (!pattern.test(value)) {
     return errorMessage;

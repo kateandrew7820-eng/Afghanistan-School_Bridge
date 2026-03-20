@@ -112,7 +112,7 @@ Login → Dashboard → National Stats → Review All → Manage → Confirm
 |--------|------|--------|--------|
 | ارسال آمار | /school | Navigate to statistics | ✅ |
 | ارسال گزارش | /school | Navigate to file upload | ✅ |
-| ارسال فرم | /school | Navigate to forms | ✅ |
+| ارسال فورم | /school | Navigate to forms | ✅ |
 | ارسال (Submit) | All forms | Validate + Submit | ✅ |
 | ارسال اطلاعات دیگری | Success page | Reset form | ✅ |
 

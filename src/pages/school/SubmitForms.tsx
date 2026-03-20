@@ -45,7 +45,7 @@ export default function SubmitForms() {
 
     // Validate form type
     if (!formType) {
-      newErrors.formType = 'نوع فرم الزامی است';
+      newErrors.formType = 'نوع فورم الزامی است';
     }
 
     // Validate title
@@ -110,10 +110,10 @@ export default function SubmitForms() {
       }
 
       setSubmitted(true);
-      showSuccessToast('موفقیت', 'فرم شما با موفقیت ارسال شد');
+      showSuccessToast('موفقیت', 'فورم شما با موفقیت ارسال شد');
     } catch (err) {
       console.error('Error submitting form:', err);
-      showErrorToast('خطا در ارسال', 'خطایی در ارسال فرم رخ داد. دوباره تلاش کنید.');
+      showErrorToast('خطا در ارسال', 'خطایی در ارسال فورم رخ داد. دوباره تلاش کنید.');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,8 +126,8 @@ export default function SubmitForms() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-              <h2 className="text-xl font-semibold">فرم با موفقیت ارسال شد!</h2>
-              <p className="text-muted-foreground">فرم شما به مرکز ارسال شده است.</p>
+              <h2 className="text-xl font-semibold">فورم با موفقیت ارسال شد!</h2>
+              <p className="text-muted-foreground">فورم شما به مرکز ارسال شده است.</p>
               <Button onClick={() => { 
                 setSubmitted(false); 
                 setFormType(''); 
@@ -135,7 +135,7 @@ export default function SubmitForms() {
                 setErrors({});
                 setTouched({});
               }}>
-                ارسال فرم دیگری
+                ارسال فورم دیگری
               </Button>
             </div>
           </CardContent>
@@ -149,15 +149,15 @@ export default function SubmitForms() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <ClipboardList className="h-6 w-6" />
-          ارسال فرم‌ها
+          ارسال فورم‌ها
         </h1>
-        <p className="text-muted-foreground">فرم‌های مختلف را پر کنید و به مرکز ارسال کنید</p>
+        <p className="text-muted-foreground">فورم‌های مختلف را پر کنید و به مرکز ارسال کنید</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>ارسال فرم</CardTitle>
-          <CardDescription>نوع فرم را انتخاب کنید و جزئیات را پر کنید</CardDescription>
+          <CardTitle>ارسال فورم</CardTitle>
+          <CardDescription>نوع فورم را انتخاب کنید و جزئیات را پر کنید</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -169,11 +169,11 @@ export default function SubmitForms() {
             {/* Form Type Selection */}
             <div className="space-y-2">
               <Label className={errors.formType ? 'text-red-500' : ''}>
-                نوع فرم *
+                نوع فورم *
               </Label>
               <Select value={formType} onValueChange={handleFormTypeChange}>
                 <SelectTrigger className={errors.formType ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="نوع فرم را انتخاب کنید" />
+                  <SelectValue placeholder="نوع فورم را انتخاب کنید" />
                 </SelectTrigger>
                 <SelectContent>
                   {formTypes.map((type) => (
@@ -248,7 +248,7 @@ export default function SubmitForms() {
                   در حال ارسال...
                 </>
               ) : (
-                'ارسال فرم'
+                'ارسال فورم'
               )}
             </Button>
           </form>
