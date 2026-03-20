@@ -156,7 +156,7 @@ export default function PendingVerification() {
               </Alert>
             )}
             <p className="text-sm text-muted-foreground">
-              لطفاً با مسئول منطقه یا استان تماس بگیرید.
+              لطفاً با مسئول منطقه یا ولایت تماس بگیرید.
             </p>
             <Button
               className="w-full"
@@ -216,7 +216,7 @@ export default function PendingVerification() {
                 <p className="font-semibold">{profile?.district || '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">استان</p>
+                <p className="text-sm text-muted-foreground">ولایت</p>
                 <p className="font-semibold">{profile?.province || '-'}</p>
               </div>
               <div>
@@ -235,7 +235,7 @@ export default function PendingVerification() {
               <strong>این چه معنی دارد؟</strong>
             </p>
             <p>
-              حساب شما به‌طور موفق ایجاد شده است، اما قبل از اینکه بتوانید ورود به سیستم، نیاز است که توسط مسئول منطقه یا استان تایید شود.
+              حساب شما به‌طور موفق ایجاد شده است، اما قبل از اینکه بتوانید ورود به سیستم، نیاز است که توسط مسئول منطقه یا ولایت تایید شود.
             </p>
             <p>
               معمولاً این فرآیند <strong>1-2 روز</strong> طول می‌کشد.

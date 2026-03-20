@@ -19,7 +19,7 @@
   - `API_ERROR_MESSAGES_FA`: خطاهای API (11 کلید)
 
 **توابع کمکی**:
-- `createError()` - ایجاد AppError استاندارد
+- `createError()` - ایجاد AppError ولایتدارد
 - `createValidationError()` - خطس validation
 - `classifyError()` - تشخیص نوع خطا خودکار
 - `handleSupabaseError()` - مدلیریت خطaهای Supabase

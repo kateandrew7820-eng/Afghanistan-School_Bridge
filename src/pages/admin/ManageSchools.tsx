@@ -144,7 +144,7 @@ export default function ManageSchools() {
               </div>
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="province">استان</Label>
+                  <Label htmlFor="province">ولایت</Label>
                   <Input
                     id="province"
                     value={newSchool.province}
@@ -216,7 +216,7 @@ export default function ManageSchools() {
               </CardHeader>
               <CardContent>
                 <div className="text-sm text-muted-foreground space-y-1">
-                  {school.province && <p>استان: {school.province}</p>}
+                  {school.province && <p>ولایت: {school.province}</p>}
                   {school.district && <p>ناحیه: {school.district}</p>}
                   {school.contact_email && <p>ایمیل: {school.contact_email}</p>}
                 </div>

@@ -32,7 +32,7 @@ const DEMO_ROLES = [
   {
     id: 'province_admin',
     label: 'رئیس معارف ولایت',
-    description: 'صاحب صلاحیت مسئول آموزش و پرورش استان',
+    description: 'صاحب صلاحیت مسئول آموزش و پرورش ولایت',
     icon: TrendingUp,
     tier: 'province',
   },

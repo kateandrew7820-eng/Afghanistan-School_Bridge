@@ -153,7 +153,7 @@ export default function ProvinceDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.totalSchools}</div>
-            <p className="text-xs text-muted-foreground">کل مکاتب استان</p>
+            <p className="text-xs text-muted-foreground">کل مکاتب ولایت</p>
           </CardContent>
         </Card>
         <Card>

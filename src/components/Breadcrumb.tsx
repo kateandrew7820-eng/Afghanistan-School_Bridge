@@ -38,7 +38,7 @@ export default function Breadcrumb({ items = [], className }: BreadcrumbProps) {
         const labelMap: Record<string, string> = {
           'school': 'مکتب',
           'district': 'منطقه',
-          'province': 'استان',
+          'province': 'ولایت',
           'ministry': 'وزارت',
           'dashboard': 'صفحه اصلی',
           'statistics': 'آمار',

@@ -330,7 +330,7 @@ export function VerificationPanel({
                     <p className="font-medium">{pendingUser.district}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">استان:</span>
+                    <span className="text-muted-foreground">ولایت:</span>
                     <p className="font-medium">{pendingUser.province}</p>
                   </div>
                   <div>

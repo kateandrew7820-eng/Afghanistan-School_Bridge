@@ -57,7 +57,7 @@
 │ Profile Summary:                        │
 │ • Full Name: أحمد علي                 │
 │ • Role: دانش‌آموز (Student)           │
-│ • School: دبیرستان فردوسی              │
+│ • School: مکتب فردوسی              │
 │ • District: کابل                      │
 │ • Province: کابل                      │
 │ • Phone: 0799123456                   │
@@ -141,7 +141,7 @@
 │                                          │
 │ [User 1: أحمد محمود]                    │
 │ • Role: Student                          │
-│ • School: دبیرستان فردوسی                │
+│ • School: مکتب فردوسی                │
 │ • District: کابل                       │
 │ • Phone: 0799123456                    │
 │ • Submitted: 2 hours ago                │

@@ -492,7 +492,7 @@ export default function SetupProfile() {
 
               {/* Province Selection */}
               <FormFieldWrapper 
-                label="استان" 
+                label="ولایت" 
                 error={touched.province ? errors.province : undefined}
               >
                 <select
@@ -507,7 +507,7 @@ export default function SetupProfile() {
                   }`}
                   aria-invalid={!!errors.province}
                 >
-                  <option value="">انتخاب استان</option>
+                  <option value="">انتخاب ولایت</option>
                   {PROVINCES.map(province => (
                     <option key={province} value={province}>
                       {province}
