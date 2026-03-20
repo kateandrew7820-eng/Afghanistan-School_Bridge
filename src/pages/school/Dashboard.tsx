@@ -50,9 +50,9 @@ export default function SchoolDashboard() {
 
   useEffect(() => {
     async function fetchData() {
-      const [اعلاناتRes, deadlinesRes] = await Promise.all([
+      const [announcementsRes, deadlinesRes] = await Promise.all([
         supabase
-          .from('اعلانات')
+          .from('announcements')
           .select('*')
           .eq('is_published', true)
           .order('created_at', { ascending: false })
@@ -66,7 +66,7 @@ export default function SchoolDashboard() {
           .limit(5)
       ]);
 
-      if (اعلاناتRes.data) setاعلانات(اعلاناتRes.data);
+      if (announcementsRes.data) setاعلانات(announcementsRes.data as any);
       if (deadlinesRes.data) setDeadlines(deadlinesRes.data);
       setLoading(false);
     }

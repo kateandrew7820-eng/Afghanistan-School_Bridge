@@ -41,11 +41,11 @@ export default function Adminاعلانات() {
 
   async function fetchاعلانات() {
     const { data } = await supabase
-      .from('اعلانات')
+      .from('announcements')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (data) setاعلانات(data);
+    if (data) setاعلانات(data as any);
     setLoading(false);
   }
 
@@ -54,7 +54,7 @@ export default function Adminاعلانات() {
     if (!user) return;
     setIsSubmitting(true);
 
-    const { error } = await supabase.from('اعلانات').insert({
+    const { error } = await supabase.from('announcements').insert({
       title: newAnnouncement.title,
       content: newAnnouncement.content,
       priority: newAnnouncement.priority,
@@ -84,7 +84,7 @@ export default function Adminاعلانات() {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('اعلانات').delete().eq('id', id);
+    const { error } = await supabase.from('announcements').delete().eq('id', id);
     
     if (error) {
       toast({ title: "حذف ناموفق", description: error.message, variant: "destructive" });

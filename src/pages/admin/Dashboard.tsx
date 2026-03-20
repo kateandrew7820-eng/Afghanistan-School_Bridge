@@ -59,7 +59,7 @@ export default function AdminDashboard() {
         supabase.from('statistics_submissions').select('id, status, created_at, schools(name)').order('created_at', { ascending: false }).limit(10),
         supabase.from('report_submissions').select('id, status, created_at, schools(name)').order('created_at', { ascending: false }).limit(10),
         supabase.from('form_submissions').select('id, status, created_at, schools(name)').order('created_at', { ascending: false }).limit(10),
-        supabase.from('اعلانات').select('id', { count: 'exact' }).eq('is_published', true)
+        supabase.from('announcements').select('id', { count: 'exact' }).eq('is_published', true)
       ]);
 
       const allSubmissions = [

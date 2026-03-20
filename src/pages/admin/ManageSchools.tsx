@@ -73,7 +73,8 @@ export default function ManageSchools() {
 
     toast({
         title: "مکتب افزوده شد",
-        description: `${newSchool.name} با موفقیت افزوده شد.`
+        description: `${newSchool.name} با موفقیت افزوده شد.`,
+    });
 
     setIsAddDialogOpen(false);
     setNewSchool({ name: '', code: '', province: '', district: '', contact_email: '' });
