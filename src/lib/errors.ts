@@ -199,11 +199,11 @@ export function classifyError(error: unknown): AppError {
     }
 
     // Default to unknown
-    return createError('unknown', error.message, ERROR_MESSAGES_FA['unknown'], undefined, error);
+    return createError('unknown', error.message, ERROR_MESSAGES_FA['unknown'].message, undefined, error);
   }
 
   // Handle non-Error objects
-  return createError('unknown', String(error), ERROR_MESSAGES_FA['unknown'], undefined, error);
+  return createError('unknown', String(error), ERROR_MESSAGES_FA['unknown'].message, undefined, new Error(String(error)));
 }
 
 /**
@@ -211,7 +211,7 @@ export function classifyError(error: unknown): AppError {
  */
 export function handleSupabaseError(error: any): AppError {
   if (!error) {
-    return createError('unknown', 'Unknown error', ERROR_MESSAGES_FA['unknown']);
+    return createError('unknown', 'Unknown error', ERROR_MESSAGES_FA['unknown'].message);
   }
 
   const errorMessage = error.message || String(error);
@@ -280,8 +280,9 @@ export function getErrorMessageFa(error: AppError | Error | unknown): string {
  */
 export function logError(error: AppError | Error | unknown, context?: string) {
   if (process.env.NODE_ENV === 'development') {
-    const appError = error instanceof AppError 
-      ? error 
+    // Check if it's already an AppError by checking for required properties
+    const appError = (error && typeof error === 'object' && 'type' in error && 'messageFa' in error)
+      ? (error as AppError)
       : classifyError(error);
 
     console.error(
