@@ -19,9 +19,9 @@ import { validateField, validateForm as validateFormFields } from '@/lib/validat
 
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
-  { id: 'teacher', label: 'معلم/استاد', value: 'teacher' },
-  { id: 'principal', label: 'رئیس مکتب/مدیر مکتب', value: 'principal' },
-  { id: 'district_admin', label: 'رئیس معارف ولسوالی', value: 'district_admin' },
+  { id: 'teacher', label: 'معلم', value: 'teacher' },
+  { id: 'principal', label: 'رئیسمدیر مکتب', value: 'principal' },
+  { id: 'district_admin', label: 'رئیس معارف', value: 'district_admin' },
 ];
 
 const PROVINCES = [

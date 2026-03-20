@@ -10,21 +10,21 @@ import { AlertTriangle, Users, Building2, TrendingUp, Crown, User } from 'lucide
 const DEMO_ROLES = [
   {
     id: 'teacher',
-    label: 'معلم/استاد',
+    label: 'معلم',
     description: 'صاحب صلاحیت معلم - دسترسی به داشبرد مکتب',
     icon: User,
     tier: 'school',
   },
   {
     id: 'principal',
-    label: 'رئیس مکتب/مدیر مکتب',
+    label: 'رئیسمدیر مکتب',
     description: 'صاحب صلاحیت مدیر مکتب - دسترسی کامل به داشبرد مکتب',
     icon: Users,
     tier: 'school',
   },
   {
     id: 'district_admin',
-    label: 'رئیس معارف ولسوالی',
+    label: 'رئیس معارف',
     description: 'صاحب صلاحیت مسئول آموزش و پرورش منطقه',
     icon: Building2,
     tier: 'district',
