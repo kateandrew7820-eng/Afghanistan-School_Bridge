@@ -23,6 +23,7 @@ import SetupProfile from "./pages/SetupProfile";
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
 const PendingVerification = lazy(() => import("./pages/PendingVerification"));
+const TestButtons = lazy(() => import("./pages/TestButtons"));
 
 // Layouts
 import SchoolLayout from "./components/layouts/SchoolLayout";
@@ -173,6 +174,11 @@ function AppRoutes() {
       {/* Only available in development environment */}
       {import.meta.env.MODE === 'development' && (
         <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><Demo /></Suspense>} />
+      )}
+
+      {/* Test Buttons Page - Test all functionality */}
+      {import.meta.env.MODE === 'development' && (
+        <Route path="/test-buttons" element={<Suspense fallback={<LoadingFallback />}><TestButtons /></Suspense>} />
       )}
 
       {/* Legacy admin redirect */}

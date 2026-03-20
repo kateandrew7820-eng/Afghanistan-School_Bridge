@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Loader2, CheckCircle, Upload, AlertCircle, Zap } from 'lucide-react';
 import { useAPIError } from '@/hooks/useAPIError';
@@ -13,13 +14,15 @@ import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { FileUploadProgress } from '@/components/FileUploadProgress';
 import { validateFileSize, validateFileType, validateRequired } from '@/lib/validation';
+import { useMockSubmission } from '@/hooks/useMockSubmission';
 
 export default function SubmitReports() {
-  const { user, profile } = useAuth();
+  const { user, profile, isDemoMode } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { executeWithErrorHandling } = useAPIError();
   const { showErrorToast, showSuccessToast } = useErrorToast();
+  const { submitReport: mockSubmitReport } = useMockSubmission();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -97,35 +100,43 @@ export default function SubmitReports() {
         throw new Error('فایل انتخاب نشده است');
       }
 
-      // Upload file to storage with proper error handling
-      const fileExt = selectedFile.name.split('.').pop();
-      const filePath = `${profile.school_id}/${Date.now()}.${fileExt}`;
+      if (isDemoMode) {
+        // Use mock submission in demo mode
+        const result = await mockSubmitReport(formData, selectedFile);
+        if (result.success) {
+          setSubmitted(true);
+        }
+      } else {
+        // Upload file to storage with proper error handling
+        const fileExt = selectedFile.name.split('.').pop();
+        const filePath = `${profile.school_id}/${Date.now()}.${fileExt}`;
 
-      const { data, error: uploadError } = await supabase.storage
-        .from('school-reports')
-        .upload(filePath, selectedFile);
+        const { data, error: uploadError } = await supabase.storage
+          .from('school-reports')
+          .upload(filePath, selectedFile);
 
-      if (uploadError) {
-        throw uploadError;
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        // Create database record
+        const { error: dbError } = await supabase.from('report_submissions').insert({
+          school_id: profile.school_id,
+          submitted_by: user.id,
+          title: formData.title,
+          description: formData.description || null,
+          file_path: data.path,
+          file_name: selectedFile.name,
+          status: 'pending'
+        });
+
+        if (dbError) {
+          throw dbError;
+        }
+
+        setSubmitted(true);
+        showSuccessToast('موفقیت', 'گزارش شما با موفقیت ارسال شد');
       }
-
-      // Create database record
-      const { error: dbError } = await supabase.from('report_submissions').insert({
-        school_id: profile.school_id,
-        submitted_by: user.id,
-        title: formData.title,
-        description: formData.description || null,
-        file_path: data.path,
-        file_name: selectedFile.name,
-        status: 'pending'
-      });
-
-      if (dbError) {
-        throw dbError;
-      }
-
-      setSubmitted(true);
-      showSuccessToast('موفقیت', 'گزارش شما با موفقیت ارسال شد');
     } catch (err) {
       console.error('Error submitting report:', err);
       const errorMsg = err instanceof Error ? err.message : 'خطایی نامعلوم رخ داد';
@@ -169,6 +180,15 @@ export default function SubmitReports() {
         </h1>
         <p className="text-muted-foreground">اسناد و گزارش‌ها را به مرکز آپلود کنید</p>
       </div>
+
+      {isDemoMode && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <strong>🎨 حالت نمایشی:</strong> شما در حالت نمایشی هستید. داده‌های ارسال شده ذخیره نمی‌شوند.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>

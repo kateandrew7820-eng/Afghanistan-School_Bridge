@@ -7,17 +7,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { BarChart3, Loader2, CheckCircle } from 'lucide-react';
+import { BarChart3, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { validateNumberRange, validateRequired } from '@/lib/validation';
+import { useMockSubmission } from '@/hooks/useMockSubmission';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function SubmitStatistics() {
-  const { user, profile } = useAuth();
+  const { user, profile, isDemoMode } = useAuth();
   const { toast } = useToast();
   const { executeWithErrorHandling } = useAPIError();
   const { showErrorToast, showSuccessToast } = useErrorToast();
+  const { submitStatistics: mockSubmitStatistics } = useMockSubmission();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -91,26 +94,35 @@ export default function SubmitStatistics() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await executeWithErrorHandling(
-        () => supabase.from('statistics_submissions').insert({
-          school_id: profile.school_id,
-          submitted_by: user.id,
-          academic_year: formData.academic_year,
-          total_students: parseInt(formData.total_students) || 0,
-          male_students: parseInt(formData.male_students) || 0,
-          female_students: parseInt(formData.female_students) || 0,
-          total_teachers: parseInt(formData.total_teachers) || 0,
-          attendance_rate: formData.attendance_rate ? parseFloat(formData.attendance_rate) : null,
-          notes: formData.notes || null
-        })
-      );
+      if (isDemoMode) {
+        // Use mock submission in demo mode
+        const result = await mockSubmitStatistics(formData);
+        if (result.success) {
+          setSubmitted(true);
+        }
+      } else {
+        // Use real database submission
+        const { error } = await executeWithErrorHandling(
+          () => supabase.from('statistics_submissions').insert({
+            school_id: profile.school_id,
+            submitted_by: user.id,
+            academic_year: formData.academic_year,
+            total_students: parseInt(formData.total_students) || 0,
+            male_students: parseInt(formData.male_students) || 0,
+            female_students: parseInt(formData.female_students) || 0,
+            total_teachers: parseInt(formData.total_teachers) || 0,
+            attendance_rate: formData.attendance_rate ? parseFloat(formData.attendance_rate) : null,
+            notes: formData.notes || null
+          })
+        );
 
-      if (error) {
-        throw error;
+        if (error) {
+          throw error;
+        }
+
+        setSubmitted(true);
+        showSuccessToast('موفقیت', 'اطلاعات شما با موفقیت ارسال شد');
       }
-
-      setSubmitted(true);
-      showSuccessToast('موفقیت', 'اطلاعات شما با موفقیت ارسال شد');
     } catch (err) {
       console.error('Error submitting statistics:', err);
       showErrorToast('خطا در ارسال', 'خطایی در ارسال اطلاعات رخ داد. دوباره تلاش کنید.');
@@ -160,6 +172,15 @@ export default function SubmitStatistics() {
         </h1>
         <p className="text-muted-foreground">اطلاعات دانش‌آموز و حضور و غیاب مکتب خود را وارد کنید</p>
       </div>
+
+      {isDemoMode && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <strong>🎨 حالت نمایشی:</strong> شما در حالت نمایشی هستید. داده‌های ارسال شده ذخیره نمی‌شوند.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>

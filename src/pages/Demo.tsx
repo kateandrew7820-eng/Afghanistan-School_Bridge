@@ -5,7 +5,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Users, Building2, TrendingUp, Crown, User } from 'lucide-react';
+import { AlertTriangle, Users, Building2, TrendingUp, Crown, User, TestTube } from 'lucide-react';
 
 const DEMO_ROLES = [
   {
@@ -130,22 +130,33 @@ export default function Demo() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 justify-center pt-4">
+        <div className="flex flex-col gap-3 justify-center pt-4">
+          <div className="flex gap-3 justify-center">
+            <Button
+              size="lg"
+              disabled={!selectedRole}
+              onClick={() => selectedRole && handleSelectRole(selectedRole)}
+              className="min-w-[200px]"
+            >
+              {selectedRole ? 'ورود به داشبرد' : 'نقش را انتخاب کنید'}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate('/login')}
+              className="min-w-[200px]"
+            >
+              بازگشت به ورود
+            </Button>
+          </div>
           <Button
             size="lg"
-            disabled={!selectedRole}
-            onClick={() => selectedRole && handleSelectRole(selectedRole)}
-            className="min-w-[200px]"
+            variant="secondary"
+            onClick={() => navigate('/test-buttons')}
+            className="w-full"
           >
-            {selectedRole ? 'ورود به داشبرد' : 'نقش را انتخاب کنید'}
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={() => navigate('/login')}
-            className="min-w-[200px]"
-          >
-            بازگشت به ورود
+            <TestTube className="mr-2 h-4 w-4" />
+            🧪 آزمایش دکمه‌ها و عملکردها
           </Button>
         </div>
 
