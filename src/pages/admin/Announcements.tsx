@@ -22,10 +22,10 @@ interface Announcement {
   created_at: string;
 }
 
-export default function Adminاعلانات() {
+export default function AdminAnnouncements() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [اعلانات, setاعلانات] = useState<Announcement[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,16 +36,16 @@ export default function Adminاعلانات() {
   });
 
   useEffect(() => {
-    fetchاعلانات();
+    fetchAnnouncements();
   }, []);
 
-  async function fetchاعلانات() {
+  async function fetchAnnouncements() {
     const { data } = await supabase
       .from('announcements')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (data) setاعلانات(data as any);
+    if (data) setAnnouncements(data as any);
     setLoading(false);
   }
 
@@ -80,7 +80,7 @@ export default function Adminاعلانات() {
 
     setIsAddDialogOpen(false);
     setNewAnnouncement({ title: '', content: '', priority: 'normal' });
-    fetchاعلانات();
+    fetchAnnouncements();
   };
 
   const handleDelete = async (id: string) => {
@@ -92,7 +92,7 @@ export default function Adminاعلانات() {
     }
     
     toast({ title: "حذف شد", description: "اطلاعیه حذف شد." });
-    fetchاعلانات();
+    fetchAnnouncements();
   };
 
   const getPriorityColor = (priority: string) => {
@@ -183,7 +183,7 @@ export default function Adminاعلانات() {
 
       {loading ? (
         <p className="text-muted-foreground">درحال بارگذاری...</p>
-      ) : اعلانات.length === 0 ? (
+      ) : announcements.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">اطلاعیه‌ای هنوز موجود نیست</p>
@@ -191,7 +191,7 @@ export default function Adminاعلانات() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {اعلانات.map((announcement) => (
+          {announcements.map((announcement) => (
             <Card key={announcement.id}>
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">

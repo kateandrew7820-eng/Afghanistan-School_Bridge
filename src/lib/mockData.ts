@@ -3,7 +3,7 @@
  * Used when developer needs to test dashboards without authentication
  */
 
-export const mockاعلانات = [
+export const mockAnnouncements = [
   {
     id: '1',
     title: 'نتایج امتحانات ترمین منتشر شد',
