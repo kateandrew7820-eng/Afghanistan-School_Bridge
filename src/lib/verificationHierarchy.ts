@@ -108,12 +108,12 @@ export function getApprovalInstruction(role: string, language: 'en' | 'fa' = 'fa
  */
 export function getRoleLabel(role: string, language: 'en' | 'fa' = 'fa'): string {
   const labels: Record<string, Record<'en' | 'fa', string>> = {
-    'student': { 'en': 'Student', 'fa': 'دانش‌آموز' },
-    'teacher': { 'en': 'Teacher', 'fa': 'معلم' },
-    'principal': { 'en': 'School Principal', 'fa': 'مدیر مکتب' },
-    'district_admin': { 'en': 'District Admin', 'fa': 'مدیر ولسوالی' },
-    'province_admin': { 'en': 'Province Admin', 'fa': 'مدیر ولایت' },
-    'ministry_admin': { 'en': 'Ministry Admin', 'fa': 'مدیر وزارت' },
+    'student': { 'en': 'Student', 'fa': 'شاگرد' },
+    'teacher': { 'en': 'Teacher', 'fa': 'معلم/استاد' },
+    'principal': { 'en': 'School Principal', 'fa': 'رئیس مکتب/مدیر مکتب' },
+    'district_admin': { 'en': 'District Admin', 'fa': 'رئیس معارف ولسوالی' },
+    'province_admin': { 'en': 'Province Admin', 'fa': 'رئیس معارف ولایت' },
+    'ministry_admin': { 'en': 'Ministry Admin', 'fa': 'وزیر معارف' },
   };
 
   return labels[role]?.[language] || role;

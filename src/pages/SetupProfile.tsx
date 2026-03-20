@@ -15,9 +15,9 @@ import { Loader2, AlertCircle, Zap, ArrowRight } from 'lucide-react';
 
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
-  { id: 'teacher', label: 'معلم', value: 'teacher' },
-  { id: 'principal', label: 'رئیس مکتب', value: 'principal' },
-  { id: 'district_admin', label: 'مدیر ناحیه', value: 'district_admin' },
+  { id: 'teacher', label: 'معلم/استاد', value: 'teacher' },
+  { id: 'principal', label: 'رئیس مکتب/مدیر مکتب', value: 'principal' },
+  { id: 'district_admin', label: 'رئیس معارف ولسوالی', value: 'district_admin' },
 ];
 
 const PROVINCES = [
