@@ -93,7 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Set role (critical for redirect)
       if (roleResult.error) {
-        console.warn('Failed to fetch user role:', roleResult.error);
         // Don't break auth on role fetch failure - use default
         setRole('school');
       } else {
@@ -102,12 +101,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Set profile (nice to have, not critical)
       if (profileResult.error) {
-        console.warn('Failed to fetch user profile:', profileResult.error);
         // Profile may not exist yet on new signup - that's ok
       }
       setProfile(profileResult.profile);
     } catch (err) {
-      console.error('Error loading user data:', err);
       // Graceful degradation - let user in with defaults
       setRole('school');
       setProfile(null);
@@ -162,7 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMounted) {
           const authError = err instanceof Error ? err : new Error('Failed to initialize auth');
           setError(authError);
-          console.error('Auth initialization error:', authError);
         }
       } finally {
         if (isMounted) {
@@ -209,7 +205,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Sign in failed');
       setError(error);
-      console.error('Sign in error:', error);
       return { error };
     }
   };
@@ -243,18 +238,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         const error = new Error(message);
         setError(error);
-        console.error('Sign up error:', error);
         return { error };
       }
 
       if (!newUser) {
         const error = new Error('Failed to create account. Please try again.');
         setError(error);
-        console.error('Sign up error:', error);
         return { error };
       }
-
-      console.log('Account created, userId:', newUser.id);
 
       // Step 2: Wait for database triggers to create profile/role
       // OPTIMIZED: Minimal delay (200ms instead of 1000ms)
@@ -274,7 +265,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const message = `Account created but auto-login failed: ${signInError.message}. Please try signing in manually.`;
         const error = new Error(message);
         setError(error);
-        console.error('Auto-login after signup failed:', error);
         // FIX: Return the error so Login component can show it
         // User created account successfully but needs to manually sign in
         return { error };
@@ -283,12 +273,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Success! Auto-login worked
       // Auth listener will fire and update state automatically
       setError(null);
-      console.log('Auto-login successful after signup');
       return { error: null };
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Sign up failed');
       setError(error);
-      console.error('Sign up error:', error);
       return { error };
     }
   };

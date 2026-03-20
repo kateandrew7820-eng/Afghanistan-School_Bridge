@@ -77,7 +77,6 @@ export default function PendingVerification() {
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'خطا در بارگذاری اطلاعات';
-        console.error('Fetch error:', err);
         setError(message);
       } finally {
         setLoading(false);
@@ -100,7 +99,7 @@ export default function PendingVerification() {
       await supabase.auth.signOut();
       navigate('/login');
     } catch (err) {
-      console.error('Sign out error:', err);
+      // Sign out error handled
     }
   };
 

@@ -83,7 +83,6 @@ export async function getUserRole(userId: string): Promise<FetchUserRoleResponse
     
     // Handle other unexpected errors
     if (error) {
-      console.error('Error fetching user role:', error);
       return { role: null, error };
     }
     
@@ -94,7 +93,6 @@ export async function getUserRole(userId: string): Promise<FetchUserRoleResponse
     return { role: mapRole(data.role as string), error: null };
   } catch (err) {
     const error = err instanceof Error ? err : new Error('Failed to fetch user role');
-    console.error('Unexpected error in getUserRole:', error);
     return { role: null, error };
   }
 }
@@ -131,14 +129,12 @@ export async function getUserProfile(userId: string): Promise<FetchUserProfileRe
     
     // Handle other unexpected errors
     if (error) {
-      console.error('Error fetching user profile:', error);
       return { profile: null, error };
     }
     
     return { profile: data || null, error: null };
   } catch (err) {
     const error = err instanceof Error ? err : new Error('Failed to fetch user profile');
-    console.error('Unexpected error in getUserProfile:', error);
     return { profile: null, error };
   }
 }

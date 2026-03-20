@@ -223,12 +223,6 @@ export default function SetupProfile() {
         }
       }
       
-      console.error('❌ Profile setup error:', {
-        message: errorMessage,
-        details: errorDetails,
-        fullError: err,
-      });
-      
       // Show user-friendly error message
       const userMessage = errorMessage.startsWith('$1.') 
         ? 'یکی از فیلدهای فرم نامعتبر است'

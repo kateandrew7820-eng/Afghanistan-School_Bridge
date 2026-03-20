@@ -63,7 +63,20 @@ function LoadingFallback() {
   );
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data is fresh for 5 mins
+      gcTime: 10 * 60 * 1000, // 10 minutes - keep unused data for 10 mins
+      retry: 1, // Retry failed queries once
+      refetchOnWindowFocus: false, // Don't refetch when user refocuses window
+      refetchOnReconnect: true, // Do refetch when network reconnects
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
 

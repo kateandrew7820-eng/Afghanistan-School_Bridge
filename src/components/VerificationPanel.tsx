@@ -118,7 +118,6 @@ export function VerificationPanel({
       setPendingUsers((data || []) as unknown as PendingUser[]);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در بارگذاری کاربران';
-      console.error('Fetch error:', err);
       setError(message);
     } finally {
       setLoading(false);
@@ -167,7 +166,7 @@ export function VerificationPanel({
             );
 
           if (roleError) {
-            console.warn('Role update warning:', roleError);
+            // Role update failed silently
           }
         }
       }
@@ -181,7 +180,6 @@ export function VerificationPanel({
       setPendingUsers(prev => prev.filter(u => u.user_id !== userId));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در تایید کاربر';
-      console.error('Approval error:', err);
       toast({
         title: 'خطا',
         description: message,
@@ -242,7 +240,6 @@ export function VerificationPanel({
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در رد کردن درخواست';
-      console.error('Rejection error:', err);
       toast({
         title: 'خطا',
         description: message,
