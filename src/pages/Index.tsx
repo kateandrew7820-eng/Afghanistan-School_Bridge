@@ -69,7 +69,7 @@ export default function Index() {
           <p className="text-xl text-muted-foreground">{t('app.description')}</p>
           
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            {t('app.description')} - تام کردن ارتباط آموزش در سراسر افغانستان
+            {t('app.description')} - تکمیل ارتباط آموزش در سراسر افغانستان
           </p>
 
           <Link to="/login">

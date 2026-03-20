@@ -15,9 +15,9 @@ import { Loader2, AlertCircle, Zap, ArrowRight } from 'lucide-react';
 
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
-  { id: 'teacher', label: 'مولوی', value: 'teacher' },
+  { id: 'teacher', label: 'معلم', value: 'teacher' },
   { id: 'principal', label: 'رئیس مکتب', value: 'principal' },
-  { id: 'district_admin', label: 'سریرست منطقہ', value: 'district_admin' },
+  { id: 'district_admin', label: 'مدیر ناحیه', value: 'district_admin' },
 ];
 
 const PROVINCES = [
@@ -71,7 +71,7 @@ export default function SetupProfile() {
     full_name: isQuickMode ? 'سازنده توسعه' : (profile?.full_name || ''),
     role: isQuickMode ? 'teacher' : '',
     school_name: isQuickMode ? 'مکتب توسعه' : '',
-    district: isQuickMode ? 'منطقہ توسعه' : '',
+    district: isQuickMode ? 'ناحیه تجربه' : '',
     province: isQuickMode ? 'کابل' : '',
     phone_number: isQuickMode ? '+93 700 000 000' : '',
   });
@@ -123,7 +123,7 @@ export default function SetupProfile() {
       newErrors.school_name = 'نام مکتب الزامی است';
     }
     if (!formData.district?.trim()) {
-      newErrors.district = 'نام منطقہ الزامی است';
+      newErrors.district = 'نام نحیه الزامی است';
     }
     if (!formData.province) {
       newErrors.province = 'ولایت انتخاب کردن الزامی است';
@@ -176,8 +176,8 @@ export default function SetupProfile() {
       // DEV MODE: Skip verification process, go directly to dashboard
       if (DEV_MODE) {
         toast({
-          title: 'کامیابی',
-          description: '[DEV MODE] نمونہ شما تأیید شد۔ به صفحه اصلی منتقل می‌شود...',
+          title: 'موفق',
+          description: '[حالت توسعه] پروفایل شما تأیید شد. به صفحه اصلی منتقل می‌شود...',
         });
 
         // Determine dashboard route based on role
@@ -256,9 +256,9 @@ export default function SetupProfile() {
                 <Zap className="w-8 h-8 text-primary" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold">ورود تیز</h1>
+            <h1 className="text-3xl font-bold">ورود سریع</h1>
             <p className="text-muted-foreground">
-              برای تجربہ سیستم با یک کلیک وارد شوید
+              برای تجربه سیستم با یک کلیک وارد شوید
             </p>
           </div>
 
@@ -275,7 +275,7 @@ export default function SetupProfile() {
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span className="text-muted-foreground">نقش:</span>
-                  <span className="font-medium">مولوی</span>
+                  <span className="font-medium">معلم</span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b">
                   <span className="text-muted-foreground">مکتب:</span>
@@ -286,7 +286,7 @@ export default function SetupProfile() {
                   <span className="font-medium">{formData.province}</span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-muted-foreground">منطقہ:</span>
+                  <span className="text-muted-foreground">نحیه:</span>
                   <span className="font-medium">{formData.district}</span>
                 </div>
               </div>
@@ -295,7 +295,7 @@ export default function SetupProfile() {
               <Alert className="border-blue-200 bg-blue-50 mt-4">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
-                  یہ حساب توسعه برای سیستم کی تجربہ ہے۔ تمام ڈیٹا فوری تأیید شود۔
+                  این حساب برای تجربه سیستم است. تمام داده‌ها فوری تأیید می‌شود.
                 </AlertDescription>
               </Alert>
 
@@ -314,7 +314,7 @@ export default function SetupProfile() {
                 ) : (
                   <>
                     <Zap className="mr-2 h-5 w-5" />
-                    سیستم میں داخل ہوں
+                    وارد سیستم شوید
                   </>
                 )}
               </Button>
@@ -326,7 +326,7 @@ export default function SetupProfile() {
                 disabled={isLoading}
                 className="w-full"
               >
-                ورود میں واپس آئیں
+                بازگشت به سجل‌ورود
               </Button>
             </CardContent>
           </Card>
@@ -340,9 +340,9 @@ export default function SetupProfile() {
       <div className="w-full max-w-2xl space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">نمونہ مکمل کریں</h1>
+          <h1 className="text-3xl font-bold">پروفایل خود را تکمیل کنید</h1>
           <p className="text-muted-foreground">
-            براہ کرم معلومات درج کریں تاکہ آپ کا حساب تأیید ہو
+            لطفاً معلومات خود را وارد کنید تا حساب شما تأیید شود
           </p>
         </div>
 
@@ -356,8 +356,8 @@ export default function SetupProfile() {
               <div>
                 <h3 className="font-medium text-amber-900">حالت توسعه فعال</h3>
                 <p className="text-sm text-amber-800 mt-1">
-                  حالت توسعه میں، نمونہ فوری تأیید ہوگا اور صفحه اصلی میں منتقل ہوگا۔
-                  یہ صرف تجربہ کے لیے ہے۔
+                  در حالت توسعه، پروفایل شما فوری تأیید می‌شود و به صفحه اصلی منتقل می‌شویم.
+                  این تنها برای تجربه است.
                 </p>
               </div>
             </div>
@@ -366,9 +366,9 @@ export default function SetupProfile() {
 
         <Card>
           <CardHeader>
-            <CardTitle>معلومات صارف</CardTitle>
+            <CardTitle>معلومات کاربر</CardTitle>
             <CardDescription>
-              یہ معلومات مناسب رسائی کے تعین کے لیے استعمال ہوتی ہے
+              این معلومات برای تعیین سطح دسترسی درست استفاده می‌شود
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -381,7 +381,7 @@ export default function SetupProfile() {
                   name="full_name"
                   value={formData.full_name}
                   onChange={handleChange}
-                  placeholder="نام اور نام خانوادہ"
+                  placeholder="نام و نام‌خانوادگی"
                   disabled={isLoading}
                   className={errors.full_name ? 'border-red-500' : ''}
                 />
@@ -423,7 +423,7 @@ export default function SetupProfile() {
                   name="school_name"
                   value={formData.school_name}
                   onChange={handleChange}
-                  placeholder="مکتب یا تعلیمی ادارے کا نام"
+                  placeholder="نام مکتب یا موسسه آموزشی"
                   disabled={isLoading}
                   className={errors.school_name ? 'border-red-500' : ''}
                 />
@@ -434,13 +434,13 @@ export default function SetupProfile() {
 
               {/* District */}
               <div className="space-y-2">
-                <Label htmlFor="district">منطقہ</Label>
+                <Label htmlFor="district">ناحیه</Label>
                 <Input
                   id="district"
                   name="district"
                   value={formData.district}
                   onChange={handleChange}
-                  placeholder="منطقہ کا نام"
+                  placeholder="نام ناحیه"
                   disabled={isLoading}
                   className={errors.district ? 'border-red-500' : ''}
                 />
@@ -476,7 +476,7 @@ export default function SetupProfile() {
 
               {/* Phone Number (Optional) */}
               <div className="space-y-2">
-                <Label htmlFor="phone_number">فون نمبر (اختیاری)</Label>
+                <Label htmlFor="phone_number">شماره تلفن (اختیاری)</Label>
                 <Input
                   id="phone_number"
                   name="phone_number"
@@ -492,7 +492,7 @@ export default function SetupProfile() {
               <Alert className="border-blue-200 bg-blue-50">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800">
-                  جمع کرنے کے بعد، آپ کے حساب کو منظور کرنے کی ضرورت ہے۔ منظوری تک، آپ سسٹم استعمال نہیں کر سکتے۔
+                  پس از ارسال، حساب شما باید توسط مدیر تأیید شود. تا زمان تأیید، نمی‌توانید از سیستم استفاده کنید.
                 </AlertDescription>
               </Alert>
 
@@ -508,7 +508,7 @@ export default function SetupProfile() {
                     در حال ذخیره‌سازی...
                   </>
                 ) : (
-                  'ادامه و ارسال برای تایید'
+                  'ادامه و ارسال برای تأیید'
                 )}
               </Button>
             </form>
