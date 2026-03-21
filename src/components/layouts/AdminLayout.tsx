@@ -93,7 +93,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </aside>
 
-      <main className="lg:mr-64 pt-14 min-h-screen">
+      <main className="lg:mr-64 pt-14 min-h-screen" role="main">
         <div className="p-4 lg:p-6">
           {children}
         </div>
