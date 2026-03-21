@@ -79,7 +79,8 @@ export default function AfghanistanInfoPage() {
       'ministry_admin': '/ministry',
     };
 
-    const route = dashboardRoutes[role?.role || 'teacher'] || '/school';
+    const userRole = typeof role === 'string' ? role : 'teacher';
+    const route = dashboardRoutes[userRole] || '/school';
     navigate(route);
   };
 
@@ -172,7 +173,9 @@ export default function AfghanistanInfoPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">نقش شما</CardTitle>
-              <CardDescription>{role?.role && t(`roles.${role.role}`) || 'نامشخص'}</CardDescription>
+              <CardDescription>
+                {typeof role === 'string' && t(`roles.${role}`) || 'نامشخص'}
+              </CardDescription>
             </CardHeader>
           </Card>
 

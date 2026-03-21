@@ -203,7 +203,8 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {(t(currentQuestion.answersKey) as string[]).map((answer, index) => (
+                {Array.isArray(t(currentQuestion.answersKey))
+                  ? ((t(currentQuestion.answersKey) as unknown) as string[]).map((answer, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted cursor-pointer transition-colors border border-transparent hover:border-muted-foreground/20">
                     <input
                       type="radio"
@@ -221,7 +222,9 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
                       {answer}
                     </Label>
                   </div>
-                ))}
+                ))
+                  : <p className="text-muted-foreground">{t('common.loading')}</p>
+                }
               </div>
             </CardContent>
           </Card>
