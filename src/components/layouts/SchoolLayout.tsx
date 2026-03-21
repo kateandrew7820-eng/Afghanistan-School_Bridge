@@ -74,7 +74,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
             <User className="h-4 w-4 text-muted-foreground" />
             <span className="hidden sm:inline text-muted-foreground">{profile?.full_name}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground" aria-label="خروج از سیستم">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
