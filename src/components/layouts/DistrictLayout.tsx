@@ -30,9 +30,9 @@ export default function DistrictLayout({ children }: DistrictLayoutProps) {
   return (
     <div className="min-h-screen bg-background dark" dir="rtl">
       {/* Top Status Bar */}
-      <header className="fixed top-0 right-0 left-0 lg:right-64 h-14 bg-card border-b z-40 flex items-center justify-between px-4">
+      <header className="fixed top-0 right-0 left-0 lg:right-64 h-14 bg-card border-b z-40 flex items-center justify-between px-4" role="banner">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? 'بستن منو' : 'باز کردن منو'}>
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <h2 className="font-heading font-semibold text-sm">
