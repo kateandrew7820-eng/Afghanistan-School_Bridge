@@ -19,6 +19,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
 import SetupProfile from "./pages/SetupProfile";
+import AfghanistanInfoPage from "./pages/AfghanistanInfoPage";
 
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
@@ -169,6 +170,7 @@ function AppRoutes() {
       {/* User Setup & Verification Routes */}
       <Route path="/setup-profile" element={<SetupProfile />} />
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
+      <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
 
       {/* Demo/Testing Mode - Choose role and see dashboards without auth */}
       {/* Only available in development environment */}

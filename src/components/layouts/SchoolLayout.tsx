@@ -1,7 +1,9 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
+import { useProfileCompletion } from '@/hooks/useProfileCompletion';
+import { ProfileCompletionModal } from '@/components/ProfileCompletionModal';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { 
@@ -16,6 +18,16 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
   const { profile, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const { isCompleted, loading } = useProfileCompletion();
+
+  // Show profile completion modal if not completed yet
+  // Only show on dashboard, not on other pages
+  useEffect(() => {
+    if (!loading && !isCompleted && location.pathname === '/school') {
+      setShowProfileModal(true);
+    }
+  }, [isCompleted, loading, location.pathname]);
 
   const navItems = [
     { href: '/school', icon: LayoutDashboard, label: t('navigation.dashboard') },
@@ -105,6 +117,12 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
           {children}
         </div>
       </main>
+
+      {/* Profile Completion Modal */}
+      <ProfileCompletionModal 
+        isOpen={showProfileModal} 
+        onClose={() => setShowProfileModal(false)} 
+      />
     </div>
   );
 }
