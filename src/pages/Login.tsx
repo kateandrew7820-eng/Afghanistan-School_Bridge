@@ -277,10 +277,10 @@ export default function Login() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">⚡</span>
-                      <h3 className="font-bold text-amber-900 dark:text-amber-100">Developer Quick Access</h3>
+                      <h3 className="font-bold text-amber-900 dark:text-amber-100">ورود سریع / Quick Access</h3>
                     </div>
                     <p className="text-sm text-amber-800 dark:text-amber-200">
-                      One-click entry to test the dashboard as a teacher
+                      برای تجربه سریع سیستم - One-click entry to test the dashboard
                     </p>
                     <Button
                       onClick={() => {
@@ -292,7 +292,7 @@ export default function Login() {
                       className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-semibold"
                     >
                       <Zap className="mr-2 h-4 w-4" />
-                      Developer Quick Access
+                      ورود سریع
                     </Button>
                   </div>
                 </div>

@@ -89,13 +89,15 @@ export default function SetupProfile() {
   // Auto-submit if in quick mode (one-click confirmation)
   useEffect(() => {
     if (isQuickMode && !isLoading) {
-      // Small delay to ensure form is rendered, then auto-click submit
+      // Medium delay to ensure form is fully rendered and data is initialized
       const timer = setTimeout(() => {
+        // Directly submit the form with pre-filled data
         handleSubmit({ preventDefault: () => {} } as React.FormEvent);
-      }, 500);
+      }, 800); // Increased from 500ms to 800ms for better reliability
+      
       return () => clearTimeout(timer);
     }
-  }, [isQuickMode]);
+  }, [isQuickMode, isLoading, formData.full_name]); // Added proper dependencies
 
   if (!user) {
     navigate('/login');
@@ -242,32 +244,29 @@ export default function SetupProfile() {
         throw error;
       }
 
+      // Mark that user just completed setup profile
+      // This flag will trigger the profile completion modal on the dashboard
+      localStorage.setItem('setupProfileCompleted', 'true');
+
       // DEV MODE: Skip verification process, go directly to dashboard
       if (DEV_MODE) {
-        showSuccessToast('موفق', '[حالت توسعه] پروفایل شما تأیید شد. به صفحه اصلی منتقل می‌شود...');
+        showSuccessToast('موفق', '[حالت توسعه] پروفایل شما تأیید شد...');
 
-        // Determine dashboard route based on role
-        const dashboardRoutes: Record<string, string> = {
-          'student': '/school',
-          'teacher': '/school',
-          'principal': '/school',
-          'district_admin': '/district',
-          'province_admin': '/province',
-          'ministry_admin': '/ministry',
-        };
-        
-        const dashboardRoute = dashboardRoutes[formData.role] || '/school';
-        
-        // Redirect directly to dashboard (skip pending verification)
+        // Always go to /school to show the profile completion modal
+        // (regardless of role, the modal will appear on dashboard)
         setTimeout(() => {
-          navigate(dashboardRoute);
+          navigate('/school');
         }, 500);
       } else {
-        // PRODUCTION: Normal flow - user waits for admin approval
-        showSuccessToast('موفقیت', 'پروفایل شما ذخیره شد. اکنون به تایید اختیار رسانی منتظر هستید.');
+        // PRODUCTION: Normal flow - Save flag and go to dashboard
+        // The ProfileCompletionModal will appear on dashboard before verification blocks them
+        showSuccessToast('موفقیت', 'پروفایل شما ذخیره شد...');
 
-        // Redirect to pending verification page
-        navigate('/pending-verification');
+        // Redirect to /school where ProfileCompletionModal will appear
+        // After modal completion, user will be redirected to pending verification
+        setTimeout(() => {
+          navigate('/school');
+        }, 500);
       }
     } catch (err) {
       // Error is already handled by executeWithErrorHandling and showErrorToast
@@ -300,7 +299,7 @@ export default function SetupProfile() {
           {/* Quick Mode Info Card */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">اطلاعات ورود تیز</CardTitle>
+              <CardTitle className="text-lg">اطلاعات ورود سریع</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3 text-sm">

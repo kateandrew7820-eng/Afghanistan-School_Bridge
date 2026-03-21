@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
@@ -17,17 +17,35 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
   const { t } = useTranslation();
   const { profile, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const { isCompleted, loading } = useProfileCompletion();
 
   // Show profile completion modal if not completed yet
-  // Only show on dashboard, not on other pages
+  // Also show immediately after user completes SetupProfile (newly signed up)
   useEffect(() => {
-    if (!loading && !isCompleted && location.pathname === '/school') {
+    const setupCompleted = localStorage.getItem('setupProfileCompleted');
+    
+    // Show modal if:
+    // 1. User just completed setup profile (new signup), OR
+    // 2. User is on dashboard and hasn't completed profile yet
+    if (!loading && !isCompleted && (location.pathname === '/school' || setupCompleted === 'true')) {
       setShowProfileModal(true);
     }
   }, [isCompleted, loading, location.pathname]);
+
+  const handleProfileModalClose = () => {
+    setShowProfileModal(false);
+    // Clear the setup completed flag
+    localStorage.removeItem('setupProfileCompleted');
+    
+    // If user is in production and needs verification, redirect them
+    if (import.meta.env.MODE === 'production' && profile?.status === 'pending_verification') {
+      // Optionally redirect to pending verification page
+      // navigate('/pending-verification');
+    }
+  };
 
   const navItems = [
     { href: '/school', icon: LayoutDashboard, label: t('navigation.dashboard') },
@@ -121,7 +139,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
       {/* Profile Completion Modal */}
       <ProfileCompletionModal 
         isOpen={showProfileModal} 
-        onClose={() => setShowProfileModal(false)} 
+        onClose={handleProfileModalClose} 
       />
     </div>
   );

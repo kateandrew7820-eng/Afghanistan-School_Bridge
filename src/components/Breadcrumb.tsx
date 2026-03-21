@@ -46,7 +46,7 @@ export default function Breadcrumb({ items = [], className }: BreadcrumbProps) {
           'forms': 'فورم‌ها',
           'اعلانات': 'اعلان‌ها',
           'documents': 'اسناد',
-          'deadlines': 'مهلت‌ها',
+          'deadlines': 'فرصت‌ها',
           'submissions': 'ارسال‌ها',
           'manage-schools': 'مدیریت مکاتب',
           'pending-verification': 'در انتظار تایید',

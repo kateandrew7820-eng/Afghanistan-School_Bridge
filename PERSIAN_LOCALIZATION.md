@@ -126,7 +126,7 @@
   - ارسال فورم‌ها (Submit Forms)
   - اطلاعیه‌ها (اعلانات)
   - اسناد (Documents)
-  - مهلت‌ها (Deadlines)
+  - فرصت‌ها (Deadlines)
 
 #### Test 3: Dashboard Access - District Admin
 

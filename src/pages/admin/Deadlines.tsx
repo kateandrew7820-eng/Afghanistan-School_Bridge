@@ -98,7 +98,7 @@ export default function AdminDeadlines() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Calendar className="h-6 w-6" />
-            مهلت‌ها
+            فرصت‌ها
           </h1>
           <p className="text-muted-foreground">تعیین تاریخ‌های مهم برای مکاتب</p>
         </div>
@@ -107,13 +107,13 @@ export default function AdminDeadlines() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              افزودن مهلت
+              افزودن فرصت
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>افزودن مهلت</DialogTitle>
-              <DialogDescription>تعیین مهلت برای مکاتب</DialogDescription>
+              <DialogTitle>افزودن فرصت</DialogTitle>
+              <DialogDescription>تعیین فرصت برای مکاتب</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddDeadline} className="space-y-4">
               <div className="space-y-2">
@@ -127,7 +127,7 @@ export default function AdminDeadlines() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="due_date">تاریخ مهلت *</Label>
+                <Label htmlFor="due_date">تاریخ فرصت *</Label>
                 <Input
                   id="due_date"
                   type="date"
@@ -153,7 +153,7 @@ export default function AdminDeadlines() {
                     درحال افزودن...
                   </>
                 ) : (
-                  'افزودن مهلت'
+                  'افزودن فرصت'
                 )}
               </Button>
             </form>
@@ -166,7 +166,7 @@ export default function AdminDeadlines() {
       ) : deadlines.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">مهلتی تعریف نشده است</p>
+            <p className="text-muted-foreground">فرصتی تعریف نشده است</p>
           </CardContent>
         </Card>
       ) : (
@@ -180,7 +180,7 @@ export default function AdminDeadlines() {
                     <div>
                       <CardTitle>{deadline.title}</CardTitle>
                       <CardDescription>
-                        مهلت: {format(new Date(deadline.due_date), 'EEEE, MMMM d, yyyy')}
+                        فرصت: {format(new Date(deadline.due_date), 'EEEE, MMMM d, yyyy')}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">

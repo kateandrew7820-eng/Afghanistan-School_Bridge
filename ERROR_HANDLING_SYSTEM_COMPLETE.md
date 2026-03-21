@@ -173,7 +173,7 @@ showError(appError); // Shows toast automatically in Persian
 ### 1. **`ERROR_HANDLING_INTEGRATION_GUIDE.md`**
 راهنمای مفصل یکپارچگی سیستم خطا
 
-- روش‌های تیز یکپارچگی
+- روش‌های سریع یکپارچگی
 - نمونه‌های دقیق کد
 - بهترین روش‌ها
 - توابع کمکی
