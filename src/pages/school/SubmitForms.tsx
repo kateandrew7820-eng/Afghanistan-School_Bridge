@@ -78,7 +78,7 @@ export default function SubmitForms() {
     setIsSubmitting(true);
     try {
       const { error } = await executeWithErrorHandling(
-        () => supabase.from('form_submissions').insert({
+        async () => await supabase.from('form_submissions').insert({
           school_id: profile.school_id,
           submitted_by: user.id,
           form_type: formType,

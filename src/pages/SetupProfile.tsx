@@ -144,7 +144,7 @@ export default function SetupProfile() {
       };
       
       const { error } = await executeWithErrorHandling(
-        () => supabase.from('profiles').upsert(profileData, { onConflict: 'user_id' }).select()
+        async () => await supabase.from('profiles').upsert(profileData, { onConflict: 'user_id' }).select()
       );
 
       if (error) throw error;

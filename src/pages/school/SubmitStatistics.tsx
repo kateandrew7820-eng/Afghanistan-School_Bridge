@@ -89,7 +89,7 @@ export default function SubmitStatistics() {
         if (result.success) setSubmitted(true);
       } else {
         const { error } = await executeWithErrorHandling(
-          () => supabase.from('statistics_submissions').insert({
+          async () => await supabase.from('statistics_submissions').insert({
             school_id: profile.school_id,
             submitted_by: user.id,
             academic_year: formData.academic_year,
