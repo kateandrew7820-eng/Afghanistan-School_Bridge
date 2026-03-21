@@ -102,7 +102,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
             </div>
           </div>
 
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto" role="navigation" aria-label="منوی مکتب">
             {navItems.map((item) => (
               <Link
                 key={item.href}
