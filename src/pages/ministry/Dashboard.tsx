@@ -7,7 +7,7 @@ import { useMockData } from '@/hooks/useMockData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Map, School, BarChart3, TrendingUp, Users, Download, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Map, School, BarChart3, TrendingUp, Users, Download, Loader2, CheckCircle2 } from 'lucide-react';
 
 interface NationalStats {
   provinces: number;
@@ -26,29 +26,19 @@ export default function MinistryDashboard() {
   const mockData = useMockData();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<NationalStats>({
-    provinces: 0,
-    schools: 0,
-    students: 0,
-    teachers: 0,
-    submissions: 0,
-    submissionsThisMonth: 0,
-    avgCompletionRate: 0,
-    avgTeacherStudentRatio: 0,
+    provinces: 0, schools: 0, students: 0, teachers: 0,
+    submissions: 0, submissionsThisMonth: 0, avgCompletionRate: 0, avgTeacherStudentRatio: 0,
   });
 
-  useEffect(() => {
-    fetchNationalData();
-  }, []);
+  useEffect(() => { fetchNationalData(); }, []);
 
   async function fetchNationalData() {
     try {
       setLoading(true);
-
-      // If in demo mode, use mock data
       if (isDemoMode) {
         setStats({
           provinces: mockData.ministryStats?.provinces || 34,
-          schools: mockData.submissions.length * 5, // Estimate
+          schools: mockData.submissions.length * 5,
           students: mockData.provinceStats.students || 925000,
           teachers: Math.round((mockData.provinceStats.students || 925000) / 35),
           submissions: mockData.submissions.length,
@@ -60,10 +50,9 @@ export default function MinistryDashboard() {
         return;
       }
 
-      // Fetch real data from Supabase
       const [schoolsRes, statsRes, reportsRes, formsRes] = await Promise.all([
         supabase.from('schools').select('id, province', { count: 'exact' }),
-        supabase.from('statistics_submissions').select('id, total_students, total_teachers'),
+        supabase.from('statistics_submissions').select('id, total_students, total_teachers, created_at'),
         supabase.from('report_submissions').select('id, created_at'),
         supabase.from('form_submissions').select('id, created_at'),
       ]);
@@ -76,7 +65,6 @@ export default function MinistryDashboard() {
       const totalSubmissions = statsSubmissions.length + reports.length + forms.length;
       const provinces = new Set(schools.map((s) => s.province)).size;
 
-      // Calculate averages from statistics
       let totalStudents = 0;
       let totalTeachers = 0;
       if (statsSubmissions.length > 0) {
@@ -119,7 +107,6 @@ export default function MinistryDashboard() {
         <p className="text-muted-foreground text-sm">{t('ministry.nationalDesc')}</p>
       </div>
 
-      {/* Key Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -163,7 +150,6 @@ export default function MinistryDashboard() {
         </Card>
       </div>
 
-      {/* Performance Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -182,9 +168,7 @@ export default function MinistryDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.submissionsThisMonth}</div>
-            <p className="text-xs text-muted-foreground">
-              {loading ? '...' : `${stats.avgCompletionRate}% تکمیل`}
-            </p>
+            <p className="text-xs text-muted-foreground">{loading ? '...' : `${stats.avgCompletionRate}% تکمیل`}</p>
           </CardContent>
         </Card>
         <Card>
@@ -203,14 +187,11 @@ export default function MinistryDashboard() {
             <Download className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Button size="sm" variant="outline" className="w-full">
-              نمایش
-            </Button>
+            <Button size="sm" variant="outline" className="w-full">نمایش</Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2">
         <Link to="/admin/submissions">
           <Card className="hover:border-primary transition-colors cursor-pointer h-full">
@@ -234,7 +215,6 @@ export default function MinistryDashboard() {
         </Card>
       </div>
 
-      {/* Future Analytics Section - Can be expanded */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

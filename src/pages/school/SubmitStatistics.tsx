@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart3, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
@@ -19,7 +18,7 @@ export default function SubmitStatistics() {
   const { user, profile, isDemoMode } = useAuth();
   const { toast } = useToast();
   const { executeWithErrorHandling } = useAPIError();
-  const { showErrorToast, showSuccessToast } = useErrorToast();
+  const { showErrorMessage, showSuccess } = useErrorToast();
   const { submitStatistics: mockSubmitStatistics } = useMockSubmission();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,12 +37,9 @@ export default function SubmitStatistics() {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    // Validate academic year
     const yearError = validateRequired(formData.academic_year);
     if (yearError) newErrors.academic_year = yearError;
 
-    // Validate total students
     const totalStudentsError = validateRequired(formData.total_students);
     if (totalStudentsError) {
       newErrors.total_students = totalStudentsError;
@@ -52,13 +48,11 @@ export default function SubmitStatistics() {
       if (numError) newErrors.total_students = numError;
     }
 
-    // Validate attendance rate if provided
     if (formData.attendance_rate) {
       const attendanceError = validateNumberRange(parseFloat(formData.attendance_rate), 0, 100);
       if (attendanceError) newErrors.attendance_rate = attendanceError;
     }
 
-    // Validate male + female doesn't exceed total
     const male = parseInt(formData.male_students) || 0;
     const female = parseInt(formData.female_students) || 0;
     const total = parseInt(formData.total_students) || 0;
@@ -74,34 +68,26 @@ export default function SubmitStatistics() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setTouched(prev => ({ ...prev, [name]: true }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.school_id || !user) {
-      showErrorToast('خطا', 'اطلاعات نیمرفتار کامل نیست');
+      showErrorMessage('اطلاعات نیمرفتار کامل نیست', 'خطا');
       return;
     }
-
     if (!validateForm()) {
-      showErrorToast('خطای اعتبارسنجی', 'لطفاً فیلدهای الزامی را بررسی کنید');
+      showErrorMessage('لطفاً فیلدهای الزامی را بررسی کنید', 'خطای اعتبارسنجی');
       return;
     }
 
     setIsSubmitting(true);
-
     try {
       if (isDemoMode) {
-        // Use mock submission in demo mode
         const result = await mockSubmitStatistics(formData);
-        if (result.success) {
-          setSubmitted(true);
-        }
+        if (result.success) setSubmitted(true);
       } else {
-        // Use real database submission
         const { error } = await executeWithErrorHandling(
           () => supabase.from('statistics_submissions').insert({
             school_id: profile.school_id,
@@ -113,19 +99,15 @@ export default function SubmitStatistics() {
             total_teachers: parseInt(formData.total_teachers) || 0,
             attendance_rate: formData.attendance_rate ? parseFloat(formData.attendance_rate) : null,
             notes: formData.notes || null
-          })
+          }).select()
         );
-
-        if (error) {
-          throw error;
-        }
-
+        if (error) throw error;
         setSubmitted(true);
-        showSuccessToast('موفقیت', 'اطلاعات شما با موفقیت ارسال شد');
+        showSuccess('اطلاعات شما با موفقیت ارسال شد', 'موفقیت');
       }
     } catch (err) {
       console.error('Error submitting statistics:', err);
-      showErrorToast('خطا در ارسال', 'خطایی در ارسال اطلاعات رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در ارسال اطلاعات رخ داد. دوباره تلاش کنید.', 'خطا در ارسال');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,15 +124,7 @@ export default function SubmitStatistics() {
               <p className="text-muted-foreground">اطلاعات شما به مرکز ارسال شده است.</p>
               <Button onClick={() => { 
                 setSubmitted(false); 
-                setFormData({ 
-                  academic_year: new Date().getFullYear().toString(), 
-                  total_students: '', 
-                  male_students: '', 
-                  female_students: '', 
-                  total_teachers: '', 
-                  attendance_rate: '', 
-                  notes: '' 
-                });
+                setFormData({ academic_year: new Date().getFullYear().toString(), total_students: '', male_students: '', female_students: '', total_teachers: '', attendance_rate: '', notes: '' });
                 setErrors({});
                 setTouched({});
               }}>
@@ -189,142 +163,47 @@ export default function SubmitStatistics() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Summary */}
-            {Object.keys(errors).length > 0 && (
-              <FormErrorSummary errors={Object.values(errors)} />
+            {Object.values(errors).filter(Boolean).length > 0 && (
+              <FormErrorSummary errors={errors} />
             )}
 
             <div className="grid gap-6 md:grid-cols-2">
-              {/* Academic Year */}
-              <FormFieldWrapper 
-                label="سال تحصیلی *" 
-                error={touched.academic_year ? errors.academic_year : undefined}
-              >
-                <Input
-                  id="academic_year"
-                  name="academic_year"
-                  value={formData.academic_year}
-                  onChange={handleChange}
-                  placeholder="1402"
-                  disabled={isSubmitting}
-                  aria-invalid={!!errors.academic_year}
-                />
+              <FormFieldWrapper label="سال تحصیلی *" error={touched.academic_year ? errors.academic_year : undefined}>
+                <Input id="academic_year" name="academic_year" value={formData.academic_year} onChange={handleChange} placeholder="1402" disabled={isSubmitting} aria-invalid={!!errors.academic_year} />
               </FormFieldWrapper>
 
-              {/* Total Students */}
-              <FormFieldWrapper 
-                label="کل دانش‌آموزان *" 
-                error={touched.total_students ? errors.total_students : undefined}
-              >
-                <Input
-                  id="total_students"
-                  name="total_students"
-                  type="number"
-                  value={formData.total_students}
-                  onChange={handleChange}
-                  placeholder="0"
-                  disabled={isSubmitting}
-                  min="0"
-                  aria-invalid={!!errors.total_students}
-                />
+              <FormFieldWrapper label="کل دانش‌آموزان *" error={touched.total_students ? errors.total_students : undefined}>
+                <Input id="total_students" name="total_students" type="number" value={formData.total_students} onChange={handleChange} placeholder="0" disabled={isSubmitting} min="0" aria-invalid={!!errors.total_students} />
               </FormFieldWrapper>
 
-              {/* Male Students */}
-              <FormFieldWrapper 
-                label="دانش‌آموزان پسر" 
-              >
-                <Input
-                  id="male_students"
-                  name="male_students"
-                  type="number"
-                  value={formData.male_students}
-                  onChange={handleChange}
-                  placeholder="0"
-                  disabled={isSubmitting}
-                  min="0"
-                />
+              <FormFieldWrapper label="دانش‌آموزان پسر">
+                <Input id="male_students" name="male_students" type="number" value={formData.male_students} onChange={handleChange} placeholder="0" disabled={isSubmitting} min="0" />
               </FormFieldWrapper>
 
-              {/* Female Students */}
-              <FormFieldWrapper 
-                label="دانش‌آموزان دختر" 
-              >
-                <Input
-                  id="female_students"
-                  name="female_students"
-                  type="number"
-                  value={formData.female_students}
-                  onChange={handleChange}
-                  placeholder="0"
-                  disabled={isSubmitting}
-                  min="0"
-                />
+              <FormFieldWrapper label="دانش‌آموزان دختر">
+                <Input id="female_students" name="female_students" type="number" value={formData.female_students} onChange={handleChange} placeholder="0" disabled={isSubmitting} min="0" />
               </FormFieldWrapper>
 
-              {/* Total Teachers */}
-              <FormFieldWrapper 
-                label="کل معلمان" 
-              >
-                <Input
-                  id="total_teachers"
-                  name="total_teachers"
-                  type="number"
-                  value={formData.total_teachers}
-                  onChange={handleChange}
-                  placeholder="0"
-                  disabled={isSubmitting}
-                  min="0"
-                />
+              <FormFieldWrapper label="کل معلمان">
+                <Input id="total_teachers" name="total_teachers" type="number" value={formData.total_teachers} onChange={handleChange} placeholder="0" disabled={isSubmitting} min="0" />
               </FormFieldWrapper>
 
-              {/* Attendance Rate */}
-              <FormFieldWrapper 
-                label="نرخ حضور (%)" 
-                error={touched.attendance_rate ? errors.attendance_rate : undefined}
-              >
-                <Input
-                  id="attendance_rate"
-                  name="attendance_rate"
-                  type="number"
-                  value={formData.attendance_rate}
-                  onChange={handleChange}
-                  placeholder="85.5"
-                  disabled={isSubmitting}
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  aria-invalid={!!errors.attendance_rate}
-                />
+              <FormFieldWrapper label="نرخ حضور (%)" error={touched.attendance_rate ? errors.attendance_rate : undefined}>
+                <Input id="attendance_rate" name="attendance_rate" type="number" value={formData.attendance_rate} onChange={handleChange} placeholder="85.5" disabled={isSubmitting} min="0" max="100" step="0.1" aria-invalid={!!errors.attendance_rate} />
               </FormFieldWrapper>
             </div>
 
-            {/* Students Ratio Error */}
             {errors.students_ratio && (
-              <FormErrorSummary errors={[errors.students_ratio]} />
+              <FormErrorSummary errors={{ students_ratio: errors.students_ratio }} />
             )}
 
-            {/* Notes */}
-            <FormFieldWrapper 
-              label="یادداشت‌های اضافی" 
-            >
-              <Textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="هر اطلاعات اضافی..."
-                rows={3}
-                disabled={isSubmitting}
-              />
+            <FormFieldWrapper label="یادداشت‌های اضافی">
+              <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} placeholder="هر اطلاعات اضافی..." rows={3} disabled={isSubmitting} />
             </FormFieldWrapper>
 
-            {/* Submit Button */}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  در حال ارسال...
-                </>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />در حال ارسال...</>
               ) : (
                 'ارسال آمار‌ها'
               )}
