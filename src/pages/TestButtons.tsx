@@ -24,7 +24,7 @@ type ButtonStatus = 'idle' | 'loading' | 'success' | 'error';
 export default function TestButtons() {
   const navigate = useNavigate();
   const { isDemoMode, role, roleTier } = useAuth();
-  const { showSuccessToast, showErrorToast } = useErrorToast();
+  const { showSuccess, showErrorMessage } = useErrorToast();
 
   // Button states
   const [buttonStates, setButtonStates] = useState<Record<string, ButtonStatus>>({});
@@ -34,16 +34,13 @@ export default function TestButtons() {
     setButtonStates(prev => ({ ...prev, [buttonId]: 'loading' }));
 
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, Math.random() * 1500 + 500));
 
-      // Randomly succeed (85% success rate)
       if (Math.random() > 0.15) {
         setButtonStates(prev => ({ ...prev, [buttonId]: 'success' }));
         setSimulationResults(prev => ({ ...prev, [buttonId]: `✅ ${buttonName} کار کرد!` }));
-        showSuccessToast('موفقیت', `${buttonName} با موفقیت انجام شد`);
+        showSuccess(`${buttonName} با موفقیت انجام شد`, 'موفقیت');
 
-        // Reset to idle after 2 seconds
         setTimeout(() => {
           setButtonStates(prev => ({ ...prev, [buttonId]: 'idle' }));
           setSimulationResults(prev => ({ ...prev, [buttonId]: '' }));
@@ -54,9 +51,8 @@ export default function TestButtons() {
     } catch (error) {
       setButtonStates(prev => ({ ...prev, [buttonId]: 'error' }));
       setSimulationResults(prev => ({ ...prev, [buttonId]: `❌ خطا: ${buttonName} ناموفق بود` }));
-      showErrorToast('خطا', `خطایی در ${buttonName} رخ داد`);
+      showErrorMessage(`خطایی در ${buttonName} رخ داد`, 'خطا');
 
-      // Reset to idle after 3 seconds
       setTimeout(() => {
         setButtonStates(prev => ({ ...prev, [buttonId]: 'idle' }));
         setSimulationResults(prev => ({ ...prev, [buttonId]: '' }));
@@ -130,14 +126,11 @@ export default function TestButtons() {
   return (
     <div className="min-h-screen p-4 bg-gradient-to-br from-primary/5 via-background to-secondary/10">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">🧪 آزمایش دکمه‌ها و عملکردها</h1>
           <p className="text-muted-foreground">
             تمام دکمه‌ها و عملکردهای مقام خود را آزمایش کنید
           </p>
-
-          {/* Current Role Info */}
           <div className="space-y-3">
             <div className="flex gap-2 flex-wrap">
               <Badge variant="outline">مقام: {role || 'نامعلوم'}</Badge>
@@ -156,173 +149,79 @@ export default function TestButtons() {
           </Alert>
         )}
 
-        {/* School Role Buttons */}
         {(roleTier === 'school' || !roleTier) && (
           <div className="space-y-6">
             <ButtonGroup
               title="🏫 دکمه‌های مکتب"
               description="دکمه‌ها و عملکردهای داشبرد مکتب"
               buttons={[
-                {
-                  id: 'submit-stats',
-                  label: 'ارسال آمار',
-                  action: () => navigate('/school/submit-statistics'),
-                },
-                {
-                  id: 'submit-reports',
-                  label: 'ارسال گزارش',
-                  action: () => navigate('/school/submit-reports'),
-                },
-                {
-                  id: 'submit-forms',
-                  label: 'ارسال فورم‌ها',
-                  action: () => navigate('/school/submit-forms'),
-                },
-                {
-                  id: 'view-announcements',
-                  label: 'مشاهده اعلانات',
-                  action: () => navigate('/school/announcements'),
-                },
-                {
-                  id: 'test-submit',
-                  label: '🧪 آزمایش ارسال (شبیه‌سازی)',
-                  simulate: true,
-                },
-                {
-                  id: 'test-verify',
-                  label: '🧪 آزمایش تایید (شبیه‌سازی)',
-                  simulate: true,
-                },
+                { id: 'submit-stats', label: 'ارسال آمار', action: () => navigate('/school/submit-statistics') },
+                { id: 'submit-reports', label: 'ارسال گزارش', action: () => navigate('/school/submit-reports') },
+                { id: 'submit-forms', label: 'ارسال فورم‌ها', action: () => navigate('/school/submit-forms') },
+                { id: 'view-announcements', label: 'مشاهده اعلانات', action: () => navigate('/school/announcements') },
+                { id: 'test-submit', label: '🧪 آزمایش ارسال (شبیه‌سازی)', simulate: true },
+                { id: 'test-verify', label: '🧪 آزمایش تایید (شبیه‌سازی)', simulate: true },
               ]}
             />
           </div>
         )}
 
-        {/* District Role Buttons */}
         {(roleTier === 'district' || !roleTier) && (
           <div className="space-y-6">
             <ButtonGroup
               title="🔷 دکمه‌های منطقه‌آموزش‌وپرورش"
               description="دکمه‌ها و عملکردهای داشبرد منطقه"
               buttons={[
-                {
-                  id: 'view-submissions',
-                  label: 'مشاهده ارسال‌ها',
-                  action: () => navigate('/district/submissions'),
-                },
-                {
-                  id: 'verify-data',
-                  label: 'تایید اطلاعات',
-                  action: () => navigate('/district/verify'),
-                },
-                {
-                  id: 'manage-schools',
-                  label: 'مدیریت مکاتب',
-                  action: () => navigate('/district/schools'),
-                },
-                {
-                  id: 'test-approve',
-                  label: '🧪 آزمایش تصویب (شبیه‌سازی)',
-                  simulate: true,
-                },
-                {
-                  id: 'test-reject',
-                  label: '🧪 آزمایش رد (شبیه‌سازی)',
-                  simulate: true,
-                },
+                { id: 'view-submissions', label: 'مشاهده ارسال‌ها', action: () => navigate('/district/submissions') },
+                { id: 'verify-data', label: 'تایید اطلاعات', action: () => navigate('/district/verify') },
+                { id: 'manage-schools', label: 'مدیریت مکاتب', action: () => navigate('/district/schools') },
+                { id: 'test-approve', label: '🧪 آزمایش تصویب (شبیه‌سازی)', simulate: true },
+                { id: 'test-reject', label: '🧪 آزمایش رد (شبیه‌سازی)', simulate: true },
               ]}
             />
           </div>
         )}
 
-        {/* Province Role Buttons */}
         {(roleTier === 'province' || !roleTier) && (
           <div className="space-y-6">
             <ButtonGroup
               title="🔶 دکمه‌های ولایت"
               description="دکمه‌ها و عملکردهای داشبرد ولایت"
               buttons={[
-                {
-                  id: 'view-analytics',
-                  label: 'مشاهده آمارشناسی',
-                  action: () => navigate('/province'),
-                },
-                {
-                  id: 'export-data',
-                  label: 'صادر کردن اطلاعات',
-                  simulate: true,
-                },
-                {
-                  id: 'test-analysis',
-                  label: '🧪 آزمایش تحلیل (شبیه‌سازی)',
-                  simulate: true,
-                },
+                { id: 'view-analytics', label: 'مشاهده آمارشناسی', action: () => navigate('/province') },
+                { id: 'export-data', label: 'صادر کردن اطلاعات', simulate: true },
+                { id: 'test-analysis', label: '🧪 آزمایش تحلیل (شبیه‌سازی)', simulate: true },
               ]}
             />
           </div>
         )}
 
-        {/* Ministry Role Buttons */}
         {(roleTier === 'ministry' || !roleTier) && (
           <div className="space-y-6">
             <ButtonGroup
               title="👑 دکمه‌های وزارت"
               description="دکمه‌ها و عملکردهای داشبرد وزارت"
               buttons={[
-                {
-                  id: 'national-analytics',
-                  label: 'آمارشناسی ملی',
-                  action: () => navigate('/ministry/analytics'),
-                },
-                {
-                  id: 'manage-users',
-                  label: 'مدیریت کاربران',
-                  action: () => navigate('/ministry/users'),
-                },
-                {
-                  id: 'export-reports',
-                  label: 'صادر کردن گزارش‌ها',
-                  action: () => navigate('/ministry/export'),
-                },
-                {
-                  id: 'test-bulk-action',
-                  label: '🧪 آزمایش اقدام دسته‌ای (شبیه‌سازی)',
-                  simulate: true,
-                },
+                { id: 'national-analytics', label: 'آمارشناسی ملی', action: () => navigate('/ministry/analytics') },
+                { id: 'manage-users', label: 'مدیریت کاربران', action: () => navigate('/ministry/users') },
+                { id: 'export-reports', label: 'صادر کردن گزارش‌ها', action: () => navigate('/ministry/export') },
+                { id: 'test-bulk-action', label: '🧪 آزمایش اقدام دسته‌ای (شبیه‌سازی)', simulate: true },
               ]}
             />
           </div>
         )}
 
-        {/* Common Actions */}
         <ButtonGroup
           title="⚙️ اقدام‌های عمومی"
           description="اقدام‌های دسترسی‌پذیر برای تمام مقام‌ها"
           buttons={[
-            {
-              id: 'refresh-data',
-              label: 'بازخوانی اطلاعات',
-              simulate: true,
-            },
-            {
-              id: 'save-changes',
-              label: 'ذخیره تغییرات',
-              simulate: true,
-            },
-            {
-              id: 'download-file',
-              label: 'دانلود فایل',
-              simulate: true,
-            },
-            {
-              id: 'print-report',
-              label: 'چاپ گزارش',
-              simulate: true,
-            },
+            { id: 'refresh-data', label: 'بازخوانی اطلاعات', simulate: true },
+            { id: 'save-changes', label: 'ذخیره تغییرات', simulate: true },
+            { id: 'download-file', label: 'دانلود فایل', simulate: true },
+            { id: 'print-report', label: 'چاپ گزارش', simulate: true },
           ]}
         />
 
-        {/* Instructions */}
         <Card className="border-dashed">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -331,18 +230,10 @@ export default function TestButtons() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              ✅ <strong>دکمه‌های ملاحظ‌شده:</strong> به صفحات واقعی نیاز می‌برند و کارایی را نشان می‌دهند
-            </p>
-            <p>
-              🧪 <strong>دکمه‌های شبیه‌سازی‌شده:</strong> برای تست کردن بازخورد بصری و وضع‌المثال‌ها طراحی شده‌اند
-            </p>
-            <p>
-              ⏳ <strong>وقت‌تاخیری:</strong> هر دکمه یک تاخیر شبکه شبیه‌سازی‌شده (500-2000ms) دارد
-            </p>
-            <p>
-              🎨 <strong>حالت نمایشی:</strong> در حالت نمایشی، هیچ داده واقعی ذخیره نمی‌شود
-            </p>
+            <p>✅ <strong>دکمه‌های ملاحظ‌شده:</strong> به صفحات واقعی نیاز می‌برند و کارایی را نشان می‌دهند</p>
+            <p>🧪 <strong>دکمه‌های شبیه‌سازی‌شده:</strong> برای تست کردن بازخورد بصری و وضع‌المثال‌ها طراحی شده‌اند</p>
+            <p>⏳ <strong>وقت‌تاخیری:</strong> هر دکمه یک تاخیر شبکه شبیه‌سازی‌شده (500-2000ms) دارد</p>
+            <p>🎨 <strong>حالت نمایشی:</strong> در حالت نمایشی، هیچ داده واقعی ذخیره نمی‌شود</p>
           </CardContent>
         </Card>
       </div>

@@ -3,11 +3,11 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface ProfileCompletionData {
   fullName: string;
-  email: string;
+  email?: string;
   school: string;
   district: string;
   province: string;
-  [key: string]: string; // Additional question answers
+  [key: string]: string | undefined;
 }
 
 interface ProfileCompletionState {
@@ -21,7 +21,6 @@ export function useProfileCompletion() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load completion status from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem('profileCompletion');
@@ -39,8 +38,6 @@ export function useProfileCompletion() {
   const saveAnswers = async (data: ProfileCompletionData) => {
     try {
       setLoading(true);
-
-      // Prepare completion data with identity and answers
       const completionData: ProfileCompletionState = {
         isCompleted: true,
         data: {
@@ -49,7 +46,6 @@ export function useProfileCompletion() {
           school: data.school,
           district: data.district,
           province: data.province,
-          // Additional question answers
           ...Object.fromEntries(
             Object.entries(data).filter(
               ([key]) => !['fullName', 'email', 'school', 'district', 'province'].includes(key)
@@ -58,12 +54,9 @@ export function useProfileCompletion() {
         },
         completedAt: new Date().toISOString(),
       };
-
-      // Save to localStorage
       localStorage.setItem('profileCompletion', JSON.stringify(completionData));
       localStorage.setItem('profileCompletionData', JSON.stringify(completionData.data));
       setIsCompleted(true);
-
       return { data: completionData, error: null };
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to save profile completion');
@@ -77,13 +70,10 @@ export function useProfileCompletion() {
   const skipForNow = async () => {
     try {
       setLoading(true);
-
-      // Mark as shown so modal doesn't appear again immediately
       localStorage.setItem('profileCompletionShown', JSON.stringify({
         shown: true,
         skippedAt: new Date().toISOString(),
       }));
-
       return { data: { skipped: true }, error: null };
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to skip profile completion');
@@ -93,10 +83,5 @@ export function useProfileCompletion() {
     }
   };
 
-  return {
-    isCompleted,
-    loading,
-    saveAnswers,
-    skipForNow,
-  };
+  return { isCompleted, loading, saveAnswers, skipForNow };
 }

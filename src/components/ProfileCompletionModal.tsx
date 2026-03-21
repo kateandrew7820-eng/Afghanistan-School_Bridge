@@ -17,7 +17,6 @@ interface ProfileCompletionModalProps {
   onClose?: () => void;
 }
 
-// Question definitions with hardcoded answers
 const QUESTIONS = [
   {
     id: 'experience',
@@ -41,21 +40,18 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
   const { t } = useTranslation();
   const { toast } = useToast();
   const { saveAnswers, skipForNow } = useProfileCompletion();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   const [currentStep, setCurrentStep] = useState<'identity' | 'questions' | 'success'>('identity');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   
-  // Identity fields
   const [identity, setIdentity] = useState({
     fullName: profile?.full_name || '',
-    email: profile?.email || '',
-    school: profile?.school_name || '',
+    school: '',
     district: profile?.district || '',
     province: profile?.province || '',
   });
 
-  // Question answers
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -63,69 +59,39 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
   const isLastQuestion = currentQuestionIndex === QUESTIONS.length - 1;
   const questionProgress = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
 
-  // Handle identity field changes
   const handleIdentityChange = (field: keyof typeof identity, value: string) => {
-    setIdentity(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    setIdentity(prev => ({ ...prev, [field]: value }));
   };
 
-  // Validate identity fields
   const validateIdentity = (): boolean => {
     if (!identity.fullName.trim()) {
-      toast({
-        title: t('common.warning'),
-        description: 'لطفاً نام کامل خود را وارد کنید',
-        variant: 'destructive',
-      });
+      toast({ title: t('common.warning'), description: 'لطفاً نام کامل خود را وارد کنید', variant: 'destructive' });
       return false;
     }
     if (!identity.school.trim()) {
-      toast({
-        title: t('common.warning'),
-        description: 'لطفاً نام مکتب خود را وارد کنید',
-        variant: 'destructive',
-      });
+      toast({ title: t('common.warning'), description: 'لطفاً نام مکتب خود را وارد کنید', variant: 'destructive' });
       return false;
     }
     if (!identity.province.trim()) {
-      toast({
-        title: t('common.warning'),
-        description: 'لطفاً ولایت خود را وارد کنید',
-        variant: 'destructive',
-      });
+      toast({ title: t('common.warning'), description: 'لطفاً ولایت خود را وارد کنید', variant: 'destructive' });
       return false;
     }
     return true;
   };
 
-  // Handle moving to questions step
   const handleStartQuestions = () => {
-    if (validateIdentity()) {
-      setCurrentStep('questions');
-    }
+    if (validateIdentity()) setCurrentStep('questions');
   };
 
-  // Handle answer selection
   const handleAnswerSelect = (value: string) => {
-    setAnswers(prev => ({
-      ...prev,
-      [currentQuestion.id]: value,
-    }));
+    setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }));
   };
 
-  // Handle next question
   const handleNext = () => {
     if (!answers[currentQuestion.id]) {
-      toast({
-        title: t('common.warning'),
-        description: 'لطفاً یک جواب انتخاب کنید',
-        variant: 'destructive',
-      });
+      toast({ title: t('common.warning'), description: 'لطفاً یک جواب انتخاب کنید', variant: 'destructive' });
       return;
     }
-
     if (isLastQuestion) {
       handleSubmit();
     } else {
@@ -133,81 +99,50 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
     }
   };
 
-  // Handle submit
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      // Combine identity and answers
-      const completionData = {
-        ...identity,
-        ...answers,
-      };
-
+      const completionData = { ...identity, ...answers };
       const { error } = await saveAnswers(completionData);
-      
       if (error) {
-        toast({
-          title: t('common.error'),
-          description: error.message,
-          variant: 'destructive',
-        });
+        toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
         setIsLoading(false);
         return;
       }
-
       setCurrentStep('success');
-      
-      // Show success message for 3 seconds before closing
       setTimeout(() => {
         onClose?.();
-        // Reset state
         setCurrentStep('identity');
         setCurrentQuestionIndex(0);
         setAnswers({});
       }, 3000);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'خطایی رخ داد';
-      toast({
-        title: t('common.error'),
-        description: errorMsg,
-        variant: 'destructive',
-      });
+      toast({ title: t('common.error'), description: errorMsg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle skip
   const handleSkip = async () => {
     setIsLoading(true);
     try {
       const { error } = await skipForNow();
-      
       if (error) {
-        toast({
-          title: t('common.error'),
-          description: error.message,
-          variant: 'destructive',
-        });
+        toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
         setIsLoading(false);
         return;
       }
-
       onClose?.();
       navigate('/afghanistan-info');
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'خطایی رخ داد';
-      toast({
-        title: t('common.error'),
-        description: errorMsg,
-        variant: 'destructive',
-      });
+      toast({ title: t('common.error'), description: errorMsg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Success view
   if (currentStep === 'success') {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -218,12 +153,10 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
                 <CheckCircle2 className="w-16 h-16 text-green-600" />
               </div>
             </div>
-            
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">{t('profileCompletion.profileSaved')}</h2>
               <p className="text-muted-foreground">{t('profileCompletion.awaitingApproval')}</p>
             </div>
-
             <Alert className="border-blue-200 bg-blue-50">
               <AlertCircle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 text-sm">
@@ -245,7 +178,6 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Identity Information Step */}
           {currentStep === 'identity' && (
             <>
               <Card>
@@ -260,18 +192,6 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
                       placeholder="نام و تخلص"
                       value={identity.fullName}
                       onChange={(e) => handleIdentityChange('fullName', e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">ایمیل (اختیاری)</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="ایمیل خود را وارد کنید"
-                      value={identity.email}
-                      onChange={(e) => handleIdentityChange('email', e.target.value)}
                       disabled={isLoading}
                     />
                   </div>
@@ -312,20 +232,10 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
               </Card>
 
               <div className="flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={handleSkip}
-                  disabled={isLoading}
-                  className="flex-1 sm:flex-none"
-                >
+                <Button variant="outline" onClick={handleSkip} disabled={isLoading} className="flex-1 sm:flex-none">
                   {t('profileCompletion.skipForNow')}
                 </Button>
-                
-                <Button
-                  onClick={handleStartQuestions}
-                  disabled={isLoading}
-                  className="flex-1 sm:flex-none"
-                >
+                <Button onClick={handleStartQuestions} disabled={isLoading} className="flex-1 sm:flex-none">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   ادامه
                 </Button>
@@ -333,24 +243,18 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
             </>
           )}
 
-          {/* Questions Step */}
           {currentStep === 'questions' && (
             <>
-              {/* Progress indicator */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>سؤال {currentQuestionIndex + 1} از {QUESTIONS.length}</span>
                   <span>{Math.round(questionProgress)}%</span>
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary transition-all duration-300"
-                    style={{ width: `${questionProgress}%` }}
-                  />
+                  <div className="h-full bg-primary transition-all duration-300" style={{ width: `${questionProgress}%` }} />
                 </div>
               </div>
 
-              {/* Question Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">{currentQuestion.question}</CardTitle>
@@ -368,10 +272,7 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
                           onChange={() => handleAnswerSelect(answer)}
                           className="cursor-pointer w-4 h-4"
                         />
-                        <Label 
-                          htmlFor={`answer-${index}`} 
-                          className="cursor-pointer flex-1 font-normal"
-                        >
+                        <Label htmlFor={`answer-${index}`} className="cursor-pointer flex-1 font-normal">
                           {answer}
                         </Label>
                       </div>
@@ -380,22 +281,11 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
                 </CardContent>
               </Card>
 
-              {/* Action Buttons */}
               <div className="flex gap-3 justify-end">
-                <Button
-                  variant="outline"
-                  onClick={handleSkip}
-                  disabled={isLoading}
-                  className="flex-1 sm:flex-none"
-                >
+                <Button variant="outline" onClick={handleSkip} disabled={isLoading} className="flex-1 sm:flex-none">
                   {t('profileCompletion.skipForNow')}
                 </Button>
-                
-                <Button
-                  onClick={handleNext}
-                  disabled={isLoading || !answers[currentQuestion.id]}
-                  className="flex-1 sm:flex-none"
-                >
+                <Button onClick={handleNext} disabled={isLoading || !answers[currentQuestion.id]} className="flex-1 sm:flex-none">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isLastQuestion ? t('profileCompletion.submit') : t('profileCompletion.next')}
                 </Button>

@@ -10,16 +10,11 @@ interface SmartFormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   touched?: boolean;
   hint?: string;
   required?: boolean;
-  validation?: string; // 'success' | 'error' | undefined
+  validation?: string;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-/**
- * Smart Form Field Component
- * Provides real-time validation feedback, error messages, and auto-save indicators
- * Integrates with useSmartValidation hook for seamless validation
- */
 export function SmartFormField({
   label,
   error,
@@ -54,12 +49,11 @@ export function SmartFormField({
             className
           )}
           {...props}
-          aria-invalid={hasError}
+          aria-invalid={hasError ? "true" : undefined}
           aria-describedby={hasError ? `error-${label}` : undefined}
         />
 
-        {/* Validation feedback icons */}
-        <div className="absolute right-3 top-3 flex items-center gap-1">
+        <div className="absolute left-3 top-3 flex items-center gap-1 rtl:left-auto rtl:right-3">
           {hasError && (
             <AlertCircle className="h-5 w-5 text-destructive animate-in fade-in-50" />
           )}
@@ -69,17 +63,16 @@ export function SmartFormField({
         </div>
       </div>
 
-      {/* Error message with animation */}
       {hasError && (
         <p
           id={`error-${label}`}
           className="text-sm text-destructive animate-in slide-in-from-top-2"
+          role="alert"
         >
           {error}
         </p>
       )}
 
-      {/* Hint message */}
       {!hasError && hint && (
         <p className="text-xs text-muted-foreground">{hint}</p>
       )}
@@ -87,11 +80,7 @@ export function SmartFormField({
   );
 }
 
-/**
- * Smart Textarea Component
- * Same features as SmartFormField but for textarea inputs
- */
-interface SmartTextareaProps extends InputHTMLAttributes<HTMLTextAreaElement> {
+interface SmartTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string;
   error?: string;
   touched?: boolean;
@@ -99,8 +88,6 @@ interface SmartTextareaProps extends InputHTMLAttributes<HTMLTextAreaElement> {
   required?: boolean;
   maxLength?: number;
   rows?: number;
-  onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
-  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
 export function SmartTextarea({
@@ -142,13 +129,12 @@ export function SmartTextarea({
             isValid && 'border-green-500 focus-visible:ring-green-500',
             className
           )}
-          aria-invalid={hasError}
+          aria-invalid={hasError ? "true" : undefined}
           aria-describedby={hasError ? `error-${label}` : undefined}
           {...props}
         />
 
-        {/* Validation feedback icons */}
-        <div className="absolute right-3 top-3 flex items-center gap-1">
+        <div className="absolute left-3 top-3 flex items-center gap-1 rtl:left-auto rtl:right-3">
           {hasError && (
             <AlertCircle className="h-5 w-5 text-destructive animate-in fade-in-50" />
           )}
@@ -158,13 +144,13 @@ export function SmartTextarea({
         </div>
       </div>
 
-      {/* Character count and error message */}
       <div className="flex items-center justify-between">
         <div>
           {hasError && (
             <p
               id={`error-${label}`}
               className="text-sm text-destructive animate-in slide-in-from-top-2"
+              role="alert"
             >
               {error}
             </p>

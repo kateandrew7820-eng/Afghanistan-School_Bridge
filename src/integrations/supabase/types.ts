@@ -157,51 +157,30 @@ export type Database = {
           district: string | null
           full_name: string | null
           id: string
-          phone_number: string | null
           province: string | null
-          rejection_reason: string | null
-          role: string | null
           school_id: string | null
-          school_name: string | null
-          status: string | null
           updated_at: string
           user_id: string
-          verified_at: string | null
-          verified_by_user_id: string | null
         }
         Insert: {
           created_at?: string
           district?: string | null
           full_name?: string | null
           id?: string
-          phone_number?: string | null
           province?: string | null
-          rejection_reason?: string | null
-          role?: string | null
           school_id?: string | null
-          school_name?: string | null
-          status?: string | null
           updated_at?: string
           user_id: string
-          verified_at?: string | null
-          verified_by_user_id?: string | null
         }
         Update: {
           created_at?: string
           district?: string | null
           full_name?: string | null
           id?: string
-          phone_number?: string | null
           province?: string | null
-          rejection_reason?: string | null
-          role?: string | null
           school_id?: string | null
-          school_name?: string | null
-          status?: string | null
           updated_at?: string
           user_id?: string
-          verified_at?: string | null
-          verified_by_user_id?: string | null
         }
         Relationships: [
           {

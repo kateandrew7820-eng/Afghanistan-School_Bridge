@@ -16,24 +16,19 @@ export interface SubmissionResult {
 
 export function useMockSubmission() {
   const { isDemoMode } = useAuth();
-  const { showErrorToast, showSuccessToast } = useErrorToast();
+  const { showErrorMessage, showSuccess } = useErrorToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  /**
-   * Simulate form submission with realistic delay
-   */
   const submitStatistics = useCallback(async (data: any): Promise<SubmissionResult> => {
     if (!isDemoMode) return { success: false, message: 'Not in demo mode' };
 
     setIsProcessing(true);
     try {
-      // Simulate network delay (500-1500ms)
       await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
 
-      // Randomly succeed (90% success rate for better testing)
       if (Math.random() > 0.1) {
         const submissionId = `STAT-${Date.now()}`;
-        showSuccessToast('موفقیت', 'آمار مکتب با موفقیت ارسال شد');
+        showSuccess('آمار مکتب با موفقیت ارسال شد', 'موفقیت');
         return {
           success: true,
           message: 'Statistics submitted successfully',
@@ -45,29 +40,24 @@ export function useMockSubmission() {
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'خطایی نامعلوم رخ داد';
-      showErrorToast('خطا', 'خطایی در ارسال آمار رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در ارسال آمار رخ داد. دوباره تلاش کنید.', 'خطا');
       return { success: false, message: errorMsg };
     } finally {
       setIsProcessing(false);
     }
-  }, [isDemoMode, showErrorToast, showSuccessToast]);
+  }, [isDemoMode, showErrorMessage, showSuccess]);
 
-  /**
-   * Simulate report submission with file handling
-   */
   const submitReport = useCallback(async (data: any, file: File): Promise<SubmissionResult> => {
     if (!isDemoMode) return { success: false, message: 'Not in demo mode' };
 
     setIsProcessing(true);
     try {
-      // Simulate file processing delay (1-3 seconds)
       const delay = Math.random() * 2000 + 1000;
       await new Promise(resolve => setTimeout(resolve, delay));
 
-      // Randomly succeed (90% success rate)
       if (Math.random() > 0.1) {
         const submissionId = `REP-${Date.now()}`;
-        showSuccessToast('موفقیت', 'گزارش با موفقیت ارسال شد');
+        showSuccess('گزارش با موفقیت ارسال شد', 'موفقیت');
         return {
           success: true,
           message: 'Report submitted successfully',
@@ -79,28 +69,23 @@ export function useMockSubmission() {
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'خطایی نامعلوم رخ داد';
-      showErrorToast('خطا', 'خطایی در ارسال گزارش رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در ارسال گزارش رخ داد. دوباره تلاش کنید.', 'خطا');
       return { success: false, message: errorMsg };
     } finally {
       setIsProcessing(false);
     }
-  }, [isDemoMode, showErrorToast, showSuccessToast]);
+  }, [isDemoMode, showErrorMessage, showSuccess]);
 
-  /**
-   * Simulate form submission (generic)
-   */
   const submitForm = useCallback(async (data: any): Promise<SubmissionResult> => {
     if (!isDemoMode) return { success: false, message: 'Not in demo mode' };
 
     setIsProcessing(true);
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
 
-      // Randomly succeed (90% success rate)
       if (Math.random() > 0.1) {
         const submissionId = `FORM-${Date.now()}`;
-        showSuccessToast('موفقیت', 'فورم با موفقیت ارسال شد');
+        showSuccess('فورم با موفقیت ارسال شد', 'موفقیت');
         return {
           success: true,
           message: 'Form submitted successfully',
@@ -112,16 +97,13 @@ export function useMockSubmission() {
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'خطایی نامعلوم رخ داد';
-      showErrorToast('خطا', 'خطایی در ارسال فورم رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در ارسال فورم رخ داد. دوباره تلاش کنید.', 'خطا');
       return { success: false, message: errorMsg };
     } finally {
       setIsProcessing(false);
     }
-  }, [isDemoMode, showErrorToast, showSuccessToast]);
+  }, [isDemoMode, showErrorMessage, showSuccess]);
 
-  /**
-   * Simulate approval action
-   */
   const approveSubmission = useCallback(async (submissionId: string): Promise<SubmissionResult> => {
     if (!isDemoMode) return { success: false, message: 'Not in demo mode' };
 
@@ -130,7 +112,7 @@ export function useMockSubmission() {
       await new Promise(resolve => setTimeout(resolve, Math.random() * 800 + 300));
 
       if (Math.random() > 0.1) {
-        showSuccessToast('موفقیت', 'ارسال با موفقیت تصویب شد');
+        showSuccess('ارسال با موفقیت تصویب شد', 'موفقیت');
         return {
           success: true,
           message: 'Submission approved successfully',
@@ -141,16 +123,13 @@ export function useMockSubmission() {
         throw new Error('Simulated approval error');
       }
     } catch (error) {
-      showErrorToast('خطا', 'خطایی در تصویب رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در تصویب رخ داد. دوباره تلاش کنید.', 'خطا');
       return { success: false, message: 'Error approving submission' };
     } finally {
       setIsProcessing(false);
     }
-  }, [isDemoMode, showErrorToast, showSuccessToast]);
+  }, [isDemoMode, showErrorMessage, showSuccess]);
 
-  /**
-   * Simulate rejection action
-   */
   const rejectSubmission = useCallback(async (submissionId: string, reason: string): Promise<SubmissionResult> => {
     if (!isDemoMode) return { success: false, message: 'Not in demo mode' };
 
@@ -159,7 +138,7 @@ export function useMockSubmission() {
       await new Promise(resolve => setTimeout(resolve, Math.random() * 800 + 300));
 
       if (Math.random() > 0.1) {
-        showSuccessToast('موفقیت', 'ارسال reddکل شد');
+        showSuccess('ارسال رد شد', 'موفقیت');
         return {
           success: true,
           message: 'Submission rejected successfully',
@@ -170,12 +149,12 @@ export function useMockSubmission() {
         throw new Error('Simulated rejection error');
       }
     } catch (error) {
-      showErrorToast('خطا', 'خطایی در رد کردن رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در رد کردن رخ داد. دوباره تلاش کنید.', 'خطا');
       return { success: false, message: 'Error rejecting submission' };
     } finally {
       setIsProcessing(false);
     }
-  }, [isDemoMode, showErrorToast, showSuccessToast]);
+  }, [isDemoMode, showErrorMessage, showSuccess]);
 
   return {
     isDemoMode,

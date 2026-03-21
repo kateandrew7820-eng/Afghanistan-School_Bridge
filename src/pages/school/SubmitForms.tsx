@@ -27,7 +27,7 @@ export default function SubmitForms() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const { executeWithErrorHandling } = useAPIError();
-  const { showErrorToast, showSuccessToast } = useErrorToast();
+  const { showErrorMessage, showSuccess } = useErrorToast();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -42,20 +42,11 @@ export default function SubmitForms() {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    // Validate form type
-    if (!formType) {
-      newErrors.formType = 'نوع فورم الزامی است';
-    }
-
-    // Validate title
+    if (!formType) newErrors.formType = 'نوع فورم الزامی است';
     const titleError = validateRequired(formData.title);
     if (titleError) newErrors.title = titleError;
-
-    // Validate details
     const detailsError = validateRequired(formData.details);
     if (detailsError) newErrors.details = detailsError;
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -64,36 +55,30 @@ export default function SubmitForms() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setTouched(prev => ({ ...prev, [name]: true }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleFormTypeChange = (value: string) => {
     setFormType(value);
     setTouched(prev => ({ ...prev, formType: true }));
-    if (errors.formType) {
-      setErrors(prev => ({ ...prev, formType: '' }));
-    }
+    if (errors.formType) setErrors(prev => ({ ...prev, formType: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.school_id || !user) {
-      showErrorToast('خطا', 'اطلاعات نیمرفتار کامل نیست');
+      showErrorMessage('اطلاعات نیمرفتار کامل نیست', 'خطا');
       return;
     }
-
     if (!validateForm()) {
-      showErrorToast('خطای اعتبارسنجی', 'لطفاً تمام فیلدهای الزامی را بررسی کنید');
+      showErrorMessage('لطفاً تمام فیلدهای الزامی را بررسی کنید', 'خطای اعتبارسنجی');
       return;
     }
 
     setIsSubmitting(true);
-
     try {
       const { error } = await executeWithErrorHandling(
-        () => supabase.from('form_submissions').insert({
+        async () => await supabase.from('form_submissions').insert({
           school_id: profile.school_id,
           submitted_by: user.id,
           form_type: formType,
@@ -102,18 +87,14 @@ export default function SubmitForms() {
             details: formData.details,
             additional_info: formData.additional_info
           }
-        })
+        }).select()
       );
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       setSubmitted(true);
-      showSuccessToast('موفقیت', 'فورم شما با موفقیت ارسال شد');
+      showSuccess('فورم شما با موفقیت ارسال شد', 'موفقیت');
     } catch (err) {
       console.error('Error submitting form:', err);
-      showErrorToast('خطا در ارسال', 'خطایی در ارسال فورم رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در ارسال فورم رخ داد. دوباره تلاش کنید.', 'خطا در ارسال');
     } finally {
       setIsSubmitting(false);
     }
@@ -161,92 +142,42 @@ export default function SubmitForms() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Summary */}
-            {Object.keys(errors).length > 0 && (
-              <FormErrorSummary errors={Object.values(errors)} />
+            {Object.values(errors).filter(Boolean).length > 0 && (
+              <FormErrorSummary errors={errors} />
             )}
 
-            {/* Form Type Selection */}
             <div className="space-y-2">
-              <Label className={errors.formType ? 'text-red-500' : ''}>
-                نوع فورم *
-              </Label>
+              <Label className={errors.formType ? 'text-destructive' : ''}>نوع فورم *</Label>
               <Select value={formType} onValueChange={handleFormTypeChange}>
-                <SelectTrigger className={errors.formType ? 'border-red-500' : ''}>
+                <SelectTrigger className={errors.formType ? 'border-destructive' : ''}>
                   <SelectValue placeholder="نوع فورم را انتخاب کنید" />
                 </SelectTrigger>
                 <SelectContent>
                   {formTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
+                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {touched.formType && errors.formType && (
-                <p className="text-sm text-red-500">{errors.formType}</p>
+                <p className="text-sm text-destructive">{errors.formType}</p>
               )}
             </div>
 
-            {/* Title Field */}
-            <FormFieldWrapper 
-              label="عنوان / موضوع *" 
-              error={touched.title ? errors.title : undefined}
-            >
-              <Input
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="موضوع کوتاه درخواست خود"
-                disabled={isSubmitting}
-                aria-invalid={!!errors.title}
-              />
+            <FormFieldWrapper label="عنوان / موضوع *" error={touched.title ? errors.title : undefined}>
+              <Input id="title" name="title" value={formData.title} onChange={handleChange} placeholder="موضوع کوتاه درخواست خود" disabled={isSubmitting} aria-invalid={!!errors.title} />
             </FormFieldWrapper>
 
-            {/* Details Field */}
-            <FormFieldWrapper 
-              label="جزئیات *" 
-              error={touched.details ? errors.details : undefined}
-            >
-              <Textarea
-                id="details"
-                name="details"
-                value={formData.details}
-                onChange={handleChange}
-                placeholder="اطلاعات تفصیلی را ارائه دهید..."
-                rows={5}
-                disabled={isSubmitting}
-                aria-invalid={!!errors.details}
-              />
+            <FormFieldWrapper label="جزئیات *" error={touched.details ? errors.details : undefined}>
+              <Textarea id="details" name="details" value={formData.details} onChange={handleChange} placeholder="اطلاعات تفصیلی را ارائه دهید..." rows={5} disabled={isSubmitting} aria-invalid={!!errors.details} />
             </FormFieldWrapper>
 
-            {/* Additional Information Field */}
-            <FormFieldWrapper 
-              label="اطلاعات اضافی" 
-            >
-              <Textarea
-                id="additional_info"
-                name="additional_info"
-                value={formData.additional_info}
-                onChange={handleChange}
-                placeholder="هر اطلاعات مرتبط دیگری..."
-                rows={3}
-                disabled={isSubmitting}
-              />
+            <FormFieldWrapper label="اطلاعات اضافی">
+              <Textarea id="additional_info" name="additional_info" value={formData.additional_info} onChange={handleChange} placeholder="هر اطلاعات مرتبط دیگری..." rows={3} disabled={isSubmitting} />
             </FormFieldWrapper>
 
-            {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isSubmitting || !formType}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting || !formType}>
               {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  در حال ارسال...
-                </>
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />در حال ارسال...</>
               ) : (
                 'ارسال فورم'
               )}

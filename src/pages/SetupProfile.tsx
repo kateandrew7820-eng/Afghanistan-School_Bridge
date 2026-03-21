@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -25,39 +24,11 @@ const ROLES = [
 ];
 
 const PROVINCES = [
-  'کابل',
-  'پنجشیر',
-  'باغلان',
-  'بامیان',
-  'بدخشان',
-  'بغلان',
-  'چغچران',
-  'دایکندی',
-  'غزنی',
-  'فاریاب',
-  'فراه',
-  'قندهار',
-  'قندز',
-  'کاپیسا',
-  'لغمان',
-  'لوگر',
-  'میدان وردک',
-  'میمنه',
-  'نیمروز',
-  'ننگرهار',
-  'نورستان',
-  'هرات',
-  'هلمند',
-  'پکتیا',
-  'پکتیکا',
-  'پروان',
-  'سمنگان',
-  'سرپل',
-  'سمنگان',
-  'تخار',
-  'ورزگان',
-  'یاقاولنگ',
-  'یکاولنگ',
+  'کابل', 'پنجشیر', 'باغلان', 'بامیان', 'بدخشان', 'بغلان', 'چغچران',
+  'دایکندی', 'غزنی', 'فاریاب', 'فراه', 'قندهار', 'قندز', 'کاپیسا',
+  'لغمان', 'لوگر', 'میدان وردک', 'میمنه', 'نیمروز', 'ننگرهار', 'نورستان',
+  'هرات', 'هلمند', 'پکتیا', 'پکتیکا', 'پروان', 'سمنگان', 'سرپل',
+  'تخار', 'ورزگان', 'یکاولنگ',
 ];
 
 export default function SetupProfile() {
@@ -67,12 +38,10 @@ export default function SetupProfile() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { executeWithErrorHandling } = useAPIError();
-  const { showErrorToast, showSuccessToast } = useErrorToast();
+  const { showErrorMessage, showSuccess } = useErrorToast();
 
-  // Check if this is quick mode (for dev testing)
   const isQuickMode = searchParams.get('quickMode') === 'true';
 
-  // Initialize form with either defaults (quick mode) or current profile
   const [formData, setFormData] = useState({
     full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
     role: isQuickMode ? 'teacher' : '',
@@ -86,18 +55,14 @@ export default function SetupProfile() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Auto-submit if in quick mode (one-click confirmation)
   useEffect(() => {
     if (isQuickMode && !isLoading) {
-      // Medium delay to ensure form is fully rendered and data is initialized
       const timer = setTimeout(() => {
-        // Directly submit the form with pre-filled data
         handleSubmit({ preventDefault: () => {} } as React.FormEvent);
-      }, 800); // Increased from 500ms to 800ms for better reliability
-      
+      }, 800);
       return () => clearTimeout(timer);
     }
-  }, [isQuickMode, isLoading, formData.full_name]); // Added proper dependencies
+  }, [isQuickMode, isLoading, formData.full_name]);
 
   if (!user) {
     navigate('/login');
@@ -106,121 +71,66 @@ export default function SetupProfile() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Mark field as touched and clear its error
-    setTouched(prev => ({
-      ...prev,
-      [name]: true,
-    }));
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: '',
-      }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setTouched(prev => ({ ...prev, [name]: true }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name } = e.target;
-    // Mark as touched on blur
-    setTouched(prev => ({
-      ...prev,
-      [name]: true,
-    }));
-    // Validate single field on blur
+    setTouched(prev => ({ ...prev, [name]: true }));
     validateSingleField(name);
   };
 
   const validateSingleField = (fieldName: string): boolean => {
     const newErrors = { ...errors };
-
     switch (fieldName) {
       case 'full_name':
-        if (!formData.full_name?.trim()) {
-          newErrors.full_name = 'نام مکمل الزامی است';
-        } else {
-          delete newErrors.full_name;
-        }
+        if (!formData.full_name?.trim()) newErrors.full_name = 'نام مکمل الزامی است';
+        else delete newErrors.full_name;
         break;
       case 'role':
-        if (!formData.role) {
-          newErrors.role = 'مقام انتخاب کردن الزامی است';
-        } else {
-          delete newErrors.role;
-        }
+        if (!formData.role) newErrors.role = 'مقام انتخاب کردن الزامی است';
+        else delete newErrors.role;
         break;
       case 'school_name':
-        if (!formData.school_name?.trim()) {
-          newErrors.school_name = 'نام مکتب الزامی است';
-        } else {
-          delete newErrors.school_name;
-        }
+        if (!formData.school_name?.trim()) newErrors.school_name = 'نام مکتب الزامی است';
+        else delete newErrors.school_name;
         break;
       case 'district':
-        if (!formData.district?.trim()) {
-          newErrors.district = 'نام ولسوالی الزامی است';
-        } else {
-          delete newErrors.district;
-        }
+        if (!formData.district?.trim()) newErrors.district = 'نام ولسوالی الزامی است';
+        else delete newErrors.district;
         break;
       case 'province':
-        if (!formData.province) {
-          newErrors.province = 'ولایت انتخاب کردن الزامی است';
-        } else {
-          delete newErrors.province;
-        }
+        if (!formData.province) newErrors.province = 'ولایت انتخاب کردن الزامی است';
+        else delete newErrors.province;
         break;
     }
-
     setErrors(newErrors);
     return !newErrors[fieldName];
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.full_name?.trim()) {
-      newErrors.full_name = 'نام مکمل الزامی است';
-    }
-    if (!formData.role) {
-      newErrors.role = 'مقام انتخاب کردن الزامی است';
-    }
-    if (!formData.school_name?.trim()) {
-      newErrors.school_name = 'نام مکتب الزامی است';
-    }
-    if (!formData.district?.trim()) {
-      newErrors.district = 'نام ولسوالی الزامی است';
-    }
-    if (!formData.province) {
-      newErrors.province = 'ولایت انتخاب کردن الزامی است';
-    }
-
+    if (!formData.full_name?.trim()) newErrors.full_name = 'نام مکمل الزامی است';
+    if (!formData.role) newErrors.role = 'مقام انتخاب کردن الزامی است';
+    if (!formData.school_name?.trim()) newErrors.school_name = 'نام مکتب الزامی است';
+    if (!formData.district?.trim()) newErrors.district = 'نام ولسوالی الزامی است';
+    if (!formData.province) newErrors.province = 'ولایت انتخاب کردن الزامی است';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
-      showErrorToast('خطای اعتبارسنجی', 'لطفاً تمام فیلدهای الزامی را پر کنید');
+      showErrorMessage('لطفاً تمام فیلدهای الزامی را پر کنید', 'خطای اعتبارسنجی');
       return;
     }
 
     setIsLoading(true);
-
     try {
-      // ========================================
-      // DEV MODE: Auto-verify for testing
-      // Set to false for production
-      // ========================================
       const DEV_MODE = import.meta.env.MODE === 'development';
-      
-      // Prepare profile data for upsert
-      // Use upsert so it works even if profile record doesn't exist yet
       const profileData: any = {
         user_id: user.id,
         full_name: formData.full_name,
@@ -233,57 +143,33 @@ export default function SetupProfile() {
         updated_at: new Date().toISOString(),
       };
       
-      // Use executeWithErrorHandling for API call with automatic error handling
       const { error } = await executeWithErrorHandling(
-        () => supabase
-          .from('profiles')
-          .upsert(profileData, { onConflict: 'user_id' })
+        async () => await supabase.from('profiles').upsert(profileData, { onConflict: 'user_id' }).select()
       );
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Mark that user just completed setup profile
-      // This flag will trigger the profile completion modal on the dashboard
       localStorage.setItem('setupProfileCompleted', 'true');
 
-      // DEV MODE: Skip verification process, go directly to dashboard
       if (DEV_MODE) {
-        showSuccessToast('موفق', '[حالت توسعه] پروفایل شما تأیید شد...');
-
-        // Always go to /school to show the profile completion modal
-        // (regardless of role, the modal will appear on dashboard)
-        setTimeout(() => {
-          navigate('/school');
-        }, 500);
+        showSuccess('[حالت توسعه] پروفایل شما تأیید شد...', 'موفق');
+        setTimeout(() => navigate('/school'), 500);
       } else {
-        // PRODUCTION: Normal flow - Save flag and go to dashboard
-        // The ProfileCompletionModal will appear on dashboard before verification blocks them
-        showSuccessToast('موفقیت', 'پروفایل شما ذخیره شد...');
-
-        // Redirect to /school where ProfileCompletionModal will appear
-        // After modal completion, user will be redirected to pending verification
-        setTimeout(() => {
-          navigate('/school');
-        }, 500);
+        showSuccess('پروفایل شما ذخیره شد...', 'موفقیت');
+        setTimeout(() => navigate('/school'), 500);
       }
     } catch (err) {
-      // Error is already handled by executeWithErrorHandling and showErrorToast
-      // This catch is for any unexpected errors
       console.error('Unexpected error:', err);
-      showErrorToast('خطا', 'خطایی در ذخیره پروفایل رخ داد. دوباره تلاش کنید.');
+      showErrorMessage('خطایی در ذخیره پروفایل رخ داد. دوباره تلاش کنید.', 'خطا');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Quick Mode: Show summary and one-click enter button
   if (isQuickMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
         <div className="w-full max-w-md space-y-6">
-          {/* Header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-4">
               <div className="p-3 bg-primary/10 rounded-full">
@@ -291,12 +177,9 @@ export default function SetupProfile() {
               </div>
             </div>
             <h1 className="text-3xl font-bold">ورود سریع</h1>
-            <p className="text-muted-foreground">
-              برای تجربه سیستم با یک کلیک وارد شوید
-            </p>
+            <p className="text-muted-foreground">برای تجربه سیستم با یک کلیک وارد شوید</p>
           </div>
 
-          {/* Quick Mode Info Card */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">اطلاعات ورود سریع</CardTitle>
@@ -325,7 +208,6 @@ export default function SetupProfile() {
                 </div>
               </div>
 
-              {/* Warning Alert */}
               <Alert className="border-blue-200 bg-blue-50 mt-4">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
@@ -333,7 +215,6 @@ export default function SetupProfile() {
                 </AlertDescription>
               </Alert>
 
-              {/* One-Click Enter Button */}
               <Button
                 onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
                 disabled={isLoading}
@@ -341,26 +222,14 @@ export default function SetupProfile() {
                 className="w-full mt-6 h-12 text-base font-semibold"
               >
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    درحال ورود...
-                  </>
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" />درحال ورود...</>
                 ) : (
-                  <>
-                    <Zap className="mr-2 h-5 w-5" />
-                    ورود به سیستم
-                  </>
+                  <><Zap className="mr-2 h-5 w-5" />ورود به سیستم</>
                 )}
               </Button>
 
-              {/* Back Button */}
-              <Button
-                variant="outline"
-                onClick={() => navigate('/login')}
-                disabled={isLoading}
-                className="w-full"
-              >
-               بازگشت 
+              <Button variant="outline" onClick={() => navigate('/login')} disabled={isLoading} className="w-full">
+                بازگشت
               </Button>
             </CardContent>
           </Card>
@@ -372,26 +241,19 @@ export default function SetupProfile() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
       <div className="w-full max-w-2xl space-y-6">
-        {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">پروفایل خود را تکمیل کنید</h1>
-          <p className="text-muted-foreground">
-            لطفاً معلومات خود را وارد کنید تا حساب شما تأیید شود
-          </p>
+          <p className="text-muted-foreground">لطفاً معلومات خود را وارد کنید تا حساب شما تأیید شود</p>
         </div>
 
-        {/* DEV MODE WARNING */}
         {import.meta.env.MODE === 'development' && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex gap-3">
-              <div className="flex-shrink-0">
-                <span className="text-xl">⚙️</span>
-              </div>
+              <div className="flex-shrink-0"><span className="text-xl">⚙️</span></div>
               <div>
                 <h3 className="font-medium text-amber-900">حالت توسعه فعال</h3>
                 <p className="text-sm text-amber-800 mt-1">
                   در حالت توسعه، پروفایل شما فوری تأیید می‌شود و به صفحه اصلی منتقل می‌شویم.
-                  این تنها برای تجربه است.
                 </p>
               </div>
             </div>
@@ -401,137 +263,54 @@ export default function SetupProfile() {
         <Card>
           <CardHeader>
             <CardTitle>معلومات کاربر</CardTitle>
-            <CardDescription>
-              این معلومات برای تعیین سطح دسترسی درست استفاده می‌شود
-            </CardDescription>
+            <CardDescription>این معلومات برای تعیین سطح دسترسی درست استفاده می‌شود</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Error Summary */}
               {Object.keys(errors).length > 0 && (
-                <FormErrorSummary errors={Object.values(errors)} />
+                <FormErrorSummary errors={errors} />
               )}
 
-              {/* Full Name */}
-              <FormFieldWrapper 
-                label="نام مکمل" 
-                error={touched.full_name ? errors.full_name : undefined}
-              >
-                <Input
-                  id="full_name"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="نام و نام‌خانوادگی"
-                  disabled={isLoading}
-                  aria-invalid={!!errors.full_name}
-                />
+              <FormFieldWrapper label="نام مکمل" error={touched.full_name ? errors.full_name : undefined}>
+                <Input id="full_name" name="full_name" value={formData.full_name} onChange={handleChange} onBlur={handleBlur} placeholder="نام و نام‌خانوادگی" disabled={isLoading} aria-invalid={!!errors.full_name} />
               </FormFieldWrapper>
 
-              {/* Role Selection */}
-              <FormFieldWrapper 
-                label="مقام" 
-                error={touched.role ? errors.role : undefined}
-              >
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  disabled={isLoading}
-                  className={`w-full px-3 py-2 border rounded-md bg-background ${
-                    errors.role ? 'border-red-500' : 'border-input'
-                  }`}
+              <FormFieldWrapper label="مقام" error={touched.role ? errors.role : undefined}>
+                <select id="role" name="role" value={formData.role} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
+                  className={`w-full px-3 py-2 border rounded-md bg-background ${errors.role ? 'border-destructive' : 'border-input'}`}
                   aria-invalid={!!errors.role}
                 >
                   <option value="">انتخاب مقام</option>
                   {ROLES.map(role => (
-                    <option key={role.id} value={role.value}>
-                      {role.label}
-                    </option>
+                    <option key={role.id} value={role.value}>{role.label}</option>
                   ))}
                 </select>
               </FormFieldWrapper>
 
-              {/* School Name */}
-              <FormFieldWrapper 
-                label="نام مکتب" 
-                error={touched.school_name ? errors.school_name : undefined}
-              >
-                <Input
-                  id="school_name"
-                  name="school_name"
-                  value={formData.school_name}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="نام مکتب یا موسسه آموزشی"
-                  disabled={isLoading}
-                  aria-invalid={!!errors.school_name}
-                />
+              <FormFieldWrapper label="نام مکتب" error={touched.school_name ? errors.school_name : undefined}>
+                <Input id="school_name" name="school_name" value={formData.school_name} onChange={handleChange} onBlur={handleBlur} placeholder="نام مکتب یا موسسه آموزشی" disabled={isLoading} aria-invalid={!!errors.school_name} />
               </FormFieldWrapper>
 
-              {/* District */}
-              <FormFieldWrapper 
-                label="ولسوالی" 
-                error={touched.district ? errors.district : undefined}
-              >
-                <Input
-                  id="district"
-                  name="district"
-                  value={formData.district}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="نام ولسوالی"
-                  disabled={isLoading}
-                  aria-invalid={!!errors.district}
-                />
+              <FormFieldWrapper label="ولسوالی" error={touched.district ? errors.district : undefined}>
+                <Input id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur} placeholder="نام ولسوالی" disabled={isLoading} aria-invalid={!!errors.district} />
               </FormFieldWrapper>
 
-              {/* Province Selection */}
-              <FormFieldWrapper 
-                label="ولایت" 
-                error={touched.province ? errors.province : undefined}
-              >
-                <select
-                  id="province"
-                  name="province"
-                  value={formData.province}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  disabled={isLoading}
-                  className={`w-full px-3 py-2 border rounded-md bg-background ${
-                    errors.province ? 'border-red-500' : 'border-input'
-                  }`}
+              <FormFieldWrapper label="ولایت" error={touched.province ? errors.province : undefined}>
+                <select id="province" name="province" value={formData.province} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
+                  className={`w-full px-3 py-2 border rounded-md bg-background ${errors.province ? 'border-destructive' : 'border-input'}`}
                   aria-invalid={!!errors.province}
                 >
                   <option value="">انتخاب ولایت</option>
                   {PROVINCES.map(province => (
-                    <option key={province} value={province}>
-                      {province}
-                    </option>
+                    <option key={province} value={province}>{province}</option>
                   ))}
                 </select>
               </FormFieldWrapper>
 
-              {/* Phone Number (Optional) */}
-              <FormFieldWrapper 
-                label="شماره تلفن (اختیاری)" 
-              >
-                <Input
-                  id="phone_number"
-                  name="phone_number"
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  placeholder="+93 123 456 7890"
-                  disabled={isLoading}
-                />
+              <FormFieldWrapper label="شماره تلفن (اختیاری)">
+                <Input id="phone_number" name="phone_number" type="tel" value={formData.phone_number} onChange={handleChange} onBlur={handleBlur} placeholder="+93 123 456 7890" disabled={isLoading} />
               </FormFieldWrapper>
 
-              {/* Info Alert */}
               <Alert className="border-blue-200 bg-blue-50">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800">
@@ -539,17 +318,9 @@ export default function SetupProfile() {
                 </AlertDescription>
               </Alert>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full"
-              >
+              <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    در حال ذخیره‌سازی...
-                  </>
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />در حال ذخیره‌سازی...</>
                 ) : (
                   'ادامه و ارسال برای تأیید'
                 )}

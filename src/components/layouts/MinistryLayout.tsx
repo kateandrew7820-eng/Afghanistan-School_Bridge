@@ -33,9 +33,9 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background dark" dir="rtl">
-      <header className="fixed top-0 right-0 left-0 lg:right-64 h-14 bg-card border-b z-40 flex items-center justify-between px-4">
+      <header className="fixed top-0 right-0 left-0 lg:right-64 h-14 bg-card border-b z-40 flex items-center justify-between px-4" role="banner">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? 'بستن منو' : 'باز کردن منو'}>
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
           <h2 className="font-heading font-semibold text-sm">
@@ -47,7 +47,7 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
             <User className="h-4 w-4 text-muted-foreground" />
             <span className="hidden sm:inline text-muted-foreground">{profile?.full_name}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground" aria-label="خروج از سیستم">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
@@ -71,7 +71,7 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
             </div>
           </div>
 
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto" role="navigation" aria-label="منوی وزارت">
             {navItems.map((item) => (
               <Link
                 key={item.href}
@@ -98,7 +98,7 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
         </div>
       </aside>
 
-      <main className="lg:mr-64 pt-14 min-h-screen">
+      <main className="lg:mr-64 pt-14 min-h-screen" role="main">
         <div className="p-4 lg:p-6">
           {children}
         </div>
