@@ -70,7 +70,7 @@ export default function DistrictLayout({ children }: DistrictLayoutProps) {
             </div>
           </div>
 
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-3 space-y-1 overflow-y-auto" role="navigation" aria-label="منوی ولسوالی">
             {navItems.map((item) => (
               <Link
                 key={item.href}
