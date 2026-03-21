@@ -82,7 +82,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
 
       {/* Mobile Overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+        <div className="lg:hidden fixed inset-0 z-40 bg-background/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} onKeyDown={(e) => e.key === 'Escape' && setMobileMenuOpen(false)} role="presentation" />
       )}
 
       {/* Sidebar - Right side for RTL */}
