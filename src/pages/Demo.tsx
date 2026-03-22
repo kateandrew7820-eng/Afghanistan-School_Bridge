@@ -31,7 +31,7 @@ const DEMO_ROLES = [
   },
   {
     id: 'province_admin',
-    label: 'رئیس معارف ولایت',
+    label: 'رئیس معارف',
     description: 'صاحب صلاحیت مسئول آموزش و پرورش ولایت',
     icon: TrendingUp,
     tier: 'province',

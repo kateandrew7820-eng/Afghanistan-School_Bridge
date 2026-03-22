@@ -27,7 +27,7 @@ const ROLE_LABELS: Record<string, string> = {
   'teacher': 'معلم',
   'principal': 'مدیر مکتب',
   'district_admin': 'رئیس معارف ولسوالی',
-  'province_admin': 'رئیس معارف ولایت',
+  'province_admin': 'رئیس معارف',
   'ministry_admin': 'وزارت معارف',
 };
 

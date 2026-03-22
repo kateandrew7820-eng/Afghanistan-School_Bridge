@@ -29,7 +29,7 @@ export const ROLE_HIERARCHY_LABELS: Record<string, string> = {
   'student': 'معلم',           // Teacher approves Student
   'teacher': 'مدیر مکتب',      // Principal approves Teacher
   'principal': 'رئیس معارف ولسوالی', // District Admin approves Principal
-  'district_admin': 'رئیس معارف ولایت', // Province Admin approves District Admin
+  'district_admin': 'رئیس معارف', // Province Admin approves District Admin
   'province_admin': 'وزارت معارف',     // Ministry approves Province Admin
   'ministry_admin': 'وزارت معارف',     // Self-approved
 };
