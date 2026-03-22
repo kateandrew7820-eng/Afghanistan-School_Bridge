@@ -354,7 +354,6 @@ function AppRoutes() {
     </Routes>
   );
 }
-
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
@@ -365,16 +364,16 @@ const App = () => (
             <Sonner />
             <SmartConfirmationDialog />
             {import.meta.env.DEV && <ErrorSimulationPanel />}
-            <BrowserRouter>
-              <AuthProvider>
+
+            <AuthProvider>
+              <BrowserRouter>
                 <AppRoutes />
-              </AuthProvider>
-            </BrowserRouter>
+              </BrowserRouter>
+            </AuthProvider>
+
           </TooltipProvider>
         </ConfirmationProvider>
       </LocalizationProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );
-
-export default App;
