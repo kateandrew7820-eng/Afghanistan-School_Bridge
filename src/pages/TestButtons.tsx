@@ -153,7 +153,7 @@ export default function TestButtons() {
           <div className="space-y-6">
             <ButtonGroup
               title="🏫 دکمه‌های مکتب"
-              description="دکمه‌ها و عملکردهای داشبرد مکتب"
+              description="دکمه‌ها و عملکردهای صفحه معلومات مکتب"
               buttons={[
                 { id: 'submit-stats', label: 'ارسال آمار', action: () => navigate('/school/submit-statistics') },
                 { id: 'submit-reports', label: 'ارسال گزارش', action: () => navigate('/school/submit-reports') },
@@ -170,7 +170,7 @@ export default function TestButtons() {
           <div className="space-y-6">
             <ButtonGroup
               title="🔷 دکمه‌های منطقه‌آموزش‌وپرورش"
-              description="دکمه‌ها و عملکردهای داشبرد منطقه"
+              description="دکمه‌ها و عملکردهای صفحه معلومات منطقه"
               buttons={[
                 { id: 'view-submissions', label: 'مشاهده ارسال‌ها', action: () => navigate('/district/submissions') },
                 { id: 'verify-data', label: 'تایید اطلاعات', action: () => navigate('/district/verify') },
@@ -186,7 +186,7 @@ export default function TestButtons() {
           <div className="space-y-6">
             <ButtonGroup
               title="🔶 دکمه‌های ولایت"
-              description="دکمه‌ها و عملکردهای داشبرد ولایت"
+              description="دکمه‌ها و عملکردهای صفحه معلومات ولایت"
               buttons={[
                 { id: 'view-analytics', label: 'مشاهده آمارشناسی', action: () => navigate('/province') },
                 { id: 'export-data', label: 'صادر کردن اطلاعات', simulate: true },
@@ -200,7 +200,7 @@ export default function TestButtons() {
           <div className="space-y-6">
             <ButtonGroup
               title="👑 دکمه‌های وزارت"
-              description="دکمه‌ها و عملکردهای داشبرد وزارت"
+              description="دکمه‌ها و عملکردهای صفحه معلومات وزارت"
               buttons={[
                 { id: 'national-analytics', label: 'آمارشناسی ملی', action: () => navigate('/ministry/analytics') },
                 { id: 'manage-users', label: 'مدیریت کاربران', action: () => navigate('/ministry/users') },

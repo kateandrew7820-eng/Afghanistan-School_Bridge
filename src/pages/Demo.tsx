@@ -11,35 +11,35 @@ const DEMO_ROLES = [
   {
     id: 'teacher',
     label: 'معلم',
-    description: 'صاحب صلاحیت معلم - دسترسی به داشبرد مکتب',
+    description: 'دسترسی به دشبورد معلم و مدیریت صنف‌ها',
     icon: User,
     tier: 'school',
   },
   {
     id: 'principal',
     label: 'مدیر مکتب',
-    description: 'صاحب صلاحیت مدیر مکتب - دسترسی کامل به داشبرد مکتب',
+    description: 'دسترسی کامل به مدیریت مکتب'
     icon: Users,
     tier: 'school',
   },
   {
     id: 'district_admin',
     label: 'رئیس معارف',
-    description: 'صاحب صلاحیت مسئول آموزش و پرورش منطقه',
+    description: 'مدیریت و نظارت بر مکاتب ولسوالی',
     icon: Building2,
     tier: 'district',
   },
   {
     id: 'province_admin',
-    label: 'رئیس معارف ولایت',
-    description: 'صاحب صلاحیت مسئول آموزش و پرورش ولایت',
+    label: 'رئیس معارف',
+    description: 'مدیریت و نظارت بر سیستم آموزشی ولایت',
     icon: TrendingUp,
     tier: 'province',
   },
   {
     id: 'ministry_admin',
     label: 'وزیر معارف',
-    description: 'صاحب صلاحیت مسئول وزارت آموزش و پرورش',
+    description: 'دسترسی به دشبورد مرکزی وزارت',
     icon: Crown,
     tier: 'ministry',
   },
@@ -79,7 +79,7 @@ export default function Demo() {
             <Users className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-3xl font-bold">{t('app.title')}</h1>
-          <p className="text-lg text-muted-foreground">حالت نمایشی و تست (Demo Mode)</p>
+          <p className="text-lg text-muted-foreground">حالت آزمایشی (Demo Mode)</p>
         </div>
 
         {/* Warning Banner */}
@@ -93,9 +93,9 @@ export default function Demo() {
         {/* Role Selection Grid */}
         <div className="space-y-4">
           <div>
-            <h2 className="text-xl font-semibold mb-4">مقام خود را انتخاب کنید:</h2>
+            <h2 className="text-xl font-semibold mb-4">انتخاب مقام</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              مقامی را انتخاب کنید تا داشبرد مربوط به آن مقام را مشاهده کنید:
+              برای مشاهده دشبورد مربوط، مقام مورد نظر خود را انتخاب کنید:
             </p>
           </div>
 
@@ -138,7 +138,7 @@ export default function Demo() {
               onClick={() => selectedRole && handleSelectRole(selectedRole)}
               className="min-w-[200px]"
             >
-              {selectedRole ? 'ورود به داشبرد' : 'مقام را انتخاب کنید'}
+              {selectedRole ? 'ورود به صفحه معلومات' : 'انتخاب مقام '}
             </Button>
             <Button
               size="lg"
