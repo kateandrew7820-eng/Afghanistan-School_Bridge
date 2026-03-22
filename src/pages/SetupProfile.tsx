@@ -8,13 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import Breadcrumb from '@/components/Breadcrumb';
-import PageHeader from '@/components/PageHeader';
-import { Loader2, AlertCircle, Zap, ArrowRight } from 'lucide-react';
+import { Loader2, AlertCircle, Zap, ArrowRight, Clock } from 'lucide-react';
 import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
-import { validateField, validateForm as validateFormFields } from '@/lib/validation';
+import { TEMPORARY_TEST_MODE, getApproverLabel } from '@/lib/testMode';
 
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
@@ -130,7 +128,12 @@ export default function SetupProfile() {
 
     setIsLoading(true);
     try {
-      const DEV_MODE = import.meta.env.MODE === 'development';
+      // ============================================================
+      // 🚧 TEMPORARY TEST MODE
+      // In test mode: status = 'pending_verification' (masoudsalik2024@gmail.com confirms)
+      // In production: status = 'pending_verification' (hierarchical approval)
+      // Both paths use pending_verification - the difference is WHO confirms
+      // ============================================================
       const profileData: any = {
         user_id: user.id,
         full_name: formData.full_name,
@@ -139,7 +142,7 @@ export default function SetupProfile() {
         role: formData.role,
         school_name: formData.school_name,
         phone_number: formData.phone_number || null,
-        status: DEV_MODE ? 'verified' : 'pending_verification',
+        status: 'pending_verification',
         updated_at: new Date().toISOString(),
       };
       
@@ -151,13 +154,16 @@ export default function SetupProfile() {
 
       localStorage.setItem('setupProfileCompleted', 'true');
 
-      if (DEV_MODE) {
-        showSuccess('[حالت توسعه] پروفایل شما تأیید شد...', 'موفق');
-        setTimeout(() => navigate('/school'), 500);
-      } else {
-        showSuccess('پروفایل شما ذخیره شد...', 'موفقیت');
-        setTimeout(() => navigate('/school'), 500);
-      }
+      // Show pending message with approver info
+      const approverLabel = getApproverLabel(formData.role);
+      showSuccess(
+        `پروفایل شما ذخیره شد. منتظر تأیید ${approverLabel} باشید.`,
+        'موفقیت'
+      );
+
+      // Redirect to pending verification page
+      // PendingVerification will auto-redirect to /afghanistan-info after 2 seconds
+      setTimeout(() => navigate('/pending-verification'), 500);
     } catch (err) {
       console.error('Unexpected error:', err);
       showErrorMessage('خطایی در ذخیره پروفایل رخ داد. دوباره تلاش کنید.', 'خطا');
@@ -246,14 +252,15 @@ export default function SetupProfile() {
           <p className="text-muted-foreground">لطفاً معلومات خود را وارد کنید تا حساب شما تأیید شود</p>
         </div>
 
-        {import.meta.env.MODE === 'development' && (
+        {/* 🚧 TEMPORARY TEST MODE banner */}
+        {TEMPORARY_TEST_MODE && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex gap-3">
-              <div className="flex-shrink-0"><span className="text-xl">⚙️</span></div>
+              <div className="flex-shrink-0"><span className="text-xl">🧪</span></div>
               <div>
-                <h3 className="font-medium text-amber-900">حالت توسعه فعال</h3>
+                <h3 className="font-medium text-amber-900">حالت آزمایشی فعال</h3>
                 <p className="text-sm text-amber-800 mt-1">
-                  در حالت توسعه، پروفایل شما فوری تأیید می‌شود و به صفحه اصلی منتقل می‌شویم.
+                  در حالت آزمایشی، تأیید حساب توسط مسئول اصلی سیستم انجام می‌شود.
                 </p>
               </div>
             </div>
@@ -287,6 +294,16 @@ export default function SetupProfile() {
                 </select>
               </FormFieldWrapper>
 
+              {/* Show who will approve based on selected role */}
+              {formData.role && (
+                <Alert className="border-blue-200 bg-blue-50">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800 text-sm">
+                    بعد از ارسال، حساب شما منتظر تأیید <strong>{getApproverLabel(formData.role)}</strong> خواهد بود.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <FormFieldWrapper label="نام مکتب" error={touched.school_name ? errors.school_name : undefined}>
                 <Input id="school_name" name="school_name" value={formData.school_name} onChange={handleChange} onBlur={handleBlur} placeholder="نام مکتب یا موسسه آموزشی" disabled={isLoading} aria-invalid={!!errors.school_name} />
               </FormFieldWrapper>
@@ -310,13 +327,6 @@ export default function SetupProfile() {
               <FormFieldWrapper label="شماره تلفن (اختیاری)">
                 <Input id="phone_number" name="phone_number" type="tel" value={formData.phone_number} onChange={handleChange} onBlur={handleBlur} placeholder="+93 123 456 7890" disabled={isLoading} />
               </FormFieldWrapper>
-
-              <Alert className="border-blue-200 bg-blue-50">
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800">
-                  پس از ارسال، حساب شما باید توسط مدیر تأیید شود. تا زمان تأیید، نمی‌توانید از سیستم استفاده کنید.
-                </AlertDescription>
-              </Alert>
 
               <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? (

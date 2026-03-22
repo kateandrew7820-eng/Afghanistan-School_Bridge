@@ -113,7 +113,7 @@ export async function getUserProfile(userId: string): Promise<FetchUserProfileRe
     // Reduces query time and allows faster redirect to dashboard
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, user_id, full_name, school_id, district, province')
+      .select('id, user_id, full_name, school_id, district, province, role, status, school_name, phone_number, verified_by_user_id, verified_at, rejection_reason')
       .eq('user_id', userId)
       .single();
     
