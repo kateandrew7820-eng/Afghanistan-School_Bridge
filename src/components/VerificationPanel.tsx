@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { Check, X, Loader2, AlertCircle } from 'lucide-react';
+import { Check, X, Loader2, AlertCircle, Mail } from 'lucide-react';
+import { TEMPORARY_TEST_MODE, GLOBAL_CONFIRMER_EMAIL, getApproverLabel, getDashboardRouteForRole, isPendingExpired } from '@/lib/testMode';
 
 interface PendingUser {
   id: string;
@@ -25,22 +24,9 @@ interface PendingUser {
 }
 
 export interface VerificationPanelProps {
-  /**
-   * Filter by role - only show users with this role
-   * e.g., 'student' (verified by teacher), 'teacher' (verified by principal)
-   */
   filterRole?: string;
-  /**
-   * Filter by district - only show users from this district
-   */
   filterDistrict?: string;
-  /**
-   * Filter by province - only show users from this province
-   */
   filterProvince?: string;
-  /**
-   * Max results to display
-   */
   limit?: number;
 }
 
@@ -51,7 +37,6 @@ export function VerificationPanel({
   limit = 10,
 }: VerificationPanelProps) {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const { toast } = useToast();
 
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -70,10 +55,10 @@ export function VerificationPanel({
       setLoading(true);
       setError(null);
 
-      // Try to fetch with all fields including new ones from migration
       let query: any = supabase
         .from('profiles')
-        .select('id, user_id, full_name, district, province, created_at');
+        .select('id, user_id, full_name, role, school_name, district, province, phone_number, status, created_at')
+        .eq('status', 'pending_verification');
 
       if (filterRole) {
         query = query.eq('role', filterRole);
@@ -89,31 +74,7 @@ export function VerificationPanel({
         .order('created_at', { ascending: true })
         .limit(limit) as any;
 
-      if (fetchError) {
-        // If columns don't exist yet, fetch with basic fields
-        if (fetchError.message?.includes("column") && fetchError.message?.includes("does not exist")) {
-          const { data: basicData, error: basicError } = await supabase
-            .from('profiles')
-            .select('id, user_id, full_name, district, province, created_at')
-            .limit(limit)
-            .order('created_at', { ascending: true }) as any;
-          
-          if (basicError) throw basicError;
-          
-          // Map to PendingUser with defaults
-          const mappedUsers = ((basicData || []) as any[]).map(user => ({
-            ...user,
-            role: null,
-            school_name: null,
-            phone_number: null,
-            status: 'pending_verification',
-          })) as PendingUser[];
-          
-          setPendingUsers(mappedUsers);
-          return;
-        }
-        throw fetchError;
-      }
+      if (fetchError) throw fetchError;
 
       setPendingUsers((data || []) as unknown as PendingUser[]);
     } catch (err) {
@@ -124,67 +85,67 @@ export function VerificationPanel({
     }
   };
 
+  /**
+   * 🚧 TEMPORARY TEST MODE: Approval by global confirmer
+   * In production, this will use the hierarchical approval from verificationHierarchy.ts
+   */
   const handleApprove = async (userId: string, profileId: string) => {
     if (!user) return;
 
     setProcessingId(userId);
     try {
-      // Update profile status
+      const approvedUser = pendingUsers.find(u => u.user_id === userId);
+      
+      // Update profile status to verified
       const updateData: any = {
+        status: 'verified',
         verified_by_user_id: user.id,
         verified_at: new Date().toISOString(),
       };
-      
-      // Only add 'status' if migration has been deployed
-      // This prevents errors when new columns don't exist yet
-      updateData.status = 'verified';
       
       const { error: updateError } = await supabase
         .from('profiles')
         .update(updateData as any)
         .eq('id', profileId);
 
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
-      // Also update user_roles if not already set
-      const roleToSet = pendingUsers.find(u => u.user_id === userId)?.role;
+      // Update user_roles
+      const roleToSet = approvedUser?.role;
       if (roleToSet) {
         const validRoles = ['teacher', 'school', 'principal', 'district_admin', 'province_admin', 'ministry_admin', 'admin'];
-        const isValidRole = validRoles.includes(roleToSet as string);
-        
-        if (isValidRole) {
-          const { error: roleError } = await supabase
+        if (validRoles.includes(roleToSet)) {
+          await supabase
             .from('user_roles')
-            .upsert(
-              {
-                user_id: userId,
-                role: roleToSet as any,
-              } as any,
-              { onConflict: 'user_id' }
-            );
+            .upsert({ user_id: userId, role: roleToSet } as any, { onConflict: 'user_id' });
+        }
+      }
 
-          if (roleError) {
-            // Role update failed silently
-          }
+      // 🚧 TEMPORARY TEST MODE: Send approval email via edge function
+      if (approvedUser) {
+        try {
+          await supabase.functions.invoke('send-approval-email', {
+            body: {
+              userId: userId,
+              userName: approvedUser.full_name || 'کاربر',
+              userRole: approvedUser.role || 'teacher',
+              approverLabel: getApproverLabel(approvedUser.role || 'teacher'),
+            },
+          });
+        } catch (emailErr) {
+          console.warn('Approval email failed (non-critical):', emailErr);
         }
       }
 
       toast({
         title: 'موفقیت',
-        description: 'کاربر تایید شد',
+        description: `${approvedUser?.full_name || 'کاربر'} تأیید شد`,
       });
 
-      // Remove from pending list
       setPendingUsers(prev => prev.filter(u => u.user_id !== userId));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در تایید کاربر';
-      toast({
-        title: 'خطا',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'خطا', description: message, variant: 'destructive' });
     } finally {
       setProcessingId(null);
     }
@@ -195,56 +156,32 @@ export function VerificationPanel({
 
     const reason = rejectionReasons[userId];
     if (!reason?.trim()) {
-      toast({
-        title: 'خطا',
-        description: 'لطفاً دلیل رد را وارد کنید',
-        variant: 'destructive',
-      });
+      toast({ title: 'خطا', description: 'لطفاً دلیل رد را وارد کنید', variant: 'destructive' });
       return;
     }
 
     setProcessingId(userId);
     try {
-      const updateData: any = {
-        verified_by_user_id: user.id,
-        verified_at: new Date().toISOString(),
-        rejection_reason: reason,
-      };
-      
-      // Only add 'status' if migration has been deployed
-      updateData.status = 'rejected';
-      
       const { error } = await supabase
         .from('profiles')
-        .update(updateData as any)
+        .update({
+          status: 'rejected',
+          verified_by_user_id: user.id,
+          verified_at: new Date().toISOString(),
+          rejection_reason: reason,
+        } as any)
         .eq('id', profileId);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      toast({
-        title: 'موفقیت',
-        description: 'درخواست رد شد',
-      });
+      toast({ title: 'موفقیت', description: 'درخواست رد شد' });
 
-      // Remove from pending list
       setPendingUsers(prev => prev.filter(u => u.user_id !== userId));
-      setRejectionReasons(prev => {
-        const { [userId]: _, ...rest } = prev;
-        return rest;
-      });
-      setRejectionMode(prev => {
-        const { [userId]: _, ...rest } = prev;
-        return rest;
-      });
+      setRejectionReasons(prev => { const { [userId]: _, ...rest } = prev; return rest; });
+      setRejectionMode(prev => { const { [userId]: _, ...rest } = prev; return rest; });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'خطا در رد کردن درخواست';
-      toast({
-        title: 'خطا',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'خطا', description: message, variant: 'destructive' });
     } finally {
       setProcessingId(null);
     }
@@ -254,7 +191,7 @@ export function VerificationPanel({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>تایید کاربران</CardTitle>
+          <CardTitle>تأیید کاربران</CardTitle>
           <CardDescription>در حال بارگذاری...</CardDescription>
         </CardHeader>
         <CardContent className="flex justify-center py-8">
@@ -267,17 +204,13 @@ export function VerificationPanel({
   if (error) {
     return (
       <Card className="border-red-200">
-        <CardHeader>
-          <CardTitle className="text-red-600">خطا</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-red-600">خطا</CardTitle></CardHeader>
         <CardContent>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-          <Button onClick={fetchPendingUsers} className="mt-4" variant="outline">
-            تلاش دوباره
-          </Button>
+          <Button onClick={fetchPendingUsers} className="mt-4" variant="outline">تلاش دوباره</Button>
         </CardContent>
       </Card>
     );
@@ -287,15 +220,11 @@ export function VerificationPanel({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>تایید کاربران</CardTitle>
-          <CardDescription>
-            {filterRole || filterDistrict || filterProvince
-              ? 'کاربری برای تایید وجود ندارد'
-              : 'هیچ کاربر در حال انتظار تایید وجود ندارد'}
-          </CardDescription>
+          <CardTitle>تأیید کاربران</CardTitle>
+          <CardDescription>هیچ کاربر در حال انتظار تأیید وجود ندارد</CardDescription>
         </CardHeader>
         <CardContent className="py-8 text-center text-muted-foreground">
-          ✓ همه کاربران تایید شده‌اند
+          ✓ همه کاربران تأیید شده‌اند
         </CardContent>
       </Card>
     );
@@ -304,148 +233,97 @@ export function VerificationPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>تایید کاربران</CardTitle>
+        <CardTitle>تأیید کاربران</CardTitle>
         <CardDescription>
-          {pendingUsers.length} کاربر در انتظار تایید
+          {pendingUsers.length} کاربر در انتظار تأیید
+          {TEMPORARY_TEST_MODE && (
+            <Badge variant="outline" className="mr-2 text-amber-600 border-amber-300">🧪 حالت آزمایشی</Badge>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {pendingUsers.map(pendingUser => (
-          <div key={pendingUser.id} className="border rounded-lg p-4 space-y-3">
-            {/* User Info */}
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h4 className="font-semibold text-lg">{pendingUser.full_name || 'نام نامشخص'}</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">مقام:</span>
-                    <p className="font-medium">{pendingUser.role}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">مکتب:</span>
-                    <p className="font-medium">{pendingUser.school_name}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">منطقه:</span>
-                    <p className="font-medium">{pendingUser.district}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">ولایت:</span>
-                    <p className="font-medium">{pendingUser.province}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">تلفن:</span>
-                    <p className="font-medium">{pendingUser.phone_number || '-'}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">تاریخ درخواست:</span>
-                    <p className="font-medium text-xs">
-                      {new Date(pendingUser.created_at).toLocaleDateString('fa-AF')}
-                    </p>
+        {pendingUsers.map(pendingUser => {
+          const isExpired = isPendingExpired(pendingUser.created_at);
+          
+          return (
+            <div key={pendingUser.id} className={`border rounded-lg p-4 space-y-3 ${isExpired ? 'border-red-200 bg-red-50/50' : ''}`}>
+              {/* User Info */}
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-lg">{pendingUser.full_name || 'نام نامشخص'}</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">مقام:</span>
+                      <p className="font-medium">{pendingUser.role || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">مکتب:</span>
+                      <p className="font-medium">{pendingUser.school_name || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">ولسوالی:</span>
+                      <p className="font-medium">{pendingUser.district || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">ولایت:</span>
+                      <p className="font-medium">{pendingUser.province || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">تلفن:</span>
+                      <p className="font-medium">{pendingUser.phone_number || '-'}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">تاریخ درخواست:</span>
+                      <p className="font-medium text-xs">
+                        {new Date(pendingUser.created_at).toLocaleDateString('fa-AF')}
+                      </p>
+                    </div>
                   </div>
                 </div>
+                <div className="flex flex-col gap-1 items-end">
+                  <Badge variant="outline" className="h-fit">در انتظار</Badge>
+                  {isExpired && (
+                    <Badge variant="destructive" className="h-fit text-xs">منقضی شده</Badge>
+                  )}
+                </div>
               </div>
-              <Badge variant="outline" className="ml-4 h-fit">
-                در انتظار
-              </Badge>
-            </div>
 
-            {/* Rejection Mode - Text Input for Reason */}
-            {rejectionMode[pendingUser.user_id] && (
-              <div className="bg-red-50 border border-red-200 rounded p-3 space-y-2">
-                <Label htmlFor={`reason-${pendingUser.id}`} className="text-sm">
-                  دلیل رد (الزامی)
-                </Label>
-                <textarea
-                  id={`reason-${pendingUser.id}`}
-                  value={rejectionReasons[pendingUser.user_id] || ''}
-                  onChange={(e) => {
-                    setRejectionReasons(prev => ({
-                      ...prev,
-                      [pendingUser.user_id]: e.target.value,
-                    }));
-                  }}
-                  placeholder="مثال: اطلاعات ناقص است..."
-                  className="w-full px-3 py-2 border border-input rounded-md text-sm"
-                  rows={3}
-                />
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 justify-end pt-2">
-              {rejectionMode[pendingUser.user_id] ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setRejectionMode(prev => ({
-                        ...prev,
-                        [pendingUser.user_id]: false,
-                      }));
-                    }}
-                    disabled={processingId === pendingUser.user_id}
-                  >
-                    لغو
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleReject(pendingUser.user_id, pendingUser.id)}
-                    disabled={processingId === pendingUser.user_id}
-                  >
-                    {processingId === pendingUser.user_id ? (
-                      <>
-                        <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                        در حال پردازش...
-                      </>
-                    ) : (
-                      <>
-                        <X className="ml-2 h-4 w-4" />
-                        رد کردن
-                      </>
-                    )}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setRejectionMode(prev => ({
-                        ...prev,
-                        [pendingUser.user_id]: true,
-                      }));
-                    }}
-                    disabled={processingId === pendingUser.user_id}
-                  >
-                    رد کردن
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="default"
-                    onClick={() => handleApprove(pendingUser.user_id, pendingUser.id)}
-                    disabled={processingId === pendingUser.user_id}
-                  >
-                    {processingId === pendingUser.user_id ? (
-                      <>
-                        <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                        در حال پردازش...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="ml-2 h-4 w-4" />
-                        تایید کردن
-                      </>
-                    )}
-                  </Button>
-                </>
+              {/* Rejection Mode */}
+              {rejectionMode[pendingUser.user_id] && (
+                <div className="bg-red-50 border border-red-200 rounded p-3 space-y-2">
+                  <Label htmlFor={`reason-${pendingUser.id}`} className="text-sm">دلیل رد (الزامی)</Label>
+                  <textarea
+                    id={`reason-${pendingUser.id}`}
+                    value={rejectionReasons[pendingUser.user_id] || ''}
+                    onChange={(e) => setRejectionReasons(prev => ({ ...prev, [pendingUser.user_id]: e.target.value }))}
+                    placeholder="مثال: اطلاعات ناقص است..."
+                    className="w-full px-3 py-2 border border-input rounded-md text-sm"
+                    rows={3}
+                  />
+                </div>
               )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 justify-end pt-2">
+                {rejectionMode[pendingUser.user_id] ? (
+                  <>
+                    <Button variant="ghost" size="sm" onClick={() => setRejectionMode(prev => ({ ...prev, [pendingUser.user_id]: false }))} disabled={processingId === pendingUser.user_id}>لغو</Button>
+                    <Button variant="destructive" size="sm" onClick={() => handleReject(pendingUser.user_id, pendingUser.id)} disabled={processingId === pendingUser.user_id}>
+                      {processingId === pendingUser.user_id ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />پردازش...</> : <><X className="ml-2 h-4 w-4" />رد کردن</>}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => setRejectionMode(prev => ({ ...prev, [pendingUser.user_id]: true }))} disabled={processingId === pendingUser.user_id}>رد کردن</Button>
+                    <Button size="sm" variant="default" onClick={() => handleApprove(pendingUser.user_id, pendingUser.id)} disabled={processingId === pendingUser.user_id}>
+                      {processingId === pendingUser.user_id ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />پردازش...</> : <><Check className="ml-2 h-4 w-4" />تأیید کردن</>}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );

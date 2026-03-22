@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/lib/supabase';
-import { Clock, AlertCircle, ExternalLink } from 'lucide-react';
+import { Clock, AlertCircle, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { getApproverLabel, getDashboardRouteForRole, isPendingExpired, TEMPORARY_TEST_MODE } from '@/lib/testMode';
 
 interface ProfileData {
   full_name: string | null;
@@ -16,52 +16,54 @@ interface ProfileData {
   province: string | null;
   status: string;
   rejection_reason: string | null;
+  created_at: string;
 }
 
 export default function PendingVerification() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshCount, setRefreshCount] = useState(0);
+  const [redirectCountdown, setRedirectCountdown] = useState(2);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   if (!user) {
     navigate('/login');
     return null;
   }
 
+  // Fetch profile and check status
   useEffect(() => {
     async function fetchProfile() {
       try {
         setLoading(true);
         const { data, error: fetchError } = await supabase
           .from('profiles')
-          .select('full_name, role, school_name, district, province, status, rejection_reason')
+          .select('full_name, role, school_name, district, province, status, rejection_reason, created_at')
           .eq('user_id', user.id)
           .single();
 
         if (fetchError) {
-          // If columns don't exist yet (migration not deployed), fall back to basic query
-          if (fetchError.message.includes("column '*' does not exist")) {
+          // Fallback for missing columns
+          if (fetchError.message.includes("does not exist")) {
             const { data: basicData, error: basicError } = await supabase
               .from('profiles')
-              .select('full_name, district, province')
+              .select('full_name, district, province, created_at')
               .eq('user_id', user.id)
               .single();
             
             if (basicError) throw basicError;
             
-            // Set with defaults for fields not yet in database
             setProfile({
-              ...(basicData as unknown as Partial<ProfileData>),
+              ...(basicData as any),
               role: null,
               school_name: null,
               status: 'pending_verification',
               rejection_reason: null,
-            } as ProfileData);
+            });
+            setShouldRedirect(true);
             return;
           }
           throw fetchError;
@@ -70,9 +72,17 @@ export default function PendingVerification() {
         if (data) {
           setProfile(data as unknown as ProfileData);
           
-          // If verified, redirect to dashboard
+          // If verified, redirect to role-based dashboard
           if ((data as any)?.status === 'verified') {
-            navigate('/school');
+            const role = (data as any)?.role || 'teacher';
+            const dashboardRoute = getDashboardRouteForRole(role);
+            navigate(dashboardRoute);
+            return;
+          }
+          
+          // If pending, start redirect countdown to /afghanistan-info
+          if ((data as any)?.status === 'pending_verification') {
+            setShouldRedirect(true);
           }
         }
       } catch (err) {
@@ -85,14 +95,28 @@ export default function PendingVerification() {
 
     fetchProfile();
 
-    // Optional: Auto-refresh every 10 seconds to check verification status
+    // Auto-refresh every 10 seconds to check verification status
     const interval = setInterval(fetchProfile, 10000);
     return () => clearInterval(interval);
-  }, [user.id, refreshCount]);
+  }, [user.id]);
 
-  const handleRefresh = () => {
-    setRefreshCount(prev => prev + 1);
-  };
+  // Countdown and smooth redirect to /afghanistan-info
+  useEffect(() => {
+    if (!shouldRedirect || !profile || profile.status !== 'pending_verification') return;
+
+    const timer = setInterval(() => {
+      setRedirectCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          navigate('/afghanistan-info');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [shouldRedirect, profile, navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -123,7 +147,7 @@ export default function PendingVerification() {
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full" onClick={handleRefresh}>
+            <Button variant="outline" className="w-full" onClick={() => window.location.reload()}>
               تلاش دوباره
             </Button>
             <Button variant="ghost" className="w-full" onClick={handleSignOut}>
@@ -149,21 +173,14 @@ export default function PendingVerification() {
               <Alert className="border-red-200 bg-red-50">
                 <AlertCircle className="h-4 w-4 text-red-600" />
                 <AlertDescription className="text-red-800">
-                  <strong>دلیل رد:</strong>
-                  <br />
-                  {profile.rejection_reason}
+                  <strong>دلیل رد:</strong><br />{profile.rejection_reason}
                 </AlertDescription>
               </Alert>
             )}
             <p className="text-sm text-muted-foreground">
               لطفاً با مسئول منطقه یا ولایت تماس بگیرید.
             </p>
-            <Button
-              className="w-full"
-              onClick={() => {
-                handleSignOut();
-              }}
-            >
+            <Button className="w-full" onClick={handleSignOut}>
               بازگشت به ورود
             </Button>
           </CardContent>
@@ -172,10 +189,14 @@ export default function PendingVerification() {
     );
   }
 
+  // Check if pending has expired (24 hours)
+  const isExpired = profile?.created_at ? isPendingExpired(profile.created_at) : false;
+  const approverLabel = profile?.role ? getApproverLabel(profile.role) : 'مدیر';
+
   // Pending verification (default state)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
-      <div className="w-full max-w-2xl space-y-6">
+      <div className="w-full max-w-2xl space-y-6 animate-fade-in">
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="flex justify-center mb-4">
@@ -185,17 +206,44 @@ export default function PendingVerification() {
           </div>
           <h1 className="text-3xl font-bold">حساب شما در حال بررسی است</h1>
           <p className="text-lg text-muted-foreground">
-            اطلاعات شما توسط اختیار رسانی در حال بررسی است.
+            منتظر تأیید از طرف <strong className="text-foreground">{approverLabel}</strong> باشید.
           </p>
         </div>
+
+        {/* Redirect notice */}
+        {shouldRedirect && redirectCountdown > 0 && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800 text-center">
+              بعد از {redirectCountdown} ثانیه به صفحه معلومات منتقل می‌شوید...
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Expired warning */}
+        {isExpired && (
+          <Alert className="border-red-200 bg-red-50">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <strong>مدت انتظار تأیید (۲۴ ساعت) به پایان رسید.</strong> لطفاً با مسئول تماس بگیرید.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* 🚧 TEMPORARY TEST MODE indicator */}
+        {TEMPORARY_TEST_MODE && (
+          <Alert className="border-amber-200 bg-amber-50">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800 text-sm">
+              🧪 <strong>حالت آزمایشی:</strong> تأیید توسط مسئول اصلی سیستم انجام خواهد شد.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Profile Summary */}
         <Card>
           <CardHeader>
             <CardTitle>خلاصه اطلاعات ثبت‌شده</CardTitle>
-            <CardDescription>
-              این اطلاعات برای تایید ارسال شد
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -212,7 +260,7 @@ export default function PendingVerification() {
                 <p className="font-semibold">{profile?.school_name || '-'}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">منطقه</p>
+                <p className="text-sm text-muted-foreground">ولسوالی</p>
                 <p className="font-semibold">{profile?.district || '-'}</p>
               </div>
               <div>
@@ -221,55 +269,21 @@ export default function PendingVerification() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">وضعیت</p>
-                <p className="font-semibold text-yellow-600">در انتظار تایید</p>
+                <p className="font-semibold text-yellow-600">در انتظار تأیید</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Info Alert */}
-        <Alert className="border-blue-200 bg-blue-50">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800 space-y-2">
-            <p>
-              <strong>این چه معنی دارد؟</strong>
-            </p>
-            <p>
-              حساب شما به‌طور موفق ایجاد شده است، اما قبل از اینکه بتوانید ورود به سیستم، نیاز است که توسط مسئول منطقه یا ولایت تایید شود.
-            </p>
-            <p>
-              معمولاً این فرآیند <strong>1-2 روز</strong> طول می‌کشد.
-            </p>
-          </AlertDescription>
-        </Alert>
-
         {/* Action Buttons */}
         <div className="flex flex-col gap-3">
-          <Button
-            onClick={handleRefresh}
-            className="w-full"
-            variant="outline"
-          >
+          <Button onClick={() => navigate('/afghanistan-info')} className="w-full" variant="outline">
             <ExternalLink className="mr-2 h-4 w-4" />
-            بررسی وضعیت
+            مشاهده معلومات سیستم
           </Button>
-          <Button
-            onClick={handleSignOut}
-            className="w-full"
-            variant="ghost"
-          >
+          <Button onClick={handleSignOut} className="w-full" variant="ghost">
             خروج
           </Button>
-        </div>
-
-        {/* Footer Info */}
-        <div className="bg-muted/50 rounded-lg p-4 text-center">
-          <p className="text-sm text-muted-foreground mb-3">
-            پس از تایید، می‌توانید از تمام ویژگی‌های سیستم استفاده کنید.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            اگر سؤالی دارید، لطفاً با پشتیبانی تماس بگیرید.
-          </p>
         </div>
       </div>
     </div>
