@@ -114,7 +114,7 @@ export default function Demo() {
           <div className="text-center">
             <h2 className="text-2xl font-semibold">مقام من</h2>
             <p className="text-gray-500 mt-2">
-              مقامی را انتخاب کنید تا داشبرد مربوط به آن مقام را مشاهده کنید:
+              برای مشاهده داشبورد مربوط به هر مقام، لطفاً مقام مورد نظر خود را انتخاب نمایید.
             </p>
           </div>
 
