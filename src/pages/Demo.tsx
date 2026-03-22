@@ -18,11 +18,7 @@ const DEMO_ROLES = [
   {
     id: 'principal',
     label: 'مدیر مکتب',
-<<<<<<< HEAD
-    description: 'دسترسی کامل به مدیریت مکتب',
-=======
     description: 'صاحب صلاحیت مدیر مکتب - دسترسی کامل به داشبرد مکتب',
->>>>>>> a3d288b60a12a210f73e0966ff8a64fbc06e7c90
     icon: Users,
     tier: 'school',
   },
