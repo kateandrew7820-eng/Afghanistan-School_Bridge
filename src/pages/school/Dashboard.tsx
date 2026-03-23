@@ -5,6 +5,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import { useVerification } from '@/hooks/useVerification';
 import { supabase } from '@/lib/supabase';
 import { VerificationPanel } from '@/components/VerificationPanel';
+import WelcomeGuide from '@/components/WelcomeGuide';
 import { getVerificationQueueFilter } from '@/lib/verificationHierarchy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
