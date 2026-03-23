@@ -1,42 +1,46 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, Zap } from 'lucide-react';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+import { Loader2, Zap, AlertTriangle } from "lucide-react";
 
 /**
- * DEVELOPMENT ONLY: Quick Entry Page
- * Bypasses sign up and logs in a test user directly
- * User is then redirected to SetupProfile in quick mode
+ * ⚡ QuickEnter – Development Access Gateway
+ * Fast entry for developers & testers.
+ * Skips manual login and redirects authenticated users
+ * directly to the quick profile setup flow.
  */
+
 export default function QuickEnter() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    // If user is already logged in, go to quick setup
-    if (user && !loading) {
-      navigate('/setup-profile?quickMode=true');
+    if (!loading && user) {
+      navigate("/setup-profile?quickMode=true", { replace: true });
     }
   }, [user, loading, navigate]);
 
-  // Still initializing
-  if (loading || isInitializing) {
+  // Loading screen
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
+        <Card className="w-full max-w-md shadow-lg border-primary/20">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle className="flex items-center justify-center gap-2 text-xl">
+              <Zap className="w-5 h-5 text-yellow-500 animate-pulse" />
               ورود سریع
             </CardTitle>
+
             <CardDescription>
-              درحال اعدادرسانی...
+              آماده‌سازی محیط توسعه...
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
+
+          <CardContent className="flex justify-center py-6">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </CardContent>
         </Card>
@@ -44,23 +48,42 @@ export default function QuickEnter() {
     );
   }
 
-  // No user - shouldn't happen in normal flow
+  // Unexpected state (no user)
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>خطا</CardTitle>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
+      <Card className="w-full max-w-md shadow-lg border-red-200">
+        <CardHeader className="text-center space-y-2">
+          <CardTitle className="flex items-center justify-center gap-2 text-red-600">
+            <AlertTriangle className="w-5 h-5" />
+            خطای سیستم
+          </CardTitle>
+
+          <CardDescription>
+            ورود سریع با مشکل مواجه شد.
+          </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-4">
-          <p className="text-center text-muted-foreground">
-            خرابی در ورود سریع. لطفاً صفحه را دوباره بارگذاری کنید.
+          <p className="text-center text-sm text-muted-foreground">
+            لطفاً صفحه را دوباره بارگذاری کنید یا از صفحه ورود استفاده نمایید.
           </p>
-          <Button
-            onClick={() => window.location.reload()}
-            className="w-full"
-          >
-            بارگذاری دوباره
-          </Button>
+
+          <div className="flex gap-3">
+            <Button
+              className="w-full"
+              onClick={() => window.location.reload()}
+            >
+              بارگذاری دوباره
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate("/login")}
+            >
+              ورود عادی
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
