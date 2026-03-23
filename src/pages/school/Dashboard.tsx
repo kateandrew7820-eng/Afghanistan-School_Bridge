@@ -78,6 +78,7 @@ export default function SchoolDashboard() {
 
   return (
     <div className="space-y-6">
+      <WelcomeGuide userName={profile?.full_name} />
       <div>
         <h1 className="text-2xl font-heading font-bold">{t('school.dashboard')}</h1>
         <p className="text-muted-foreground text-sm">
