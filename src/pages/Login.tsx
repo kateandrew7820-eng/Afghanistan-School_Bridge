@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { School, Building2, Loader2, AlertCircle, Zap, CheckCircle2, Eye, EyeOff, ArrowRight, Lock, Mail, User } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { School, Building2, Loader2, AlertCircle, Zap, CheckCircle2, Eye, EyeOff, ArrowLeft, Lock, Mail, User, Play } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import SignupProgress from '@/components/SignupProgress';
 
 // ============================================================================
@@ -52,6 +52,7 @@ const validateFullName = (fullName: string, t: any): { valid: boolean; message?:
 export default function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Sign In State
   const [signInEmail, setSignInEmail] = useState('');
@@ -71,10 +72,18 @@ export default function Login() {
   // Loading and UI state
   const [isLoading, setIsLoading] = useState(false);
   const [currentTab, setCurrentTab] = useState('signin');
-  const [signupStep, setSignupStep] = useState(0); // 0 = form, 1 = loading, 2 = success
+  const [signupStep, setSignupStep] = useState(0);
 
   const { signIn, signUp, error: authError, loading: authLoading, setDevQuickMode } = useAuth();
   const { toast } = useToast();
+
+  // Check URL params for initial tab
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'signup') {
+      setCurrentTab('signup');
+    }
+  }, [searchParams]);
 
   // ============================================================================
   // SIGN IN HANDLER
@@ -82,8 +91,7 @@ export default function Login() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate inputs
+
     const errors: typeof signInErrors = {};
     const emailValidation = validateEmail(signInEmail, t);
     const passwordValidation = validatePassword(signInPassword, 6, t);
@@ -100,7 +108,7 @@ export default function Login() {
     setSignInErrors({});
 
     const { error } = await signIn(signInEmail, signInPassword);
-    
+
     if (error) {
       toast({
         title: t('auth.signInFailed'),
@@ -112,22 +120,20 @@ export default function Login() {
     }
 
     toast({
-      title: 'Success! ✓',
-      description: 'Welcome back! Loading your dashboard...'
+      title: '✓ خوش آمدید!',
+      description: 'در حال بارگذاری صفحه اصلی...'
     });
 
     setIsLoading(false);
-    // Auth context will handle navigation based on role
   };
 
   // ============================================================================
-  // SIGN UP HANDLER - IMPROVED WITH PROGRESS STEPS
+  // SIGN UP HANDLER
   // ============================================================================
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate all inputs
     const errors: typeof signUpErrors = {};
     const nameValidation = validateFullName(signUpFullName, t);
     const emailValidation = validateEmail(signUpEmail, t);
@@ -137,7 +143,6 @@ export default function Login() {
     if (!emailValidation.valid) errors.email = emailValidation.message;
     if (!passwordValidation.valid) errors.password = passwordValidation.message;
 
-    // Check password match
     if (signUpPassword !== signUpConfirmPassword) {
       errors.confirmPassword = t('auth.passwordNotMatch');
     }
@@ -147,54 +152,41 @@ export default function Login() {
       return;
     }
 
-    // Start signup process - show progress
     setIsLoading(true);
     setSignupStep(1);
     setSignUpErrors({});
 
     toast({
-      title: 'Creating your account...',
-      description: 'Please wait while we set up everything. This may take a moment.'
+      title: 'در حال ایجاد حساب...',
+      description: 'لطفاً صبر کنید.'
     });
 
     const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName);
-    
+
     if (error) {
-      // Check if this is the special "auto-login-failed" error
-      // In this case, account WAS created successfully
       if (error.name === 'AutoLoginFailedError') {
-        // Account was created, but auto-login had issues (temporary service problem)
-        // This is actually OK - user can manually sign in
-        
         toast({
-          title: 'Account Created! ✓',
-          description: 'Your account is ready. Sign in with your credentials below.',
+          title: '✓ حساب ایجاد شد!',
+          description: 'لطفاً با معلومات خود وارد شوید.',
           variant: "default"
         });
-
-        setSignupStep(2); // Show success screen then switch to signin
-
-        // Switch to sign-in tab after 1 second
+        setSignupStep(2);
         setTimeout(() => {
           setCurrentTab('signin');
           setSignInEmail(signUpEmail);
           setSignInPassword(signUpPassword);
-          
-          // Clear signup form
           setSignUpEmail('');
           setSignUpPassword('');
           setSignUpConfirmPassword('');
           setSignUpFullName('');
           setSignupStep(0);
         }, 1500);
-
         setIsLoading(false);
         return;
       }
 
-      // Real error - show it
       toast({
-        title: 'Sign Up Failed',
+        title: 'ثبت‌نام ناکام شد',
         description: error.message,
         variant: "destructive"
       });
@@ -203,14 +195,12 @@ export default function Login() {
       return;
     }
 
-    // Success! Account created and auto-login successful
     setSignupStep(2);
     toast({
-      title: 'Account created! ✓',
-      description: 'Welcome! Setting up your profile...',
+      title: '✓ حساب ایجاد شد!',
+      description: 'در حال آماده‌سازی پروفایل...',
     });
 
-    // Wait a moment to ensure auth state is updated, then redirect
     setTimeout(() => {
       navigate('/setup-profile');
     }, 1000);
@@ -221,11 +211,11 @@ export default function Login() {
   // ============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10" dir="rtl">
       {/* Background decoration */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-3xl"></div>
       </div>
 
       {/* Main Content */}
@@ -245,7 +235,7 @@ export default function Login() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 {t('app.title')}
               </h1>
-              <p className="text-muted-foreground mt-1">Connect and manage school data seamlessly</p>
+              <p className="text-muted-foreground mt-1">{t('app.description')}</p>
             </div>
           </div>
 
@@ -253,12 +243,12 @@ export default function Login() {
           <Card className="border-white/10 shadow-xl animate-slide-up">
             <CardHeader className="space-y-1 border-b border-white/10">
               <CardTitle className="text-2xl">
-                {currentTab === 'signin' ? 'Welcome Back' : 'Create Account'}
+                {currentTab === 'signin' ? 'خوش آمدید' : t('auth.createAccount')}
               </CardTitle>
               <CardDescription>
-                {currentTab === 'signin' 
-                  ? 'Sign in to access your school dashboard'
-                  : 'Join thousands of schools using SchoolBridge'}
+                {currentTab === 'signin'
+                  ? 'برای دسترسی به صفحه اصلی وارد شوید'
+                  : 'حساب جدید بسازید و به سیستم بپیوندید'}
               </CardDescription>
             </CardHeader>
 
@@ -271,27 +261,22 @@ export default function Login() {
                 </Alert>
               )}
 
-              {/* Dev Quick Enter Button - Dev Only */}
+              {/* Dev Quick Enter - Dev Only */}
               {import.meta.env.MODE === 'development' && (
                 <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 dark:from-amber-950/30 dark:to-yellow-950/30 dark:border-amber-800">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">⚡</span>
-                      <h3 className="font-bold text-amber-900 dark:text-amber-100">ورود سریع / Quick Access</h3>
+                      <h3 className="font-bold text-amber-900 dark:text-amber-100">ورود سریع توسعه‌دهنده</h3>
                     </div>
-                    <p className="text-sm text-amber-800 dark:text-amber-200">
-                      برای تجربه سریع سیستم - One-click entry to test the dashboard
-                    </p>
                     <Button
                       onClick={() => {
                         setDevQuickMode();
-                        setTimeout(() => {
-                          navigate('/setup-profile?quickMode=true');
-                        }, 100);
+                        setTimeout(() => navigate('/setup-profile?quickMode=true'), 100);
                       }}
-                      className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-semibold"
+                      className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-primary-foreground font-semibold"
                     >
-                      <Zap className="mr-2 h-4 w-4" />
+                      <Zap className="ml-2 h-4 w-4" />
                       ورود سریع
                     </Button>
                   </div>
@@ -301,21 +286,21 @@ export default function Login() {
               <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted p-1">
                   <TabsTrigger value="signin" className="data-[state=active]:bg-background">
-                    Sign In
+                    {t('auth.signIn')}
                   </TabsTrigger>
                   <TabsTrigger value="signup" className="data-[state=active]:bg-background">
-                    Sign Up
+                    {t('auth.signUp')}
                   </TabsTrigger>
                 </TabsList>
 
                 {/* ========== SIGN IN TAB ========== */}
                 <TabsContent value="signin" className="space-y-4 animate-fade-in">
                   <form onSubmit={handleSignIn} className="space-y-4">
-                    {/* Email Field */}
+                    {/* Email */}
                     <div className="space-y-2">
                       <Label htmlFor="signin-email" className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        Email Address
+                        {t('auth.email')}
                       </Label>
                       <Input
                         id="signin-email"
@@ -324,26 +309,25 @@ export default function Login() {
                         value={signInEmail}
                         onChange={(e) => {
                           setSignInEmail(e.target.value);
-                          if (signInErrors.email) {
-                            setSignInErrors({ ...signInErrors, email: undefined });
-                          }
+                          if (signInErrors.email) setSignInErrors({ ...signInErrors, email: undefined });
                         }}
                         disabled={isLoading || authLoading}
-                        className={`${signInErrors.email ? 'border-red-500' : ''} h-10`}
+                        className={`${signInErrors.email ? 'border-destructive' : ''} h-10`}
+                        dir="ltr"
                       />
                       {signInErrors.email && (
-                        <p className="text-sm text-red-500 flex items-center gap-1">
+                        <p className="text-sm text-destructive flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
                           {signInErrors.email}
                         </p>
                       )}
                     </div>
 
-                    {/* Password Field */}
+                    {/* Password */}
                     <div className="space-y-2">
                       <Label htmlFor="signin-password" className="flex items-center gap-2">
                         <Lock className="h-4 w-4 text-muted-foreground" />
-                        Password
+                        {t('auth.password')}
                       </Label>
                       <div className="relative">
                         <Input
@@ -353,35 +337,30 @@ export default function Login() {
                           value={signInPassword}
                           onChange={(e) => {
                             setSignInPassword(e.target.value);
-                            if (signInErrors.password) {
-                              setSignInErrors({ ...signInErrors, password: undefined });
-                            }
+                            if (signInErrors.password) setSignInErrors({ ...signInErrors, password: undefined });
                           }}
                           disabled={isLoading || authLoading}
-                          className={`${signInErrors.password ? 'border-red-500' : ''} h-10 pr-10`}
+                          className={`${signInErrors.password ? 'border-destructive' : ''} h-10 pl-10`}
+                          dir="ltr"
                         />
                         <button
                           type="button"
                           onClick={() => setShowSignInPassword(!showSignInPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
                           disabled={isLoading || authLoading}
                         >
-                          {showSignInPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
+                          {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                       {signInErrors.password && (
-                        <p className="text-sm text-red-500 flex items-center gap-1">
+                        <p className="text-sm text-destructive flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
                           {signInErrors.password}
                         </p>
                       )}
                     </div>
 
-                    {/* Submit Button */}
+                    {/* Submit */}
                     <Button
                       type="submit"
                       className="w-full h-10 bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:shadow-primary/30 font-semibold"
@@ -389,59 +368,58 @@ export default function Login() {
                     >
                       {isLoading || authLoading ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Signing in...
+                          <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                          در حال ورود...
                         </>
                       ) : (
                         <>
-                          Sign In
-                          <ArrowRight className="ml-2 h-4 w-4" />
+                          {t('auth.signIn')}
+                          <ArrowLeft className="mr-2 h-4 w-4" />
                         </>
                       )}
                     </Button>
                   </form>
 
-                   {/* Divider */}
-                   <div className="relative my-4">
-                     <div className="absolute inset-0 flex items-center">
-                       <div className="w-full border-t border-muted"></div>
-                     </div>
-                     <div className="relative flex justify-center text-xs uppercase">
-                       <span className="bg-background px-2 text-muted-foreground">New to SchoolBridge?</span>
-                     </div>
-                   </div>
+                  {/* Divider */}
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-muted"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">{t('auth.noAccount')}</span>
+                    </div>
+                  </div>
 
-                   {/* Sign Up Link */}
-                   <Button
-                     type="button"
-                     onClick={() => setCurrentTab('signup')}
-                     variant="outline"
-                     className="w-full h-10"
-                   >
-                     Create an account
-                   </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setCurrentTab('signup')}
+                    variant="outline"
+                    className="w-full h-10"
+                  >
+                    {t('auth.createAccount')}
+                  </Button>
 
-                   {/* Try Demo Button */}
-                   <Button
-                     type="button"
-                     onClick={() => navigate('/demo')}
-                     variant="secondary"
-                     className="w-full h-10 mt-2"
-                   >
-                     <Zap className="mr-2 h-4 w-4" />
-                     حالت نمایشی / Try Demo
-                   </Button>
+                  {/* Try Demo */}
+                  <Button
+                    type="button"
+                    onClick={() => navigate('/demo')}
+                    variant="secondary"
+                    className="w-full h-10 mt-2"
+                  >
+                    <Play className="ml-2 h-4 w-4" />
+                    حالت نمایشی
+                  </Button>
                 </TabsContent>
 
                 {/* ========== SIGN UP TAB ========== */}
                 <TabsContent value="signup" className="space-y-4 animate-fade-in">
                   {signupStep === 0 ? (
                     <form onSubmit={handleSignUp} className="space-y-4">
-                      {/* Full Name Field */}
+                      {/* Full Name */}
                       <div className="space-y-2">
                         <Label htmlFor="signup-name" className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          Full Name
+                          {t('auth.fullName')}
                         </Label>
                         <Input
                           id="signup-name"
@@ -450,27 +428,25 @@ export default function Login() {
                           value={signUpFullName}
                           onChange={(e) => {
                             setSignUpFullName(e.target.value);
-                            if (signUpErrors.name) {
-                              setSignUpErrors({ ...signUpErrors, name: undefined });
-                            }
+                            if (signUpErrors.name) setSignUpErrors({ ...signUpErrors, name: undefined });
                           }}
                           disabled={isLoading || authLoading}
-                          className={`${signUpErrors.name ? 'border-red-500' : ''} h-10`}
+                          className={`${signUpErrors.name ? 'border-destructive' : ''} h-10`}
                         />
                         {signUpErrors.name && (
-                          <p className="text-sm text-red-500 flex items-center gap-1">
+                          <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
                             {signUpErrors.name}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground">First and last name required</p>
+                        <p className="text-xs text-muted-foreground">{t('auth.firstAndLastName')}</p>
                       </div>
 
-                      {/* Email Field */}
+                      {/* Email */}
                       <div className="space-y-2">
                         <Label htmlFor="signup-email" className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
-                          Email Address
+                          {t('auth.email')}
                         </Label>
                         <Input
                           id="signup-email"
@@ -479,26 +455,25 @@ export default function Login() {
                           value={signUpEmail}
                           onChange={(e) => {
                             setSignUpEmail(e.target.value);
-                            if (signUpErrors.email) {
-                              setSignUpErrors({ ...signUpErrors, email: undefined });
-                            }
+                            if (signUpErrors.email) setSignUpErrors({ ...signUpErrors, email: undefined });
                           }}
                           disabled={isLoading || authLoading}
-                          className={`${signUpErrors.email ? 'border-red-500' : ''} h-10`}
+                          className={`${signUpErrors.email ? 'border-destructive' : ''} h-10`}
+                          dir="ltr"
                         />
                         {signUpErrors.email && (
-                          <p className="text-sm text-red-500 flex items-center gap-1">
+                          <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
                             {signUpErrors.email}
                           </p>
                         )}
                       </div>
 
-                      {/* Password Field */}
+                      {/* Password */}
                       <div className="space-y-2">
                         <Label htmlFor="signup-password" className="flex items-center gap-2">
                           <Lock className="h-4 w-4 text-muted-foreground" />
-                          Password
+                          {t('auth.password')}
                         </Label>
                         <div className="relative">
                           <Input
@@ -508,40 +483,35 @@ export default function Login() {
                             value={signUpPassword}
                             onChange={(e) => {
                               setSignUpPassword(e.target.value);
-                              if (signUpErrors.password) {
-                                setSignUpErrors({ ...signUpErrors, password: undefined });
-                              }
+                              if (signUpErrors.password) setSignUpErrors({ ...signUpErrors, password: undefined });
                             }}
                             disabled={isLoading || authLoading}
-                            className={`${signUpErrors.password ? 'border-red-500' : ''} h-10 pr-10`}
+                            className={`${signUpErrors.password ? 'border-destructive' : ''} h-10 pl-10`}
+                            dir="ltr"
                           />
                           <button
                             type="button"
                             onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
                             disabled={isLoading || authLoading}
                           >
-                            {showSignUpPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
+                            {showSignUpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
                         {signUpErrors.password && (
-                          <p className="text-sm text-red-500 flex items-center gap-1">
+                          <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
                             {signUpErrors.password}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground">Minimum 6 characters</p>
+                        <p className="text-xs text-muted-foreground">حداقل ۶ حرف</p>
                       </div>
 
-                      {/* Confirm Password Field */}
+                      {/* Confirm Password */}
                       <div className="space-y-2">
                         <Label htmlFor="signup-confirm-password" className="flex items-center gap-2">
                           <Lock className="h-4 w-4 text-muted-foreground" />
-                          Confirm Password
+                          {t('auth.confirmPassword')}
                         </Label>
                         <div className="relative">
                           <Input
@@ -551,93 +521,70 @@ export default function Login() {
                             value={signUpConfirmPassword}
                             onChange={(e) => {
                               setSignUpConfirmPassword(e.target.value);
-                              if (signUpErrors.confirmPassword) {
-                                setSignUpErrors({ ...signUpErrors, confirmPassword: undefined });
-                              }
+                              if (signUpErrors.confirmPassword) setSignUpErrors({ ...signUpErrors, confirmPassword: undefined });
                             }}
                             disabled={isLoading || authLoading}
-                            className={`${signUpErrors.confirmPassword ? 'border-red-500' : ''} h-10 pr-10`}
+                            className={`${signUpErrors.confirmPassword ? 'border-destructive' : ''} h-10 pl-10`}
+                            dir="ltr"
                           />
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
                             disabled={isLoading || authLoading}
                           >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
                         {signUpErrors.confirmPassword && (
-                          <p className="text-sm text-red-500 flex items-center gap-1">
+                          <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
                             {signUpErrors.confirmPassword}
                           </p>
                         )}
                       </div>
 
-                      {/* Submit Button */}
+                      {/* Submit */}
                       <Button
                         type="submit"
-                        className="w-full h-10 bg-gradient-to-r from-secondary to-secondary/80 hover:shadow-lg hover:shadow-secondary/30 font-semibold text-white"
+                        className="w-full h-10 bg-gradient-to-r from-accent to-accent/80 hover:shadow-lg hover:shadow-accent/30 font-semibold text-accent-foreground"
                         disabled={isLoading || authLoading}
                       >
                         {isLoading || authLoading ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creating account...
+                            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                            در حال ایجاد حساب...
                           </>
                         ) : (
                           <>
-                            Create Account
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            {t('auth.createAccount')}
+                            <ArrowLeft className="mr-2 h-4 w-4" />
                           </>
                         )}
                       </Button>
                     </form>
                   ) : signupStep === 1 ? (
-                    // Loading State
                     <div className="py-8 space-y-6">
                       <SignupProgress
                         steps={[
-                          {
-                            title: 'Creating Account',
-                            description: 'Validating credentials and setting up your account',
-                            status: 'loading'
-                          },
-                          {
-                            title: 'Setting Up Profile',
-                            description: 'Preparing your dashboard and permissions',
-                            status: 'pending'
-                          },
-                          {
-                            title: 'Completing Setup',
-                            description: 'Finalizing and redirecting to dashboard',
-                            status: 'pending'
-                          }
+                          { title: 'ایجاد حساب', description: 'بررسی معلومات و ایجاد حساب', status: 'loading' },
+                          { title: 'آماده‌سازی پروفایل', description: 'تنظیم صفحه اصلی و دسترسی‌ها', status: 'pending' },
+                          { title: 'تکمیل', description: 'انتقال به صفحه اصلی', status: 'pending' }
                         ]}
                         currentStep={1}
                       />
-                      <p className="text-center text-sm text-muted-foreground">
-                        This usually takes a few seconds...
-                      </p>
+                      <p className="text-center text-sm text-muted-foreground">چند ثانیه صبر کنید...</p>
                     </div>
                   ) : (
-                    // Success State
                     <div className="py-8 space-y-4 text-center animate-fade-in">
                       <div className="flex justify-center">
-                        <div className="p-4 rounded-full bg-green-600/20 animate-pulse">
-                          <CheckCircle2 className="h-12 w-12 text-green-600" />
+                        <div className="p-4 rounded-full bg-accent/20 animate-pulse">
+                          <CheckCircle2 className="h-12 w-12 text-accent" />
                         </div>
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-green-600">Account Created!</h3>
-                        <p className="text-muted-foreground mt-1">
-                          Redirecting to sign-in...
-                        </p>
+                        <h3 className="text-xl font-bold text-accent">حساب ایجاد شد!</h3>
+                        <p className="text-muted-foreground mt-1">در حال انتقال...</p>
                       </div>
                     </div>
                   )}
@@ -648,11 +595,10 @@ export default function Login() {
                       <div className="w-full border-t border-muted"></div>
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Already have an account?</span>
+                      <span className="bg-card px-2 text-muted-foreground">{t('auth.haveAccount')}</span>
                     </div>
                   </div>
 
-                  {/* Sign In Link */}
                   <Button
                     type="button"
                     onClick={() => setCurrentTab('signin')}
@@ -660,33 +606,33 @@ export default function Login() {
                     className="w-full h-10"
                     disabled={signupStep !== 0}
                   >
-                    Sign in instead
+                    {t('auth.signIn')}
                   </Button>
                 </TabsContent>
               </Tabs>
 
               {/* Terms */}
               <p className="text-center text-xs text-muted-foreground mt-6">
-                By signing in, you agree to our{' '}
-                <a href="#" className="hover:text-primary transition">Terms of Service</a> and{' '}
-                <a href="#" className="hover:text-primary transition">Privacy Policy</a>
+                با ورود، شما با{' '}
+                <a href="#" className="hover:text-primary transition">شرایط استفاده</a> و{' '}
+                <a href="#" className="hover:text-primary transition">حریم خصوصی</a> موافقت می‌کنید.
               </p>
             </CardContent>
           </Card>
 
-          {/* Footer Info */}
+          {/* Footer Stats */}
           <div className="grid grid-cols-3 gap-4 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-primary">8000+</div>
-              <div className="text-xs text-muted-foreground">Schools</div>
+              <div className="text-2xl font-bold text-primary">۱۸,۰۰۰+</div>
+              <div className="text-xs text-muted-foreground">مکتب</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-secondary">34+</div>
-              <div className="text-xs text-muted-foreground">Provinces</div>
+              <div className="text-2xl font-bold text-secondary">۳۴</div>
+              <div className="text-xs text-muted-foreground">ولایت</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-accent">2.5M+</div>
-              <div className="text-xs text-muted-foreground">Students</div>
+              <div className="text-2xl font-bold text-accent">۲.۵M+</div>
+              <div className="text-xs text-muted-foreground">شاگرد</div>
             </div>
           </div>
         </div>
@@ -694,4 +640,3 @@ export default function Login() {
     </div>
   );
 }
-
