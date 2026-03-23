@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import NavigationBackButton from '@/components/NavigationBackButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
