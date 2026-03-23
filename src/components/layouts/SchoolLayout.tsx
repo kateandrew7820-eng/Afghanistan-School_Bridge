@@ -16,7 +16,7 @@ interface SchoolLayoutProps { children: ReactNode; }
 
 export default function SchoolLayout({ children }: SchoolLayoutProps) {
   const { t } = useTranslation();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isDemoMode, exitDemoMode } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -135,6 +135,14 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
 
       {/* Main Content */}
       <main className="lg:mr-64 pt-14 min-h-screen" role="main">
+        {isDemoMode && (
+          <div className="bg-warning/10 border-b border-warning/30 px-4 py-2 flex items-center justify-between text-sm">
+            <span className="text-warning font-medium">⚡ حالت نمایشی فعال — تغییرات ذخیره نمی‌شود</span>
+            <Button variant="ghost" size="sm" onClick={() => { exitDemoMode(); navigate('/'); }} className="text-warning hover:text-warning">
+              خروج
+            </Button>
+          </div>
+        )}
         <div className="p-4 lg:p-6">
           {children}
         </div>

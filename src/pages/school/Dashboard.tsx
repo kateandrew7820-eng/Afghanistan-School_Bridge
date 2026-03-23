@@ -5,6 +5,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import { useVerification } from '@/hooks/useVerification';
 import { supabase } from '@/lib/supabase';
 import { VerificationPanel } from '@/components/VerificationPanel';
+import WelcomeGuide from '@/components/WelcomeGuide';
 import { getVerificationQueueFilter } from '@/lib/verificationHierarchy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,7 @@ export default function SchoolDashboard() {
 
   return (
     <div className="space-y-6">
+      <WelcomeGuide userName={profile?.full_name} />
       <div>
         <h1 className="text-2xl font-heading font-bold">{t('school.dashboard')}</h1>
         <p className="text-muted-foreground text-sm">
