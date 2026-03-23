@@ -172,11 +172,8 @@ function AppRoutes() {
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
       <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
 
-      {/* Demo/Testing Mode - Choose role and see dashboards without auth */}
-      {/* Only available in development environment */}
-      {import.meta.env.MODE === 'development' && (
-        <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><Demo /></Suspense>} />
-      )}
+      {/* Demo Mode - Choose role and see dashboards without auth */}
+      <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><Demo /></Suspense>} />
 
       {/* Test Buttons Page - Test all functionality */}
       {import.meta.env.MODE === 'development' && (
