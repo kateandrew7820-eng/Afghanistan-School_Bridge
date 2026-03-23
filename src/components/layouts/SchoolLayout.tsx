@@ -16,7 +16,7 @@ interface SchoolLayoutProps { children: ReactNode; }
 
 export default function SchoolLayout({ children }: SchoolLayoutProps) {
   const { t } = useTranslation();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isDemoMode, exitDemoMode } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
