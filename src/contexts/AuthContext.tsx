@@ -345,12 +345,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Only works in development environment
    */
   const setDemoModeFunc = (role: UserRole, tier: 'school' | 'district' | 'province' | 'ministry') => {
-    // Check if running in development environment
-    if (import.meta.env.MODE !== 'development') {
-      console.warn('Demo mode is only available in development environment');
-      return;
-    }
-    
     console.log('Entering demo mode with role:', role, 'tier:', tier);
     setDemoRole(role);
     setDemoTier(tier);

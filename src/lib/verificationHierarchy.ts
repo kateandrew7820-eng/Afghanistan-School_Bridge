@@ -112,7 +112,7 @@ export function getRoleLabel(role: string, language: 'en' | 'fa' = 'fa'): string
     'teacher': { 'en': 'Teacher', 'fa': 'معلم' },
     'principal': { 'en': 'School Principal', 'fa': 'مدیر مکتب' },
     'district_admin': { 'en': 'District Admin', 'fa': 'رئیس معارف' },
-    'province_admin': { 'en': 'Province Admin', 'fa': 'رئیس معارف ولایت' },
+    'province_admin': { 'en': 'Province Admin', 'fa': 'رئیس معارف' },
     'ministry_admin': { 'en': 'Ministry Admin', 'fa': 'وزیر معارف' },
   };
 
