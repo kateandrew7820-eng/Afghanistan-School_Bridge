@@ -424,7 +424,7 @@ export default function Login() {
                         <Input
                           id="signup-name"
                           type="text"
-                          placeholder="محمد احمد"
+                          placeholder="محمد احمدی"
                           value={signUpFullName}
                           onChange={(e) => {
                             setSignUpFullName(e.target.value);
@@ -623,15 +623,15 @@ export default function Login() {
           {/* Footer Stats */}
           <div className="grid grid-cols-3 gap-4 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-primary">۱۸,۰۰۰+</div>
+              <div className="text-2xl font-bold text-primary">20000+</div>
               <div className="text-xs text-muted-foreground">مکتب</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-secondary">۳۴</div>
+              <div className="text-2xl font-bold text-secondary">34</div>
               <div className="text-xs text-muted-foreground">ولایت</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-accent">۲.۵M+</div>
+              <div className="text-2xl font-bold text-accent">11.7M+</div>
               <div className="text-xs text-muted-foreground">شاگرد</div>
             </div>
           </div>
