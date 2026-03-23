@@ -155,7 +155,7 @@ export default function Demo() {
             onClick={() => selectedRole && handleSelectRole(selectedRole)}
             className="min-w-[200px]"
           >
-            {selectedRole ? 'ورود به داشبرد' : 'انتخاب مقام'}
+            {selectedRole ? 'ورود به دشبورد' : 'انتخاب مقام'}
           </Button>
           <Button
             size="lg"

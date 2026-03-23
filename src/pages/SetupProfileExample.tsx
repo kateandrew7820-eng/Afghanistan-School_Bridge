@@ -259,7 +259,7 @@ export default function SetupProfileWithErrorHandling() {
           error={errors.phone}
           touched={touched.phone}
           required
-          hint="شماره تلفن همراه افغانی (با +93 یا 0 شروع کنید)"
+          hint="شماره تلفن همراه افغانی (با +93 یا 0 فهمیدم)"
         >
           <input
             type="tel"
