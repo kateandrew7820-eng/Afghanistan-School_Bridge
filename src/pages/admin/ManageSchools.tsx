@@ -117,7 +117,7 @@ export default function ManageSchools() {
                   id="name"
                   value={newSchool.name}
                   onChange={(e) => setNewSchool({ ...newSchool, name: e.target.value })}
-                  placeholder="دبرستان احمد شاه"
+                  placeholder="مکتب احمد شاه"
                   required
                 />
               </div>
@@ -158,7 +158,7 @@ export default function ManageSchools() {
                     id="district"
                     value={newSchool.district}
                     onChange={(e) => setNewSchool({ ...newSchool, district: e.target.value })}
-                    placeholder="ولسوالی 1"
+                    placeholder="اسم ولسوالی شما"
                   />
                 </div>
               </div>
