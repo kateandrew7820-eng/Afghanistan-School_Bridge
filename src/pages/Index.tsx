@@ -130,7 +130,7 @@ export default function Index() {
                 <div className="text-sm text-muted-foreground">مکتب</div>
               </div>
               <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                <div className="text-3xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent"></div>
+                <div className="text-3xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">۵۰۰,۰۰۰+</div>
                 <div className="text-sm text-muted-foreground">شاگرد</div>
               </div>
             </div>
@@ -243,34 +243,6 @@ export default function Index() {
             );
           })}
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
-        <Card className="max-w-2xl mx-auto bg-gradient-to-r from-primary via-primary/80 to-secondary text-primary-foreground border-0 shadow-2xl shadow-primary/30">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl md:text-4xl text-primary-foreground">آماده شروع هستید؟</CardTitle>
-            <CardDescription className="text-primary-foreground/90 text-lg">
-              همین حالا به هزاران مکتب افغانستان بپیوندید
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/login?tab=signup">
-                <Button size="lg" className="bg-background text-foreground hover:bg-background/90 shadow-lg">
-                  {t('auth.createAccount')}
-                  <ArrowLeft className="mr-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/demo">
-                <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
-                  حالت نمایشی
-                </Button>
-              </Link>
-            </div>
-            <p className="text-primary-foreground/80 text-sm mt-6">رایگان • بدون نیاز به کارت بانکی</p>
-          </CardContent>
-        </Card>
       </section>
 
       {/* Footer */}
