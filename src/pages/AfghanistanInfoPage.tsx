@@ -16,7 +16,7 @@ export default function AfghanistanInfoPage() {
     {
       icon: Building2,
       label: t('afghanistan.stats.totalSchools'),
-      value: '15,382',
+      value: '18000+',
       color: 'text-blue-600',
       bg: 'bg-blue-50',
     },
@@ -30,7 +30,7 @@ export default function AfghanistanInfoPage() {
     {
       icon: BookOpen,
       label: t('afghanistan.stats.totalTeachers'),
-      value: '185,000',
+      value: '220,000',
       color: 'text-purple-600',
       bg: 'bg-purple-50',
     },
