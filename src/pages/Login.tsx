@@ -401,25 +401,36 @@ export default function Login() {
                     </Button>
                   </form>
 
-                  {/* Divider */}
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-muted"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">New to SchoolBridge?</span>
-                    </div>
-                  </div>
+                   {/* Divider */}
+                   <div className="relative my-4">
+                     <div className="absolute inset-0 flex items-center">
+                       <div className="w-full border-t border-muted"></div>
+                     </div>
+                     <div className="relative flex justify-center text-xs uppercase">
+                       <span className="bg-background px-2 text-muted-foreground">New to SchoolBridge?</span>
+                     </div>
+                   </div>
 
-                  {/* Sign Up Link */}
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentTab('signup')}
-                    variant="outline"
-                    className="w-full h-10"
-                  >
-                    Create an account
-                  </Button>
+                   {/* Sign Up Link */}
+                   <Button
+                     type="button"
+                     onClick={() => setCurrentTab('signup')}
+                     variant="outline"
+                     className="w-full h-10"
+                   >
+                     Create an account
+                   </Button>
+
+                   {/* Try Demo Button */}
+                   <Button
+                     type="button"
+                     onClick={() => navigate('/demo')}
+                     variant="secondary"
+                     className="w-full h-10 mt-2"
+                   >
+                     <Zap className="mr-2 h-4 w-4" />
+                     حالت نمایشی / Try Demo
+                   </Button>
                 </TabsContent>
 
                 {/* ========== SIGN UP TAB ========== */}
