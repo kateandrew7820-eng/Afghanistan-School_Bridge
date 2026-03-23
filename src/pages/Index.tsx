@@ -118,27 +118,26 @@ export default function Index() {
                 </Button>
               </Link>
             </div>
-{/* Trust indicators */}
-<div className="pt-8 flex justify-center gap-8 text-center">
-  {[
-    { value: '۳۴', label: 'ولایت', gradient: 'from-primary to-secondary', delay: 0.3 },
-    { value: '۱۸,۰۰۰+', label: 'مکتب', gradient: 'from-secondary to-accent', delay: 0.4 },
-    { value: '۵۰۰,۰۰۰+', label: 'شاگرد', gradient: 'from-accent to-primary', delay: 0.5 },
-  ].map((item, idx) => (
-    <div
-      key={idx}
-      className="animate-fade-in"
-      style={{ animationDelay: `${item.delay}s` }}
-    >
-      <div
-        className={`text-3xl font-bold bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent`}
-      >
-        {item.value}
-      </div>
-      <div className="text-sm text-muted-foreground">{item.label}</div>
-    </div>
-  ))}
-</div>
+
+            {/* Trust indicators */}
+            <div className="pt-8 flex justify-center gap-8 text-center">
+              <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+                <div className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">34</div>
+                <div className="text-sm text-muted-foreground">ولایت</div>
+              </div>
+              <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <div className="text-3xl font-bold bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">18000+</div>
+                <div className="text-sm text-muted-foreground">مکتب</div>
+              </div>
+              <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                <div className="text-3xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">9.26M+</div>
+                <div className="text-sm text-muted-foreground">شاگرد</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Grid */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center mb-16">
