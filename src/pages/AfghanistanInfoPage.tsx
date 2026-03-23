@@ -23,7 +23,7 @@ export default function AfghanistanInfoPage() {
     {
       icon: Users,
       label: t('afghanistan.stats.totalStudents'),
-      value: '6.2 میلیون',
+      value: '+11.7 میلیون',
       color: 'text-green-600',
       bg: 'bg-green-50',
     },
