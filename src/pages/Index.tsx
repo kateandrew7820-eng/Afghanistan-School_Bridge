@@ -130,7 +130,11 @@ export default function Index() {
                 <div className="text-sm text-muted-foreground">مکتب</div>
               </div>
               <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+<<<<<<< HEAD
+                <div className="text-3xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">11.7M++</div>
+=======
                 <div className="text-3xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent"></div>
+>>>>>>> ff106883eff34732abf6837321e5ebf562639c91
                 <div className="text-sm text-muted-foreground">شاگرد</div>
               </div>
             </div>
