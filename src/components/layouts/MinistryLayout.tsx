@@ -39,6 +39,9 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
           <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? 'بستن منو' : 'باز کردن منو'}>
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
+          {location.pathname !== '/ministry' && (
+            <NavigationBackButton fallback="/ministry" />
+          )}
           <h2 className="font-heading font-semibold text-sm">
             {navItems.find(i => i.href === location.pathname)?.label || t('navigation.dashboard')}
           </h2>
