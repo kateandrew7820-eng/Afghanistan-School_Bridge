@@ -193,7 +193,7 @@ export default function MinistryDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Link to="/admin/submissions">
+        <Link to="/ministry/submissions">
           <Card className="hover:border-primary transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">مشاهده ارسال‌ها</CardTitle>
