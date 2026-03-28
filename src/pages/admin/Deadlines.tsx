@@ -62,7 +62,7 @@ export default function AdminDeadlines() {
     setIsSubmitting(false);
 
     if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
+      toast({ title: "Failedd", description: error.message, variant: "destructive" });
       return;
     }
 
