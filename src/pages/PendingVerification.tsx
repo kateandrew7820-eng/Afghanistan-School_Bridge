@@ -2,30 +2,39 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, AlertCircle, ExternalLink } from "lucide-react";
 
+type Status = "pending" | "rejected" | "approved";
+
 export default function PendingVerification() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState("pending");
+  const [status, setStatus] = useState<Status>("pending");
   const [countdown, setCountdown] = useState(3);
 
-  // simulate profile fetch
+  // simulate fetch
   useEffect(() => {
+    let mounted = true;
+
     const timer = setTimeout(() => {
+      if (!mounted) return;
       setStatus("pending");
       setLoading(false);
     }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+    };
   }, []);
 
-  // redirect countdown
+  // countdown redirect
   useEffect(() => {
-    if (status !== "pending") return;
+    if (loading || status !== "pending") return;
 
     const interval = setInterval(() => {
       setCountdown((c) => {
         if (c <= 1) {
+          clearInterval(interval);
           navigate("/afghanistan-info");
           return 0;
         }
@@ -34,7 +43,7 @@ export default function PendingVerification() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [status, navigate]);
+  }, [loading, status, navigate]);
 
   if (loading) {
     return (
@@ -50,7 +59,7 @@ export default function PendingVerification() {
       <div style={styles.center}>
         <div style={styles.card}>
           <h2 style={{ color: "red" }}>Account Rejected</h2>
-          <p>Please contact the administrator.</p>
+          <p>Please contact admin.</p>
           <button style={styles.button} onClick={() => navigate("/login")}>
             Back to Login
           </button>
@@ -77,89 +86,10 @@ export default function PendingVerification() {
           style={styles.buttonOutline}
           onClick={() => navigate("/afghanistan-info")}
         >
-          <ExternalLink size={16} /> System Info
+          <ExternalLink size={16} />
+          System Info
         </button>
       </div>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "linear-gradient(135deg,#f8fafc,#eef2ff)"
-  },
-
-  center: {
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "12px"
-  },
-
-  cardLarge: {
-    background: "white",
-    padding: "40px",
-    borderRadius: "16px",
-    textAlign: "center" as const,
-    boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-    maxWidth: "420px",
-    width: "100%",
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "16px",
-    alignItems: "center"
-  },
-
-  card: {
-    background: "white",
-    padding: "30px",
-    borderRadius: "12px",
-    textAlign: "center" as const,
-    boxShadow: "0 10px 25px rgba(0,0,0,0.1)"
-  },
-
-  alert: {
-    display: "flex",
-    gap: "6px",
-    alignItems: "center",
-    background: "#e0f2fe",
-    padding: "8px 12px",
-    borderRadius: "8px",
-    fontSize: "14px"
-  },
-
-  button: {
-    padding: "10px 16px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#2563eb",
-    color: "white",
-    cursor: "pointer"
-  },
-
-  buttonOutline: {
-    padding: "10px 16px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    background: "white",
-    cursor: "pointer",
-    display: "flex",
-    gap: "6px",
-    alignItems: "center"
-  },
-
-  spinner: {
-    width: "40px",
-    height: "40px",
-    border: "4px solid #e5e7eb",
-    borderTop: "4px solid #2563eb",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite"
-  }
-};
