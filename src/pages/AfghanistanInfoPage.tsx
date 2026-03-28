@@ -52,7 +52,7 @@ export default function AfghanistanInfoPage() {
 
   const features = [
     {
-      title: 'نظام مدیریت یکپارچه',
+      title: 'نظام مدیریت یک پارچه',
       description: 'تمام اطلاعات مکاتب در یک سیستم مرکزی',
       icon: BarChart3,
     },
