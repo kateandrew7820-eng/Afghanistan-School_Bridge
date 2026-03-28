@@ -77,7 +77,7 @@ export default function DistrictDashboard() {
       ]);
 
       const allSubmissions = [
-        ...(statsRes.data || []).map(s => ({ ...s, type: 'إحصائيات', school_name: (s.schools as any)?.name || 'Unknown' })),
+        ...(statsRes.data || []).map(s => ({ ...s, type: 'احصاییه', school_name: (s.schools as any)?.name || 'Unknown' })),
         ...(reportsRes.data || []).map(s => ({ ...s, type: 'تقرير', school_name: (s.schools as any)?.name || 'Unknown' })),
         ...(formsRes.data || []).map(s => ({ ...s, type: 'نموذج', school_name: (s.schools as any)?.name || 'Unknown' }))
       ];
