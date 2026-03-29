@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
@@ -7,44 +7,23 @@ import { supabase } from '@/lib/supabase';
 import { VerificationPanel } from '@/components/VerificationPanel';
 import WelcomeGuide from '@/components/WelcomeGuide';
 import { getVerificationQueueFilter } from '@/lib/verificationHierarchy';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  BarChart3, FileText, ClipboardList, Bell, Calendar,
-  ArrowLeft, AlertCircle, CheckCircle2
-} from 'lucide-react';
+import { BarChart3, FileText, ClipboardList, Bell, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
-
-interface Announcement { id: string; title: string; content: string; priority: string; created_at: string; }
-interface Deadline { id: string; title: string; due_date: string; description: string | null; }
-
-const PRIORITY_VARIANT: Record<string, string> = {
-  urgent: 'destructive',
-  high: 'default',
-  normal: 'secondary',
-};
-
-function CardSkeleton() {
-  return (
-    <div className="space-y-3 p-4">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="space-y-2">
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-3 w-full" />
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function SchoolDashboard() {
   const { profile, role } = useAuth();
   const { t } = useTranslation();
   const verification = useVerification();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [deadlines, setDeadlines] = useState<Deadline[]>([]);
+
+  const [openSend, setOpenSend] = useState(false);
+  const sendRef = useRef<HTMLDivElement>(null);
+
+  const [announcements, setAnnouncements] = useState([]);
+  const [deadlines, setDeadlines] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const verificationQueueRole = useMemo(
@@ -52,27 +31,35 @@ export default function SchoolDashboard() {
     [role]
   );
 
+  // outside click close
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (!sendRef.current?.contains(e.target as Node)) {
+        setOpenSend(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
-      const [announcementsRes, deadlinesRes] = await Promise.all([
-        supabase.from('announcements').select('id,title,content,priority,created_at')
-          .eq('is_published', true).order('created_at', { ascending: false }).limit(3),
-        supabase.from('deadlines').select('id,title,due_date,description')
-          .eq('is_active', true).gte('due_date', new Date().toISOString().split('T')[0])
-          .order('due_date', { ascending: true }).limit(5),
+      const [a, d] = await Promise.all([
+        supabase.from('announcements').select('*').eq('is_published', true).limit(3),
+        supabase.from('deadlines').select('*').eq('is_active', true).limit(5),
       ]);
-      if (announcementsRes.data) setAnnouncements(announcementsRes.data as Announcement[]);
-      if (deadlinesRes.data) setDeadlines(deadlinesRes.data);
+      if (a.data) setAnnouncements(a.data);
+      if (d.data) setDeadlines(d.data);
       setLoading(false);
     }
     fetchData();
   }, []);
 
-  const quickActions = useMemo(() => [
-    { href: '/school/statistics', icon: BarChart3, label: t('school.submitStatistics'), sub: t('school.enterStudentData') },
-    { href: '/school/reports', icon: FileText, label: t('school.submitReports'), sub: t('school.uploadMonthlyReports') },
-    { href: '/school/forms', icon: ClipboardList, label: t('school.submitForms'), sub: t('school.fillRequiredForms') },
-  ], [t]);
+  const sendItems = [
+    { href: '/school/statistics', icon: BarChart3, title: 'ارسال آمار', sub: 'ثبت تعداد شاگردان' },
+    { href: '/school/reports', icon: FileText, title: 'ارسال گزارش‌ها', sub: 'گزارش ماهانه' },
+    { href: '/school/forms', icon: ClipboardList, title: 'ارسال فورم‌ها', sub: 'تکمیل فورم‌ها' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -80,136 +67,103 @@ export default function SchoolDashboard() {
 
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-heading font-bold">{t('school.dashboard')}</h1>
-        <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">
-          {profile?.schools?.name} — {profile?.schools?.province}، {profile?.schools?.district}
+        <h1 className="text-2xl font-bold">{t('school.dashboard')}</h1>
+        <p className="text-xs text-muted-foreground">
+          {profile?.schools?.name} — {profile?.schools?.province}
         </p>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
-        {quickActions.map((action) => {
-          const Icon = action.icon;
-          return (
-            <Link key={action.href} to={action.href}>
-              <Card className="h-full border-border hover:border-primary/40 transition-colors group cursor-pointer">
-                <CardContent className="p-4 flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0 mt-0.5">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-sm group-hover:text-primary transition-colors">{action.label}</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{action.sub}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
-      </div>
+      {/* SEND CARD (MAIN UX) */}
+      <div ref={sendRef}>
+        <div
+          onClick={() => setOpenSend(!openSend)}
+          className="cursor-pointer rounded-3xl p-6 bg-gradient-to-br from-green-400 via-blue-400 to-purple-400 text-white shadow-lg hover:scale-[1.02] transition-all duration-300"
+        >
+          <h2 className="text-lg font-bold">ارسال 📤</h2>
+          <p className="text-xs opacity-90">Submit data, reports, forms</p>
 
-      {/* Announcements & Deadlines */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Announcements */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm">{t('school.recentAnnouncements')}</CardTitle>
-            </div>
-            <Link to="/school/announcements">
-              <Button variant="ghost" size="sm" className="text-xs h-7 px-2">
-                {t('common.viewAll')}
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {loading ? <CardSkeleton /> : announcements.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-4 text-center">{t('school.noAnnouncements')}</p>
-            ) : (
-              announcements.map((a) => (
-                <div key={a.id} className="p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h4 className="font-medium text-sm line-clamp-1">{a.title}</h4>
-                    <Badge variant={(PRIORITY_VARIANT[a.priority] || 'outline') as any} className="text-[10px] shrink-0">
-                      {a.priority}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{a.content}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1.5">{format(new Date(a.created_at), 'MMM dd, yyyy')}</p>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Deadlines */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-secondary-foreground" />
-              <CardTitle className="text-sm">{t('school.upcomingDeadlines')}</CardTitle>
-            </div>
-            <Link to="/school/deadlines">
-              <Button variant="ghost" size="sm" className="text-xs h-7 px-2">
-                {t('common.viewAll')}
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {loading ? <CardSkeleton /> : deadlines.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-4 text-center">{t('school.noDeadlines')}</p>
-            ) : (
-              deadlines.map((d) => {
-                const daysLeft = Math.ceil((new Date(d.due_date).getTime() - Date.now()) / 86400000);
-                const isUrgent = daysLeft <= 3;
+          {/* Expand */}
+          <div className={`overflow-hidden transition-all duration-500 ${openSend ? 'max-h-80 mt-4' : 'max-h-0'}`}>
+            <div className="grid gap-3">
+              {sendItems.map((item) => {
+                const Icon = item.icon;
                 return (
-                  <div key={d.id} className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
-                    <div className={`p-2 rounded-lg shrink-0 ${isUrgent ? 'bg-destructive/10' : 'bg-muted'}`}>
-                      <Calendar className={`h-4 w-4 ${isUrgent ? 'text-destructive' : 'text-muted-foreground'}`} />
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-3 p-4 rounded-2xl bg-white/20 backdrop-blur hover:bg-white/30 transition-all"
+                  >
+                    <Icon className="h-5 w-5" />
+                    <div>
+                      <p className="font-semibold text-sm">{item.title}</p>
+                      <p className="text-xs opacity-80">{item.sub}</p>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="font-medium text-sm line-clamp-1">{d.title}</h4>
-                      {d.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{d.description}</p>}
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] text-muted-foreground">{format(new Date(d.due_date), 'MMM dd, yyyy')}</span>
-                        {isUrgent && (
-                          <Badge variant="destructive" className="text-[10px]">
-                            {daysLeft === 0 ? t('school.today') : `${daysLeft}d`}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  </Link>
                 );
-              })
-            )}
-          </CardContent>
-        </Card>
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Verified Banner */}
-      {verification.isVerified && (
-        <Card className="border-success/30 bg-success/5">
-          <CardContent className="py-4 flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
-            <div>
-              <p className="font-medium text-sm">{t('school.accountVerified')}</p>
-              <p className="text-xs text-muted-foreground">{t('school.accountVerifiedDesc')}</p>
+      {/* ANNOUNCEMENTS */}
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader className="flex justify-between">
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm">اطلاعیه‌ها</CardTitle>
+          </div>
+          <Link to="/school/announcements">
+            <Button size="sm" variant="ghost">همه</Button>
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {loading ? <Skeleton className="h-20 w-full" /> : announcements.map((a: any) => (
+            <div key={a.id} className="p-3 rounded-xl border hover:bg-muted transition mb-2">
+              <p className="text-sm font-medium">{a.title}</p>
+              <p className="text-xs text-muted-foreground">{a.content}</p>
             </div>
-          </CardContent>
-        </Card>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* DEADLINES */}
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <CardTitle className="text-sm">ددلاین‌ها</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? <Skeleton className="h-20 w-full" /> : deadlines.map((d: any) => (
+            <div key={d.id} className="p-3 rounded-xl border hover:bg-muted transition mb-2">
+              <p className="text-sm font-medium">{d.title}</p>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(d.due_date), 'MMM dd')}
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* VERIFIED */}
+      {verification.isVerified && (
+        <div className="p-4 rounded-2xl bg-green-100 flex items-center gap-2">
+          <CheckCircle2 className="text-green-600" />
+          <p className="text-sm">Account verified</p>
+        </div>
       )}
 
-      {/* Verification Queue */}
+      {/* QUEUE */}
       {verificationQueueRole && (
         <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm">{t('school.verificationQueue')}</CardTitle>
-            </div>
-            <CardDescription className="text-xs">{t('school.pendingApproval')}</CardDescription>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Verification Queue
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <VerificationPanel filterRole={verificationQueueRole} limit={10} />
