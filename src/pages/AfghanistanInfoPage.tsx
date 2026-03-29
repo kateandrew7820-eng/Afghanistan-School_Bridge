@@ -112,7 +112,55 @@ export default function AfghanistanInfoPage() {
           </p>
         </div>
 
-        
+        {/* Statistics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className={`inline-flex p-3 rounded-lg ${stat.bg} mb-4`}>
+                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Features Section */}
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold mb-6 text-center">ویژگی‌های اصلی سیستم</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="inline-flex p-2 bg-primary/10 rounded-lg mb-4 w-fit">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    <CardDescription>{feature.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Approval Status */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <Alert className="border-amber-200 bg-amber-50">
+            <Clock className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-900">
+              <strong>وضعیت حساب شما:</strong> {t('profileCompletion.awaitingApproval')}
+            </AlertDescription>
+          </Alert>
+        </div>
+
         {/* Information Cards */}
         <div className="max-w-3xl mx-auto grid gap-6 mb-12">
           <Card>
