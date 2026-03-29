@@ -175,7 +175,7 @@ export default function Demo() {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground bg-muted p-4 rounded-lg">
-          Demo mode uses simulated data for testing system dashboards...
+          Demo mode uses simulated data for testing system dashboards.
         </div>
 
       </div>
