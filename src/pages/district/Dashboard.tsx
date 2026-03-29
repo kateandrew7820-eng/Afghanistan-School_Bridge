@@ -1,264 +1,241 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from '@/contexts/LocalizationContext';
-import { supabase } from '@/lib/supabase';
-import { useMockData } from '@/hooks/useMockData';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { School, BarChart3, CheckSquare, AlertCircle, Eye, Loader2, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import {
+  Card, CardContent, CardHeader, CardTitle
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  School, CheckCircle2, Clock, AlertCircle, Loader2, Eye
+} from "lucide-react";
+import { format } from "date-fns";
 
-interface DistrictStats {
-  totalSchools: number;
-  totalSubmissions: number;
-  pendingSubmissions: number;
-  approvedSubmissions: number;
-}
+type Status = "pending" | "approved" | "rejected";
 
-interface RecentSubmission {
+interface Submission {
   id: string;
   school_name: string;
-  submission_type: string;
-  status: string;
+  type: string;
+  status: Status;
   created_at: string;
 }
 
 export default function DistrictDashboard() {
-  const { profile, isDemoMode } = useAuth();
-  const { t } = useTranslation();
-  const mockData = useMockData();
+  const { profile } = useAuth();
+
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DistrictStats>({
-    totalSchools: 0,
-    totalSubmissions: 0,
-    pendingSubmissions: 0,
-    approvedSubmissions: 0
+  const [stats, setStats] = useState({
+    schools: 0,
+    total: 0,
+    pending: 0,
+    approved: 0,
   });
-  const [recentSubmissions, setRecentSubmissions] = useState<RecentSubmission[]>([]);
+  const [recent, setRecent] = useState<Submission[]>([]);
 
   useEffect(() => {
-    fetchDistrictData();
+    if (profile?.district) fetchData();
   }, [profile]);
 
-  async function fetchDistrictData() {
+  async function fetchData() {
     try {
       setLoading(true);
 
-      // If in demo mode, use mock data
-      if (isDemoMode || !profile?.district) {
-        setStats({
-          totalSchools: mockData.districtStats.schools,
-          totalSubmissions: mockData.submissions.length,
-          pendingSubmissions: mockData.submissions.filter(s => s.status === 'در انتظار تأیید').length,
-          approvedSubmissions: mockData.submissions.filter(s => s.status === 'تأیید شده').length
-        });
-        setRecentSubmissions(
-          mockData.submissions.slice(0, 5).map((s, idx) => ({
-            id: s.id,
-            school_name: s.submittedBy,
-            submission_type: s.type,
-            status: s.status,
-            created_at: s.date
-          }))
-        );
-        setLoading(false);
-        return;
-      }
+      // Schools count
+      const { count: schoolCount } = await supabase
+        .from("schools")
+        .select("*", { count: "exact", head: true })
+        .eq("district", profile?.district);
 
-      // Fetch real data from Supabase
-      const [schoolsRes, statsRes, reportsRes, formsRes] = await Promise.all([
-        supabase.from('schools').select('id', { count: 'exact' }).eq('district', profile.district),
-        supabase.from('statistics_submissions').select('id, status, created_at, schools(name)'),
-        supabase.from('report_submissions').select('id, status, created_at, schools(name)'),
-        supabase.from('form_submissions').select('id, status, created_at, schools(name)')
+      // Fetch all submissions
+      const [statsRes, reportsRes, formsRes] = await Promise.all([
+        supabase.from("statistics_submissions").select("id,status,created_at,schools(name)"),
+        supabase.from("report_submissions").select("id,status,created_at,schools(name)"),
+        supabase.from("form_submissions").select("id,status,created_at,schools(name)")
       ]);
 
-      const allSubmissions = [
-        ...(statsRes.data || []).map(s => ({ ...s, type: 'احصاییه', school_name: (s.schools as any)?.name || 'Unknown' })),
-        ...(reportsRes.data || []).map(s => ({ ...s, type: 'تقرير', school_name: (s.schools as any)?.name || 'Unknown' })),
-        ...(formsRes.data || []).map(s => ({ ...s, type: 'نموذج', school_name: (s.schools as any)?.name || 'Unknown' }))
+      const normalize = (data: any[], type: string): Submission[] =>
+        (data || []).map((item) => ({
+          id: item.id,
+          school_name: item.schools?.name || "نامعلوم",
+          type,
+          status: normalizeStatus(item.status),
+          created_at: item.created_at,
+        }));
+
+      const all: Submission[] = [
+        ...normalize(statsRes.data, "احصاییه"),
+        ...normalize(reportsRes.data, "گزارش"),
+        ...normalize(formsRes.data, "فورم"),
       ];
 
-      const pending = allSubmissions.filter(s => s.status === 'pending').length;
-      const approved = allSubmissions.filter(s => s.status === 'approved').length;
+      const pending = all.filter(s => s.status === "pending").length;
+      const approved = all.filter(s => s.status === "approved").length;
 
       setStats({
-        totalSchools: schoolsRes.count || 0,
-        totalSubmissions: allSubmissions.length,
-        pendingSubmissions: pending,
-        approvedSubmissions: approved
+        schools: schoolCount || 0,
+        total: all.length,
+        pending,
+        approved,
       });
 
-      setRecentSubmissions(
-        allSubmissions
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      setRecent(
+        all
+          .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
           .slice(0, 5)
-          .map(s => ({
-            id: s.id,
-            school_name: s.school_name,
-            submission_type: s.type,
-            status: s.status,
-            created_at: s.created_at
-          }))
       );
-    } catch (error) {
-      console.error('Error fetching district data:', error);
+
+    } catch (e) {
+      console.error("Fetch error:", e);
     } finally {
       setLoading(false);
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-      case 'در انتظار تأیید':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'approved':
-      case 'تأیید شده':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  function normalizeStatus(status: string): Status {
+    if (!status) return "pending";
 
-  const getStatusLabel = (status: string) => {
+    if (["approved", "تأیید شده"].includes(status)) return "approved";
+    if (["rejected", "رد شده"].includes(status)) return "rejected";
+    return "pending";
+  }
+
+  function statusUI(status: Status) {
     switch (status) {
-      case 'pending':
-        return 'در انتظار بررسی';
-      case 'approved':
-        return 'تایید شده';
-      case 'rejected':
-        return 'رد شده';
-      case 'در انتظار تأیید':
-        return 'در انتظار بررسی';
-      case 'تأیید شده':
-        return 'تایید شده';
-      default:
-        return status;
+      case "approved":
+        return { label: "تایید شده", class: "bg-green-100 text-green-700" };
+      case "pending":
+        return { label: "در انتظار", class: "bg-yellow-100 text-yellow-700" };
+      case "rejected":
+        return { label: "رد شده", class: "bg-red-100 text-red-700" };
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
+
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-heading font-bold">{t('district.dashboard')}</h1>
-        <p className="text-muted-foreground text-sm">
-          {profile?.district || t('navigation.districtName')} — {t('district.overviewDesc')}
+        <h1 className="text-2xl font-bold">داشبورد ناحیه</h1>
+        <p className="text-sm text-muted-foreground">
+          {profile?.district || "ناحیه"} — مدیریت ارسال‌ها
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('district.schoolCount')}</CardTitle>
-            <School className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.totalSchools}</div>
-            <p className="text-xs text-muted-foreground">{t('common.inYourDistrict')}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('district.submissionCount')}</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.totalSubmissions}</div>
-            <p className="text-xs text-muted-foreground">{t('common.thisMonth')}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('district.verified')}</CardTitle>
-            <CheckSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.approvedSubmissions}</div>
-            <p className="text-xs text-muted-foreground">{t('common.awaitingReview')}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('district.alerts')}</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.pendingSubmissions}</div>
-            <p className="text-xs text-muted-foreground">{t('common.needAttention')}</p>
-          </CardContent>
-        </Card>
+      {/* Stats */}
+      <div className="grid md:grid-cols-4 gap-4">
+
+        <StatCard
+          title="مکاتب"
+          value={stats.schools}
+          icon={<School />}
+          color="bg-blue-100"
+          loading={loading}
+        />
+
+        <StatCard
+          title="کل ارسال‌ها"
+          value={stats.total}
+          icon={<CheckCircle2 />}
+          color="bg-purple-100"
+          loading={loading}
+        />
+
+        <StatCard
+          title="تایید شده"
+          value={stats.approved}
+          icon={<CheckCircle2 />}
+          color="bg-green-100"
+          loading={loading}
+        />
+
+        <StatCard
+          title="در انتظار"
+          value={stats.pending}
+          icon={<Clock />}
+          color="bg-yellow-100"
+          loading={loading}
+        />
+
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Link to="/district/submissions">
-          <Card className="hover:border-primary transition-colors cursor-pointer h-full">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">مشاهده ارسال‌ها</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">مشاهده و تایید مشارکت‌های مکاتب</p>
-            </CardContent>
-          </Card>
-        </Link>
-        <Card className="bg-accent">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">گزارش تجمیعی</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">مشاهده داده‌های تجمیع شده مکاتب</p>
+      {/* Quick Action */}
+      <Link to="/district/submissions">
+        <Card className="cursor-pointer hover:shadow-md transition">
+          <CardContent className="flex items-center justify-between p-4">
+            <span className="font-medium">مشاهده ارسال‌ها</span>
+            <Eye className="w-5 h-5" />
           </CardContent>
         </Card>
-      </div>
+      </Link>
 
-      {/* Recent Submissions */}
+      {/* Recent */}
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading">آخرین ارسال‌ها</CardTitle>
+          <CardTitle>آخرین ارسال‌ها</CardTitle>
         </CardHeader>
         <CardContent>
+
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <div className="flex justify-center py-6">
+              <Loader2 className="animate-spin" />
             </div>
-          ) : recentSubmissions.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">هیچ ارسالی وجود ندارد</p>
+          ) : recent.length === 0 ? (
+            <p className="text-center text-muted-foreground">
+              هنوز هیچ ارسالی وجود ندارد
+            </p>
           ) : (
-            <div className="space-y-4">
-              {recentSubmissions.map(submission => (
-                <div key={submission.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm">{submission.school_name}</p>
-                    <p className="text-xs text-muted-foreground">{submission.submission_type}</p>
+            <div className="space-y-3">
+              {recent.map((s) => {
+                const ui = statusUI(s.status);
+                return (
+                  <div
+                    key={s.id}
+                    className="flex justify-between items-center p-3 rounded-lg border hover:bg-accent"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{s.school_name}</p>
+                      <p className="text-xs text-muted-foreground">{s.type}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Badge className={ui.class}>{ui.label}</Badge>
+                      <span className="text-xs">
+                        {format(new Date(s.created_at), "d MMM")}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(submission.status)}>
-                      {getStatusLabel(submission.status)}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {format(new Date(submission.created_at), 'd MMM')}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
+
               <Link to="/district/submissions">
-                <Button variant="outline" className="w-full mt-4">
-                  مشاهده تمام ارسال‌ها
+                <Button className="w-full mt-3" variant="outline">
+                  همه ارسال‌ها
                 </Button>
               </Link>
             </div>
           )}
         </CardContent>
       </Card>
+
     </div>
+  );
+}
+
+/* --- Small Component --- */
+function StatCard({ title, value, icon, color, loading }: any) {
+  return (
+    <Card className="hover:scale-[1.02] transition">
+      <CardHeader className="flex justify-between flex-row pb-2">
+        <CardTitle className="text-sm">{title}</CardTitle>
+        <div className={`p-2 rounded ${color}`}>{icon}</div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
+          {loading ? "..." : value}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
