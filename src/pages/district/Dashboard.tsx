@@ -112,7 +112,7 @@ export default function DistrictDashboard() {
 
       {/* HEADER */}
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-gray-900">
           داشبورد ناحیه
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -192,12 +192,12 @@ export default function DistrictDashboard() {
 
 function StatCard({ title, value, loading, tone }: any) {
   const tones: any = {
-    blue: "bg-blue-50 text-blue-600",
-    purple: "bg-purple-50 text-purple-600",
-    green: "bg-green-50 text-green-600",
-    yellow: "bg-yellow-50 text-yellow-600",
+    blue: "bg-white text-gray-900 border-gray-100",
+    purple: "bg-white text-gray-900 border-gray-100",
+    green: "bg-white text-gray-900 border-gray-100",
+    yellow: "bg-yellow-50 text-yellow-700 border-yellow-100",
   };
-
+  
   return (
     <Card className="hover:scale-[1.02] transition shadow-sm border-none">
       <CardHeader className="flex flex-row justify-between pb-2">
@@ -210,7 +210,7 @@ function StatCard({ title, value, loading, tone }: any) {
       </CardHeader>
 
       <CardContent>
-        <div className="text-2xl font-bold text-gray-900 dark:text-white">
+        <div className="text-2xl font-bold text-gray-900">
           {loading ? "..." : value}
         </div>
       </CardContent>
