@@ -143,7 +143,7 @@ export default function TestButtons() {
         )}
 
         {(roleTier === "school" || !roleTier) && (
-          <Section title="🏫 داشبورد مکتب" description="عملکردهای مربوط به مکتب">
+          <Section title="🏫 دشبورد مکتب" description="عملکردهای مربوط به مکتب">
             <ActionButton id="stats" label="ارسال آمار" path="/school/submit-statistics" />
             <ActionButton id="reports" label="ارسال گزارش" path="/school/submit-reports" />
             <ActionButton id="forms" label="ارسال فورم‌ها" path="/school/submit-forms" />

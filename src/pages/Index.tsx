@@ -239,7 +239,7 @@ export default function Index() {
           </h3>
 
           <Button size="lg" onClick={handleContinue} className="gap-2">
-            ورود به داشبورد
+            ورود به دشبورد
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

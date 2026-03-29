@@ -117,7 +117,7 @@ export default function DistrictDashboard() {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">داشبورد ناحیه</h1>
+        <h1 className="text-2xl font-bold">دشبورد ناحیه</h1>
         <p className="text-sm text-muted-foreground">
           {profile?.district || "ناحیه"} — مدیریت ارسال‌ها
         </p>

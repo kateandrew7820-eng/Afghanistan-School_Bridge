@@ -62,7 +62,7 @@ export default function Demo() {
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold">انتخاب نقش</h2>
           <p className="text-muted-foreground text-sm">
-            فقط کلیک کن و مستقیم وارد شو 🚀
+            فقط کلیک کنید و مستقیم وارد شوید 🚀
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export default function Demo() {
                         {role.label}
                       </h3>
                       <p className="text-xs text-muted-foreground mt-1">
-                        ورود مستقیم به داشبورد
+                        ورود مستقیم به دشبورد
                       </p>
                     </div>
 
