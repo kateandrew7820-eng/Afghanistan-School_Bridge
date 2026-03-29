@@ -304,6 +304,7 @@ export default function Login() {
                         <Lock className="h-4 w-4 text-muted-foreground" />
                         {t('auth.password')}
                       </Label>
+
                       <div className="relative">
                         <Input
                           id="signin-password"
@@ -311,22 +312,32 @@ export default function Login() {
                           placeholder="••••••••"
                           value={signInPassword}
                           onChange={(e) => {
-                            setSignInPassword(e.target.value);
-                            if (signInErrors.password) setSignInErrors({ ...signInErrors, password: undefined });
+                            const value = e.target.value;
+                            setSignInPassword(value);
+                            setSignInErrors((prev) => ({ ...prev, password: undefined }));
                           }}
                           disabled={isLoading || authLoading}
-                          className={`${signInErrors.password ? 'border-destructive' : ''} h-10 pl-10`}
+                          className={`h-10 pl-10 ${
+                            signInErrors.password ? 'border-destructive' : ''
+                          }`}
                           dir="ltr"
+                          autoComplete="current-password"
                         />
+
                         <button
                           type="button"
-                          onClick={() => setShowSignInPassword(!showSignInPassword)}
+                          onClick={() => setShowSignInPassword((prev) => !prev)}
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
                           disabled={isLoading || authLoading}
                         >
-                          {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showSignInPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
+
                       {signInErrors.password && (
                         <p className="text-sm text-destructive flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
@@ -334,7 +345,6 @@ export default function Login() {
                         </p>
                       )}
                     </div>
-
                     {/* Submit */}
                     <Button
                       type="submit"
