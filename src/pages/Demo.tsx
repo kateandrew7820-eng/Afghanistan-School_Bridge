@@ -58,20 +58,12 @@ const DEMO_ROLES = [
 export default function Demo() {
   const navigate = useNavigate();
 
-  const auth = useAuth?.();
+  const auth = useAuth();
+  const { t } = useTranslation();
+
   const setDemoMode = auth?.setDemoMode;
 
-  const { t } = useTranslation?.() || { t: (v: string) => v };
-
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
-
-  if (!auth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Auth system loading...</p>
-      </div>
-    );
-  }
 
   const handleSelectRole = (roleId: string) => {
     const role = DEMO_ROLES.find((r) => r.id === roleId);
