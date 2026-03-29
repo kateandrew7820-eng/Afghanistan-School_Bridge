@@ -1,25 +1,18 @@
-/**
- * Example: Using Error Handling System with SetupProfile Form
- * 
- * This example demonstrates how to integrate the comprehensive error handling
- * system with a real form component, including validation, API calls, and
- * user-friendly error display.
- */
-
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAPIError, useFormValidation } from '@/hooks/useAPIError';
-import { 
-  validateForm, 
-  validateEmail, 
+import {
+  validateForm,
+  validateEmail,
   validatePhone,
   validateRequired,
-  validateMinLength 
+  validateMinLength,
 } from '@/lib/validation';
-import { 
-  FormFieldWrapper, 
-  FormErrorSummary, 
-  FormFieldError 
+
+import {
+  FormFieldWrapper,
+  FormErrorSummary,
 } from '@/components/FormFieldError';
+
 import { useErrorToast } from '@/lib/errorToast';
 import { Button } from '@/components/ui/button';
 
@@ -43,106 +36,83 @@ const INITIAL_FORM_DATA: ProfileFormData = {
   district: '',
 };
 
-/**
- * SetupProfile Component with Full Error Handling
- */
 export default function SetupProfileWithErrorHandling() {
-  // Form state
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Error handling hooks
-  const { errors, touched, setFieldError, setFieldTouched, clearAllErrors, hasErrors } = 
-    useFormValidation();
-  const { executeWithErrorHandling, error: apiError, isLoading } = 
-    useAPIError({
-      showToast: true,
-      context: 'Setup Profile',
-    });
-  const { showError, showSuccess, showValidationError } = useErrorToast();
+  const {
+    errors,
+    touched,
+    setFieldError,
+    setFieldTouched,
+    clearAllErrors,
+    hasErrors,
+  } = useFormValidation();
 
-  /**
-   * Handle field change - clear error when user types
-   */
-  const handleFieldChange = (field: keyof ProfileFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Clear field error when user starts typing
-    if (errors[field]) {
-      setFieldError(field, null);
-    }
-  };
+  const { executeWithErrorHandling, isLoading } = useAPIError({
+    showToast: true,
+    context: 'Setup Profile',
+  });
 
-  /**
-   * Handle field blur - real-time validation
-   */
-  const handleFieldBlur = (field: keyof ProfileFormData) => {
-    setFieldTouched(field);
-    
-    // Perform real-time validation based on field type
-    let error: string | null = null;
+  const { showSuccess, showValidationError } = useErrorToast();
 
+  const handleFieldChange = useCallback(
+    (field: keyof ProfileFormData, value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+
+      if (errors[field]) {
+        setFieldError(field, '');
+      }
+    },
+    [errors, setFieldError]
+  );
+
+  const validateField = (field: keyof ProfileFormData, value: string) => {
     switch (field) {
       case 'fullName':
-        error = validateRequired(formData.fullName, 'نام کامل');
-        if (!error) {
-          error = validateMinLength(formData.fullName, 3);
-        }
-        break;
+        return (
+          validateRequired(value, 'نام کامل') ||
+          validateMinLength(value, 3)
+        );
       case 'email':
-        error = validateEmail(formData.email);
-        break;
+        return validateEmail(value);
       case 'phone':
-        error = validatePhone(formData.phone, true); // Afghanistan format
-        break;
+        return validatePhone(value, true);
       case 'birthDate':
-        error = validateRequired(formData.birthDate, 'تاریخ تولد');
-        break;
-    }
-
-    if (error) {
-      setFieldError(field, error);
+      case 'address':
+      case 'province':
+      case 'district':
+        return validateRequired(value, field);
+      default:
+        return null;
     }
   };
 
-  /**
-   * Validate entire form before submission
-   */
-  const validateFormData = (): boolean => {
-    clearAllErrors();
+  const handleFieldBlur = (field: keyof ProfileFormData) => {
+    setFieldTouched(field);
+    const error = validateField(field, formData[field]);
 
+    setFieldError(field, error);
+  };
+
+  const validateFormData = () => {
     const validationErrors = validateForm(formData, {
       fullName: [
         { type: 'required' },
-        { type: 'minLength', value: 3, message: 'نام کامل باید حداقل 3 حرف باشد' },
+        { type: 'minLength', value: 3 },
       ],
-      email: [
-        { type: 'required' },
-        { type: 'email' },
-      ],
-      phone: [
-        { type: 'required' },
-        { type: 'phone' },
-      ],
-      birthDate: [
-        { type: 'required' },
-      ],
-      address: [
-        { type: 'required' },
-      ],
-      province: [
-        { type: 'required' },
-      ],
-      district: [
-        { type: 'required' },
-      ],
+      email: [{ type: 'required' }, { type: 'email' }],
+      phone: [{ type: 'required' }, { type: 'phone' }],
+      birthDate: [{ type: 'required' }],
+      address: [{ type: 'required' }],
+      province: [{ type: 'required' }],
+      district: [{ type: 'required' }],
     });
 
     if (Object.keys(validationErrors).length > 0) {
-      // Set all validation errors
       Object.entries(validationErrors).forEach(([field, error]) => {
-        setFieldError(field, error);
-        setFieldTouched(field);
+        setFieldError(field as keyof ProfileFormData, error);
+        setFieldTouched(field as keyof ProfileFormData);
       });
       return false;
     }
@@ -150,216 +120,131 @@ export default function SetupProfileWithErrorHandling() {
     return true;
   };
 
-  /**
-   * Handle form submission with error handling
-   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form
     if (!validateFormData()) {
-      showValidationError('لطفاً تمام فیلدهای الزامی را پر کنید');
+      showValidationError('لطفاً تمام فیلدها را درست پر کنید');
       return;
     }
 
     setIsSubmitting(true);
 
-    // Call API with error handling
-    const { data, error } = await executeWithErrorHandling(
-      async () => {
-        // Example API call (replace with actual API)
-        const response = await fetch('/api/profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-        });
+    const { error } = await executeWithErrorHandling(async () => {
+      const res = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.statusText}`);
-        }
-
-        return response.json();
-      },
-      (data) => {
-        // Success callback
-        showSuccess('پروفایل شما با موفقیت ذخیره شد');
-        // Reset form or navigate
-        setFormData(INITIAL_FORM_DATA);
-        clearAllErrors();
-      }
-    );
+      if (!res.ok) throw new Error('Failed to save profile');
+      return res.json();
+    });
 
     setIsSubmitting(false);
 
-    // Error was already handled by executeWithErrorHandling + showToast
-    // But we can add additional UI logic here if needed
-    if (error) {
-      console.error('Profile update failed:', error);
+    if (!error) {
+      showSuccess('پروفایل با موفقیت ذخیره شد');
+      setFormData(INITIAL_FORM_DATA);
+      clearAllErrors();
     }
   };
 
+  const loading = isSubmitting || isLoading;
+
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8 text-right">تنظیم پروفایل</h1>
+      <h1 className="text-2xl font-bold mb-6 text-right">تنظیم پروفایل</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Error Summary - shown at top if there are validation errors */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+
         {hasErrors && (
-          <FormErrorSummary 
-            errors={errors}
-            onDismiss={clearAllErrors}
-            className="mb-6"
-          />
+          <FormErrorSummary errors={errors} onDismiss={clearAllErrors} />
         )}
 
-        {/* Full Name Field */}
-        <FormFieldWrapper
-          label="نام کامل"
-          name="fullName"
-          error={errors.fullName}
-          touched={touched.fullName}
-          required
-          hint="نام و نام خانوادگی خود را وارد کنید"
-        >
+        {/* Full Name */}
+        <FormFieldWrapper label="نام کامل" name="fullName" error={errors.fullName} touched={touched.fullName} required>
           <input
-            type="text"
             value={formData.fullName}
-            onChange={e => handleFieldChange('fullName', e.target.value)}
+            onChange={(e) => handleFieldChange('fullName', e.target.value)}
             onBlur={() => handleFieldBlur('fullName')}
-            placeholder="مثال: احمد حسنی"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
-            aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+            className="input"
           />
         </FormFieldWrapper>
 
-        {/* Email Field */}
-        <FormFieldWrapper
-          label="ایمیل"
-          name="email"
-          error={errors.email}
-          touched={touched.email}
-          required
-          hint="ایمیل معتبری که می‌توانیم از طریق آن با شما تماس بگیریم"
-        >
+        {/* Email */}
+        <FormFieldWrapper label="ایمیل" name="email" error={errors.email} touched={touched.email} required>
           <input
             type="email"
             value={formData.email}
-            onChange={e => handleFieldChange('email', e.target.value)}
+            onChange={(e) => handleFieldChange('email', e.target.value)}
             onBlur={() => handleFieldBlur('email')}
-            placeholder="example@email.com"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
-            aria-describedby={errors.email ? 'email-error' : undefined}
+            className="input"
           />
         </FormFieldWrapper>
 
-        {/* Phone Field */}
-        <FormFieldWrapper
-          label="شماره تلفن"
-          name="phone"
-          error={errors.phone}
-          touched={touched.phone}
-          required
-          hint="شماره تلفن همراه افغانی (با +93 یا 0 فهمیدم)"
-        >
+        {/* Phone */}
+        <FormFieldWrapper label="تلفن" name="phone" error={errors.phone} touched={touched.phone} required>
           <input
-            type="tel"
             value={formData.phone}
-            onChange={e => handleFieldChange('phone', e.target.value)}
+            onChange={(e) => handleFieldChange('phone', e.target.value)}
             onBlur={() => handleFieldBlur('phone')}
-            placeholder="+93701234567 یا 0701234567"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
-            aria-describedby={errors.phone ? 'phone-error' : undefined}
+            className="input"
           />
         </FormFieldWrapper>
 
-        {/* Birth Date Field */}
-        <FormFieldWrapper
-          label="تاریخ تولد"
-          name="birthDate"
-          error={errors.birthDate}
-          touched={touched.birthDate}
-          required
-        >
+        {/* Birth Date */}
+        <FormFieldWrapper label="تاریخ تولد" name="birthDate" error={errors.birthDate} touched={touched.birthDate} required>
           <input
             type="date"
             value={formData.birthDate}
-            onChange={e => handleFieldChange('birthDate', e.target.value)}
+            onChange={(e) => handleFieldChange('birthDate', e.target.value)}
             onBlur={() => handleFieldBlur('birthDate')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
-            aria-describedby={errors.birthDate ? 'birthDate-error' : undefined}
+            className="input"
           />
         </FormFieldWrapper>
 
-        {/* Address Field */}
-        <FormFieldWrapper
-          label="آدرس"
-          name="address"
-          error={errors.address}
-          touched={touched.address}
-          required
-        >
+        {/* Address */}
+        <FormFieldWrapper label="آدرس" name="address" error={errors.address} touched={touched.address} required>
           <textarea
             value={formData.address}
-            onChange={e => handleFieldChange('address', e.target.value)}
+            onChange={(e) => handleFieldChange('address', e.target.value)}
             onBlur={() => handleFieldBlur('address')}
-            placeholder="آدرس کامل خود را وارد کنید"
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
-            aria-describedby={errors.address ? 'address-error' : undefined}
+            className="input"
           />
         </FormFieldWrapper>
 
-        {/* Province Field */}
-        <FormFieldWrapper
-          label="ولایت"
-          name="province"
-          error={errors.province}
-          touched={touched.province}
-          required
-        >
+        {/* Province */}
+        <FormFieldWrapper label="ولایت" name="province" error={errors.province} touched={touched.province} required>
           <select
             value={formData.province}
-            onChange={e => handleFieldChange('province', e.target.value)}
+            onChange={(e) => handleFieldChange('province', e.target.value)}
             onBlur={() => handleFieldBlur('province')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
-            aria-describedby={errors.province ? 'province-error' : undefined}
+            className="input"
           >
-            <option value="">-- انتخاب کنید --</option>
+            <option value="">انتخاب</option>
             <option value="kabul">کابل</option>
-            <option value="kandahar">قندهار</option>
             <option value="herat">هرات</option>
-            <option value="mazar">مزار شریف</option>
+            <option value="kandahar">قندهار</option>
           </select>
         </FormFieldWrapper>
 
-        {/* District Field */}
-        <FormFieldWrapper
-          label="ولسوالی"
-          name="district"
-          error={errors.district}
-          touched={touched.district}
-          required
-        >
+        {/* District */}
+        <FormFieldWrapper label="ولسوالی" name="district" error={errors.district} touched={touched.district} required>
           <input
-            type="text"
             value={formData.district}
-            onChange={e => handleFieldChange('district', e.target.value)}
+            onChange={(e) => handleFieldChange('district', e.target.value)}
             onBlur={() => handleFieldBlur('district')}
-            placeholder="ولسوالی را وارد کنید"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:border-gray-700"
-            aria-describedby={errors.district ? 'district-error' : undefined}
+            className="input"
           />
         </FormFieldWrapper>
 
-        {/* Submit Button */}
-        <div className="flex gap-3 pt-6">
-          <Button
-            type="submit"
-            disabled={isSubmitting || isLoading || hasErrors}
-            className="flex-1"
-          >
-            {isSubmitting || isLoading ? 'درحال ذخیره...' : 'ذخیره پروفایل'}
+        {/* Actions */}
+        <div className="flex gap-3 pt-4">
+          <Button type="submit" disabled={loading || hasErrors} className="flex-1">
+            {loading ? 'درحال ذخیره...' : 'ذخیره'}
           </Button>
+
           <Button
             type="button"
             variant="outline"
@@ -369,19 +254,9 @@ export default function SetupProfileWithErrorHandling() {
             }}
             className="flex-1"
           >
-            پاک کردن
+            ریست
           </Button>
         </div>
-
-        {/* Debug: Show current form state (remove in production) */}
-        {process.env.NODE_ENV === 'development' && (
-          <details className="mt-8 p-4 bg-gray-100 dark:bg-gray-900 rounded">
-            <summary className="cursor-pointer font-semibold">حالت فورم (توسعه only)</summary>
-            <pre className="mt-2 text-xs overflow-auto">
-              {JSON.stringify({ formData, errors, touched, hasErrors }, null, 2)}
-            </pre>
-          </details>
-        )}
       </form>
     </div>
   );
