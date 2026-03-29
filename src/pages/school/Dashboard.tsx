@@ -77,36 +77,46 @@ export default function SchoolDashboard() {
       <div ref={sendRef}>
         <div
           onClick={() => setOpenSend(!openSend)}
-          className="cursor-pointer rounded-3xl p-6 bg-gradient-to-br from-green-400 via-blue-400 to-purple-400 text-white shadow-lg hover:scale-[1.02] transition-all duration-300"
+          className="relative cursor-pointer rounded-3xl p-6 text-white 
+          bg-gradient-to-br from-indigo-600 via-slate-900 to-cyan-500
+          shadow-xl hover:scale-[1.015] transition-all duration-300 overflow-hidden"
         >
-          <h2 className="text-lg font-bold">ارسال 📤</h2>
-          <p className="text-xs opacity-90">Submit data, reports, forms</p>
+          {/* subtle glow effect */}
+          <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px]" />
 
-          {/* Expand */}
-          <div className={`overflow-hidden transition-all duration-500 ${openSend ? 'max-h-80 mt-4' : 'max-h-0'}`}>
-            <div className="grid gap-3">
-              {sendItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-3 p-4 rounded-2xl bg-white/20 backdrop-blur hover:bg-white/30 transition-all"
-                  >
-                    <Icon className="h-5 w-5" />
-                    <div>
-                      <p className="font-semibold text-sm">{item.title}</p>
-                      <p className="text-xs opacity-80">{item.sub}</p>
-                    </div>
-                  </Link>
-                );
-              })}
+          <div className="relative z-10">
+            <h2 className="text-lg font-bold tracking-wide">ارسال 📤</h2>
+            <p className="text-xs opacity-80">Submit data, reports, forms</p>
+
+            {/* Expand */}
+            <div className={`overflow-hidden transition-all duration-500 ${openSend ? 'max-h-80 mt-4' : 'max-h-0'}`}>
+              <div className="grid gap-3">
+                {sendItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center gap-3 p-4 rounded-2xl 
+                      bg-white/10 backdrop-blur-md 
+                      hover:bg-white/20 active:scale-[0.98]
+                      transition-all duration-200"
+                    >
+                      <Icon className="h-5 w-5 text-cyan-300" />
+                      <div>
+                        <p className="font-semibold text-sm">{item.title}</p>
+                        <p className="text-xs opacity-70">{item.sub}</p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
+      
       {/* ANNOUNCEMENTS */}
       <Card className="rounded-2xl shadow-sm">
         <CardHeader className="flex justify-between">
