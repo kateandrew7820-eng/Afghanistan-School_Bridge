@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useErrorToast } from "@/lib/errorToast";
@@ -8,16 +8,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 import {
-<<<<<<< HEAD
   CheckCircle2,
   AlertTriangle,
   Play,
   Loader2,
   Info,
   X,
-=======
-  CheckCircle2, AlertTriangle, Loader2, Play, Info, X
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
 } from "lucide-react";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -30,12 +26,8 @@ export default function TestButtons() {
   const [state, setState] = useState<Record<string, Status>>({});
   const [msg, setMsg] = useState<Record<string, string>>({});
   const [guideOpen, setGuideOpen] = useState(false);
-<<<<<<< HEAD
   const guideRef = useRef<HTMLDivElement>(null);
-=======
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
 
-<<<<<<< HEAD
   /* ✅ Close on outside click */
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -46,17 +38,10 @@ export default function TestButtons() {
     if (guideOpen) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [guideOpen]);
-=======
-  const simulate = async (id: string, label: string) => {
-    setState(p => ({ ...p, [id]: "loading" }));
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
 
-<<<<<<< HEAD
   const simulate = async (id: string, label: string) => {
     setState(p => ({ ...p, [id]: "loading" }));
 
-=======
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
     try {
       await new Promise(r => setTimeout(r, 700 + Math.random() * 1000));
 
@@ -88,11 +73,7 @@ export default function TestButtons() {
             if (path) navigate(path);
           }}
           disabled={s === "loading"}
-<<<<<<< HEAD
           className="w-full justify-start hover:scale-[1.02] transition"
-=======
-          className="w-full justify-start transition-all duration-300 hover:scale-[1.02]"
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
           variant="outline"
         >
           {s === "loading" && <Loader2 className="mr-2 animate-spin" />}
@@ -102,7 +83,6 @@ export default function TestButtons() {
           {label}
         </Button>
 
-<<<<<<< HEAD
         {msg[id] && (
           <div className="h-1 bg-muted rounded overflow-hidden">
             <div
@@ -111,43 +91,24 @@ export default function TestButtons() {
               } animate-pulse`}
             />
           </div>
-=======
-        {/* feedback */}
-        {msg[id] && (
-          <div className="h-1 bg-muted rounded overflow-hidden">
-            <div className={`h-full ${
-              s === "success" ? "bg-green-500" : "bg-red-500"
-            } w-full animate-pulse`} />
-          </div>
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
         )}
       </div>
     );
   };
 
   const Section = ({ title, color, children }: any) => (
-<<<<<<< HEAD
     <Card className="border-0 shadow-sm hover:shadow-md transition overflow-hidden">
       <div className={`h-1 bg-gradient-to-r ${color}`} />
       <CardContent className="p-5 space-y-3">
         <h3 className="font-semibold">{title}</h3>
         {children}
       </CardContent>
-=======
-    <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition">
-      <div className={`h-1 bg-gradient-to-r ${color}`} />
-      <CardContent className="p-5 space-y-3">
-        <h3 className="font-semibold">{title}</h3>
-        {children}
-      </CardContent>
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
     </Card>
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-5">
 
-<<<<<<< HEAD
       {/* 🔘 Guide button */}
       <div className="fixed top-4 left-4 z-50">
         <Button size="icon" variant="secondary" onClick={() => setGuideOpen(true)}>
@@ -179,58 +140,17 @@ export default function TestButtons() {
       )}
 
       {/* Main */}
-=======
-      {/* 🔘 Floating Guide Button */}
-      <div className="fixed top-4 right-4 z-50">
-        <Button size="icon" variant="secondary" onClick={() => setGuideOpen(true)}>
-          <Info className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* 📌 Guide Popup */}
-      {guideOpen && (
-        <div className="fixed top-16 right-4 w-72 bg-white shadow-xl rounded-xl p-4 z-50 animate-in fade-in">
-          <div className="flex justify-between items-center mb-2">
-            <span className="font-semibold text-sm">راهنما</span>
-            <X className="cursor-pointer w-4" onClick={() => setGuideOpen(false)} />
-          </div>
-
-          <div className="text-xs text-muted-foreground space-y-2">
-            <p>✅ دکمه‌ها → انتقال یا تست</p>
-            <p>🧪 تست‌ها → شبیه‌سازی</p>
-            <p>⚡ سریع، بدون ذخیره واقعی</p>
-          </div>
-        </div>
-      )}
-
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
       <div className="max-w-4xl mx-auto space-y-6">
 
-<<<<<<< HEAD
         <div>
           <h1 className="text-2xl font-bold">🧪 تست سیستم</h1>
           <div className="flex gap-2 mt-2 flex-wrap">
             <Badge variant="outline">مقام: {role || "-"}</Badge>
             <Badge variant="outline">سطح: {roleTier || "-"}</Badge>
             {isDemoMode && <Badge className="bg-blue-500">Demo</Badge>}
-=======
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold">🧪 تست سیستم</h1>
-
-          <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline">مقام: {role || "-"}</Badge>
-            <Badge variant="outline">سطح: {roleTier || "-"}</Badge>
-            {isDemoMode && <Badge className="bg-blue-500">Demo</Badge>}
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
-        {/* Sections */}
-
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
         {(roleTier === "school" || !roleTier) && (
           <Section title="🏫 مکتب" color="from-blue-400 to-blue-600">
             <Action id="s1" label="ارسال آمار" path="/school/submit-statistics" />
@@ -250,48 +170,16 @@ export default function TestButtons() {
           </Section>
         )}
 
-<<<<<<< HEAD
         <Section title="⚙️ عمومی" color="from-gray-400 to-gray-600">
           <Action id="g1" label="Refresh" simulateMode />
           <Action id="g2" label="Save" simulateMode />
-=======
-        {(roleTier === "province" || !roleTier) && (
-          <Section title="🌍 ولایت" color="from-purple-400 to-purple-600">
-            <Action id="p1" label="آمار" path="/province" />
-            <Action id="p2" label="Export" simulateMode />
-          </Section>
-        )}
-
-        {(roleTier === "ministry" || !roleTier) && (
-          <Section title="👑 وزارت" color="from-yellow-400 to-orange-500">
-            <Action id="m1" label="ملی" path="/ministry/analytics" />
-            <Action id="m2" label="کاربران" path="/ministry/users" />
-            <Action id="m3" label="گزارش" path="/ministry/export" />
-          </Section>
-        )}
-
-        <Section title="⚙️ عمومی" color="from-gray-400 to-gray-600">
-          <Action id="g1" label="Refresh" simulateMode />
-          <Action id="g2" label="Save" simulateMode />
-          <Action id="g3" label="Download" simulateMode />
-          <Action id="g4" label="Print" simulateMode />
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
         </Section>
 
-<<<<<<< HEAD
         <div className="flex justify-center pt-4">
           <Button variant="outline" onClick={() => navigate(-1)}>
             بازگشت
           </Button>
         </div>
-=======
-        {/* Back */}
-        <div className="flex justify-center pt-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            بازگشت
-          </Button>
-        </div>
->>>>>>> 41a7d79bb4c6f43209c4e11b952258fed7d64a46
 
       </div>
     </div>
