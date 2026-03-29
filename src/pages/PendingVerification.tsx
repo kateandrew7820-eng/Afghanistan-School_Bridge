@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, AlertCircle, Sparkles } from "lucide-react";
+import { useInRouterContext } from "react-router-dom";
 
 type Status = "pending" | "rejected" | "approved";
-
+const inRouter = useInRouterContext();
+const navigate = inRouter ? useNavigate() : null;
 export default function PendingVerification() {
   const navigate = useNavigate();
 
