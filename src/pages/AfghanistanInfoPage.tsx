@@ -99,15 +99,65 @@ export default function AfghanistanInfoPage() {
         </div>
       </header>
 
-      
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">مکتب</CardTitle>
-              <CardDescription>{profile?.school_name || 'نیمشخص'}</CardDescription>
-            </CardHeader>
-          </Card>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-12">
+        {/* Welcome Section */}
+        <div className="max-w-3xl mx-auto mb-12 text-center space-y-4">
+          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full">
+            <Heart className="w-6 h-6 text-primary" />
+          </div>
+          <h2 className="text-3xl font-bold">{t('afghanistan.motivation')}</h2>
+          <p className="text-lg text-muted-foreground">
+            این سیستم برای بهبود نظام آموزشی و ارتباط بهتر میان تمام اجزاء نظام تعلیمی افغانستان ایجاد شده است.
+          </p>
         </div>
 
+        {/* Statistics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className={`inline-flex p-3 rounded-lg ${stat.bg} mb-4`}>
+                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Features Section */}
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold mb-6 text-center">ویژگی‌های اصلی سیستم</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {features.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="inline-flex p-2 bg-primary/10 rounded-lg mb-4 w-fit">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    <CardDescription>{feature.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
+
+        {/* Call to Action */}
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="text-center space-y-2">
+            <h3 className="text-xl font-bold">{t('afghanistan.readyToContinue')}</h3>
+            <p className="text-muted-foreground">{t('afghanistan.returnWhenReady')}</p>
+          </div>
 
           <div className="flex gap-4 justify-center">
             <Button 
