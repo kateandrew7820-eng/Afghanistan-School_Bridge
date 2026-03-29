@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, AlertCircle, Sparkles } from "lucide-react";
+import { Clock, AlertCircle, ExternalLink } from "lucide-react";
 
 type Status = "pending" | "rejected" | "approved";
 
@@ -9,10 +9,7 @@ export default function PendingVerification() {
 
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<Status>("pending");
-
   const [countdown, setCountdown] = useState(3);
-  const [showDecision, setShowDecision] = useState(false);
-  const [fading, setFading] = useState(false);
 
   // simulate fetch
   useEffect(() => {
@@ -24,7 +21,7 @@ export default function PendingVerification() {
     return () => clearTimeout(timer);
   }, []);
 
-  // countdown
+  // countdown redirect
   useEffect(() => {
     if (loading || status !== "pending") return;
 
@@ -32,7 +29,7 @@ export default function PendingVerification() {
       setCountdown((c) => {
         if (c <= 1) {
           clearInterval(interval);
-          setShowDecision(true); // 👉 show decision UI instead of auto jump
+          navigate("/afghanistan-info");
           return 0;
         }
         return c - 1;
@@ -40,115 +37,77 @@ export default function PendingVerification() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [loading, status]);
+  }, [loading, status, navigate]);
 
-  const goHome = () => {
-    setFading(true);
-    setTimeout(() => navigate("/"), 600);
-  };
-
-  const goLogin = () => {
-    setFading(true);
-    setTimeout(() => navigate("/login"), 600);
-  };
-
-  // LOADING
+  // LOADING STATE
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3">
         <div className="h-10 w-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-muted-foreground">در حال بررسی حساب...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
-  // REJECTED
+  // REJECTED STATE
   if (status === "rejected") {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="w-full max-w-md bg-card border rounded-2xl p-6 text-center space-y-4 shadow-md">
           <h2 className="text-red-500 text-xl font-bold">
-            حساب رد شده است
+            Account Rejected
           </h2>
 
           <p className="text-muted-foreground">
-            لطفاً با مدیریت تماس بگیرید.
+            Please contact admin for more information.
           </p>
 
           <button
             onClick={() => navigate("/login")}
             className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
           >
-            بازگشت به ورود
+            Back to Login
           </button>
         </div>
       </div>
     );
   }
 
-  // MAIN PENDING UI
+  // PENDING STATE (MAIN UI)
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-yellow-50 via-background to-yellow-100 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-yellow-50 via-background to-yellow-100">
 
-      {/* CARD */}
-      <div className="w-full max-w-lg bg-card border rounded-2xl shadow-xl p-8 text-center space-y-6">
+      <div className="w-full max-w-lg bg-card border rounded-2xl shadow-lg p-8 text-center space-y-6">
 
-        {/* ICON */}
+        {/* Icon */}
         <div className="flex justify-center">
           <Clock className="w-14 h-14 text-yellow-500 animate-pulse" />
         </div>
 
-        {/* TITLE */}
+        {/* Title */}
         <h1 className="text-2xl font-bold">
-          وضعیت بررسی حساب
+          Verification Pending
         </h1>
 
-        {/* DESCRIPTION */}
+        {/* Description */}
         <p className="text-muted-foreground">
-          حساب شما در حال بررسی توسط سیستم است.
+          Your account is currently under review by the system.
         </p>
 
-        {/* TIMER */}
-        {!showDecision && (
-          <div className="flex items-center justify-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg">
-            <AlertCircle className="w-4 h-4" />
-            انتقال خودکار در {countdown} ثانیه
-          </div>
-        )}
+        {/* Countdown Alert */}
+        <div className="flex items-center justify-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg">
+          <AlertCircle className="w-4 h-4" />
+          Redirecting in {countdown}s
+        </div>
 
-        {/* AFTER TIMER: DUOLINGO STYLE CARD */}
-        {showDecision && (
-          <div className="bg-gradient-to-br from-green-50 to-blue-50 border rounded-xl p-5 space-y-4 animate-fade-in">
-
-            <div className="flex items-center justify-center gap-2 text-green-600 font-semibold">
-              <Sparkles className="w-5 h-5" />
-              آماده انتقال هستید
-            </div>
-
-            <p className="text-sm text-gray-600 leading-relaxed">
-              شما به صفحه اصلی هدایت خواهید شد که شامل اطلاعات عمومی افغانستان است.
-              تا تکمیل بررسی حساب، دسترسی شما محدود باقی می‌ماند.
-            </p>
-
-            <div className="flex flex-col gap-3 pt-2">
-
-              <button
-                onClick={goHome}
-                className="bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition font-medium"
-              >
-                ادامه
-              </button>
-
-              <button
-                onClick={goLogin}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg transition"
-              >
-                لغو و بازگشت به ورود
-              </button>
-
-            </div>
-          </div>
-        )}
+        {/* Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center justify-center gap-2 w-full border py-2 rounded-lg hover:bg-accent transition"
+        >
+          <ExternalLink className="w-4 h-4" />
+          System Info
+        </button>
 
       </div>
     </div>
