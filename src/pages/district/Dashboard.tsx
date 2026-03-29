@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  School, CheckCircle2, Clock, AlertCircle, Loader2, Eye
+  School, CheckCircle2, Clock, Eye, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -32,6 +32,7 @@ export default function DistrictDashboard() {
     pending: 0,
     approved: 0,
   });
+
   const [recent, setRecent] = useState<Submission[]>([]);
 
   useEffect(() => {
@@ -39,20 +40,29 @@ export default function DistrictDashboard() {
   }, [profile]);
 
   async function fetchData() {
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      // Schools count
+    try {
+      const district = profile?.district;
+
+      // ✅ 1. Schools count (filtered)
       const { count: schoolCount } = await supabase
         .from("schools")
         .select("*", { count: "exact", head: true })
-        .eq("district", profile?.district);
+        .eq("district", district);
 
-      // Fetch all submissions
+      // ✅ 2. Optimized fetch (filtered + limited)
+      const baseQuery = (table: string) =>
+        supabase
+          .from(table)
+          .select("id,status,created_at,school_id,schools(name)")
+          .eq("schools.district", district)
+          .limit(20);
+
       const [statsRes, reportsRes, formsRes] = await Promise.all([
-        supabase.from("statistics_submissions").select("id,status,created_at,schools(name)"),
-        supabase.from("report_submissions").select("id,status,created_at,schools(name)"),
-        supabase.from("form_submissions").select("id,status,created_at,schools(name)")
+        baseQuery("statistics_submissions"),
+        baseQuery("report_submissions"),
+        baseQuery("form_submissions"),
       ]);
 
       const normalize = (data: any[], type: string): Submission[] =>
@@ -64,14 +74,14 @@ export default function DistrictDashboard() {
           created_at: item.created_at,
         }));
 
-      const all: Submission[] = [
-        ...normalize(statsRes.data, "احصاییه"),
+      const all = [
+        ...normalize(statsRes.data, "آمار"),
         ...normalize(reportsRes.data, "گزارش"),
         ...normalize(formsRes.data, "فورم"),
       ];
 
-      const pending = all.filter(s => s.status === "pending").length;
-      const approved = all.filter(s => s.status === "approved").length;
+      const pending = all.filter((s) => s.status === "pending").length;
+      const approved = all.filter((s) => s.status === "approved").length;
 
       setStats({
         schools: schoolCount || 0,
@@ -83,137 +93,92 @@ export default function DistrictDashboard() {
       setRecent(
         all
           .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
-          .slice(0, 5)
+          .slice(0, 6) // clean limit
       );
 
-    } catch (e) {
-      console.error("Fetch error:", e);
     } finally {
       setLoading(false);
     }
   }
 
   function normalizeStatus(status: string): Status {
-    if (!status) return "pending";
-
     if (["approved", "تأیید شده"].includes(status)) return "approved";
     if (["rejected", "رد شده"].includes(status)) return "rejected";
     return "pending";
   }
 
-  function statusUI(status: Status) {
-    switch (status) {
-      case "approved":
-        return { label: "تایید شده", class: "bg-green-100 text-green-700" };
-      case "pending":
-        return { label: "در انتظار", class: "bg-yellow-100 text-yellow-700" };
-      case "rejected":
-        return { label: "رد شده", class: "bg-red-100 text-red-700" };
-    }
-  }
-
   return (
     <div className="space-y-6">
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">دشبورد ناحیه</h1>
+      {/* HEADER */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          داشبورد ناحیه
+        </h1>
         <p className="text-sm text-muted-foreground">
-          {profile?.district || "ناحیه"} — مدیریت ارسال‌ها
+          {profile?.district} — مدیریت هوشمند ارسال‌ها
         </p>
       </div>
 
-      {/* Stats */}
+      {/* STATS */}
       <div className="grid md:grid-cols-4 gap-4">
 
-        <StatCard
-          title="مکاتب"
-          value={stats.schools}
-          icon={<School />}
-          color="bg-blue-100"
-          loading={loading}
-        />
-
-        <StatCard
-          title="کل ارسال‌ها"
-          value={stats.total}
-          icon={<CheckCircle2 />}
-          color="bg-purple-100"
-          loading={loading}
-        />
-
-        <StatCard
-          title="تایید شده"
-          value={stats.approved}
-          icon={<CheckCircle2 />}
-          color="bg-green-100"
-          loading={loading}
-        />
-
-        <StatCard
-          title="در انتظار"
-          value={stats.pending}
-          icon={<Clock />}
-          color="bg-yellow-100"
-          loading={loading}
-        />
+        <StatCard title="مکاتب" value={stats.schools} loading={loading} tone="blue" />
+        <StatCard title="کل ارسال‌ها" value={stats.total} loading={loading} tone="purple" />
+        <StatCard title="تایید شده" value={stats.approved} loading={loading} tone="green" />
+        <StatCard title="در انتظار" value={stats.pending} loading={loading} tone="yellow" />
 
       </div>
 
-      {/* Quick Action */}
+      {/* ACTION */}
       <Link to="/district/submissions">
-        <Card className="cursor-pointer hover:shadow-md transition">
-          <CardContent className="flex items-center justify-between p-4">
-            <span className="font-medium">مشاهده ارسال‌ها</span>
-            <Eye className="w-5 h-5" />
+        <Card className="cursor-pointer hover:shadow-md transition border-dashed">
+          <CardContent className="flex justify-between items-center p-4">
+            <span className="font-medium">مشاهده همه ارسال‌ها</span>
+            <Eye className="w-5 h-5 text-muted-foreground" />
           </CardContent>
         </Card>
       </Link>
 
-      {/* Recent */}
-      <Card>
+      {/* RECENT */}
+      <Card className="border-none shadow-sm">
         <CardHeader>
-          <CardTitle>آخرین ارسال‌ها</CardTitle>
+          <CardTitle>آخرین فعالیت‌ها</CardTitle>
         </CardHeader>
-        <CardContent>
 
+        <CardContent>
           {loading ? (
             <div className="flex justify-center py-6">
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin text-muted-foreground" />
             </div>
           ) : recent.length === 0 ? (
-            <p className="text-center text-muted-foreground">
-              هنوز هیچ ارسالی وجود ندارد
+            <p className="text-center text-muted-foreground py-6">
+              هنوز هیچ ارسالی ثبت نشده
             </p>
           ) : (
             <div className="space-y-3">
-              {recent.map((s) => {
-                const ui = statusUI(s.status);
-                return (
-                  <div
-                    key={s.id}
-                    className="flex justify-between items-center p-3 rounded-lg border hover:bg-accent"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{s.school_name}</p>
-                      <p className="text-xs text-muted-foreground">{s.type}</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Badge className={ui.class}>{ui.label}</Badge>
-                      <span className="text-xs">
-                        {format(new Date(s.created_at), "d MMM")}
-                      </span>
-                    </div>
+              {recent.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex justify-between items-center p-3 rounded-xl border bg-white dark:bg-gray-900 hover:bg-gray-50 transition"
+                >
+                  <div>
+                    <p className="font-medium text-sm">{s.school_name}</p>
+                    <p className="text-xs text-muted-foreground">{s.type}</p>
                   </div>
-                );
-              })}
 
-              <Link to="/district/submissions">
-                <Button className="w-full mt-3" variant="outline">
-                  همه ارسال‌ها
-                </Button>
-              </Link>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={s.status} />
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(s.created_at), "d MMM")}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              <Button asChild variant="outline" className="w-full mt-3">
+                <Link to="/district/submissions">مشاهده کامل</Link>
+              </Button>
             </div>
           )}
         </CardContent>
@@ -223,19 +188,52 @@ export default function DistrictDashboard() {
   );
 }
 
-/* --- Small Component --- */
-function StatCard({ title, value, icon, color, loading }: any) {
+/* ---------------- UI COMPONENTS ---------------- */
+
+function StatCard({ title, value, loading, tone }: any) {
+  const tones: any = {
+    blue: "bg-blue-50 text-blue-600",
+    purple: "bg-purple-50 text-purple-600",
+    green: "bg-green-50 text-green-600",
+    yellow: "bg-yellow-50 text-yellow-600",
+  };
+
   return (
-    <Card className="hover:scale-[1.02] transition">
-      <CardHeader className="flex justify-between flex-row pb-2">
-        <CardTitle className="text-sm">{title}</CardTitle>
-        <div className={`p-2 rounded ${color}`}>{icon}</div>
+    <Card className="hover:scale-[1.02] transition shadow-sm border-none">
+      <CardHeader className="flex flex-row justify-between pb-2">
+        <CardTitle className="text-sm text-muted-foreground">
+          {title}
+        </CardTitle>
+        <div className={`p-2 rounded-lg ${tones[tone]}`}>
+          <School className="w-4 h-4" />
+        </div>
       </CardHeader>
+
       <CardContent>
-        <div className="text-2xl font-bold">
+        <div className="text-2xl font-bold text-gray-900 dark:text-white">
           {loading ? "..." : value}
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function StatusBadge({ status }: { status: Status }) {
+  const map = {
+    approved: "bg-green-100 text-green-700",
+    pending: "bg-yellow-100 text-yellow-700",
+    rejected: "bg-red-100 text-red-700",
+  };
+
+  const label = {
+    approved: "تایید",
+    pending: "در انتظار",
+    rejected: "رد",
+  };
+
+  return (
+    <Badge className={`${map[status]} border-none`}>
+      {label[status]}
+    </Badge>
   );
 }
