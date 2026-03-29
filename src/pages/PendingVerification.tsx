@@ -102,7 +102,7 @@ export default function PendingVerification() {
 
         {/* Button */}
         <button
-          onClick={() => navigate("/afghanistan-info")}
+          onClick={() => navigate("/")}
           className="flex items-center justify-center gap-2 w-full border py-2 rounded-lg hover:bg-accent transition"
         >
           <ExternalLink className="w-4 h-4" />
