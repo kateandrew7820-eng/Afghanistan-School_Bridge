@@ -13,18 +13,12 @@ export default function PendingVerification() {
 
   // simulate fetch
   useEffect(() => {
-    let mounted = true;
-
     const timer = setTimeout(() => {
-      if (!mounted) return;
       setStatus("pending");
       setLoading(false);
     }, 1000);
 
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   // countdown redirect
@@ -45,22 +39,33 @@ export default function PendingVerification() {
     return () => clearInterval(interval);
   }, [loading, status, navigate]);
 
+  // LOADING STATE
   if (loading) {
     return (
-      <div style={styles.center}>
-        <div style={styles.spinner} />
-        <p>Loading...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
+        <div className="h-10 w-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
+  // REJECTED STATE
   if (status === "rejected") {
     return (
-      <div style={styles.center}>
-        <div style={styles.card}>
-          <h2 style={{ color: "red" }}>Account Rejected</h2>
-          <p>Please contact admin.</p>
-          <button style={styles.button} onClick={() => navigate("/login")}>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-card border rounded-2xl p-6 text-center space-y-4 shadow-md">
+          <h2 className="text-red-500 text-xl font-bold">
+            Account Rejected
+          </h2>
+
+          <p className="text-muted-foreground">
+            Please contact admin for more information.
+          </p>
+
+          <button
+            onClick={() => navigate("/login")}
+            className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
+          >
             Back to Login
           </button>
         </div>
@@ -68,27 +73,42 @@ export default function PendingVerification() {
     );
   }
 
+  // PENDING STATE (MAIN UI)
   return (
-    <div style={styles.page}>
-      <div style={styles.cardLarge}>
-        <Clock size={60} color="#eab308" />
+    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-yellow-50 via-background to-yellow-100">
 
-        <h1>Verification Pending</h1>
+      <div className="w-full max-w-lg bg-card border rounded-2xl shadow-lg p-8 text-center space-y-6">
 
-        <p>Your account is under review.</p>
+        {/* Icon */}
+        <div className="flex justify-center">
+          <Clock className="w-14 h-14 text-yellow-500 animate-pulse" />
+        </div>
 
-        <div style={styles.alert}>
-          <AlertCircle size={16} />
+        {/* Title */}
+        <h1 className="text-2xl font-bold">
+          Verification Pending
+        </h1>
+
+        {/* Description */}
+        <p className="text-muted-foreground">
+          Your account is currently under review by the system.
+        </p>
+
+        {/* Countdown Alert */}
+        <div className="flex items-center justify-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg">
+          <AlertCircle className="w-4 h-4" />
           Redirecting in {countdown}s
         </div>
 
+        {/* Button */}
         <button
-          style={styles.buttonOutline}
           onClick={() => navigate("/afghanistan-info")}
+          className="flex items-center justify-center gap-2 w-full border py-2 rounded-lg hover:bg-accent transition"
         >
-          <ExternalLink size={16} />
+          <ExternalLink className="w-4 h-4" />
           System Info
         </button>
+
       </div>
     </div>
   );
