@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useErrorToast } from "@/lib/errorToast";
@@ -8,16 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 import {
-<<<<<<< HEAD
-  CheckCircle2,
-  AlertTriangle,
-  Play,
-  Loader2,
-  Info,
-  X,
-=======
   CheckCircle2, AlertTriangle, Loader2, Play, Info, X
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
 } from "lucide-react";
 
 type Status = "idle" | "loading" | "success" | "error";
@@ -27,39 +18,13 @@ export default function TestButtons() {
   const { isDemoMode, role, roleTier } = useAuth();
   const { showSuccess, showErrorMessage } = useErrorToast();
 
-<<<<<<< HEAD
   const [state, setState] = useState<Record<string, Status>>({});
   const [msg, setMsg] = useState<Record<string, string>>({});
   const [guideOpen, setGuideOpen] = useState(false);
-  const guideRef = useRef<HTMLDivElement>(null);
-=======
-  const [state, setState] = useState<Record<string, Status>>({});
-  const [msg, setMsg] = useState<Record<string, string>>({});
-  const [guideOpen, setGuideOpen] = useState(false);
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
 
-<<<<<<< HEAD
-  /* ✅ Close on outside click */
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (guideRef.current && !guideRef.current.contains(e.target as Node)) {
-        setGuideOpen(false);
-      }
-    }
-    if (guideOpen) document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [guideOpen]);
-=======
-  const simulate = async (id: string, label: string) => {
-    setState(p => ({ ...p, [id]: "loading" }));
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
-
-<<<<<<< HEAD
   const simulate = async (id: string, label: string) => {
     setState(p => ({ ...p, [id]: "loading" }));
 
-=======
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
     try {
       await new Promise(r => setTimeout(r, 700 + Math.random() * 1000));
 
@@ -86,21 +51,12 @@ export default function TestButtons() {
     return (
       <div className="space-y-1 group">
         <Button
-<<<<<<< HEAD
-          onClick={() => {
-            if (simulateMode) simulate(id, label);
-            if (path) navigate(path);
-          }}
-          disabled={s === "loading"}
-          className="w-full justify-start hover:scale-[1.02] transition"
-=======
           onClick={() => {
             if (simulateMode) simulate(id, label);
             if (path) navigate(path);
           }}
           disabled={s === "loading"}
           className="w-full justify-start transition-all duration-300 hover:scale-[1.02]"
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
           variant="outline"
         >
           {s === "loading" && <Loader2 className="mr-2 animate-spin" />}
@@ -110,16 +66,6 @@ export default function TestButtons() {
           {label}
         </Button>
 
-<<<<<<< HEAD
-        {msg[id] && (
-          <div className="h-1 bg-muted rounded overflow-hidden">
-            <div
-              className={`h-full ${
-                s === "success" ? "bg-green-500" : "bg-red-500"
-              } animate-pulse`}
-            />
-          </div>
-=======
         {/* feedback */}
         {msg[id] && (
           <div className="h-1 bg-muted rounded overflow-hidden">
@@ -127,21 +73,11 @@ export default function TestButtons() {
               s === "success" ? "bg-green-500" : "bg-red-500"
             } w-full animate-pulse`} />
           </div>
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
         )}
       </div>
     );
   };
 
-<<<<<<< HEAD
-  const Section = ({ title, color, children }: any) => (
-    <Card className="border-0 shadow-sm hover:shadow-md transition overflow-hidden">
-      <div className={`h-1 bg-gradient-to-r ${color}`} />
-      <CardContent className="p-5 space-y-3">
-        <h3 className="font-semibold">{title}</h3>
-        {children}
-      </CardContent>
-=======
   const Section = ({ title, color, children }: any) => (
     <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition">
       <div className={`h-1 bg-gradient-to-r ${color}`} />
@@ -149,46 +85,10 @@ export default function TestButtons() {
         <h3 className="font-semibold">{title}</h3>
         {children}
       </CardContent>
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
     </Card>
   );
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-5">
-
-      {/* 🔘 Guide button */}
-      <div className="fixed top-4 left-4 z-50">
-        <Button size="icon" variant="secondary" onClick={() => setGuideOpen(true)}>
-          <Info className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* 📌 Guide popup */}
-      {guideOpen && (
-        <div className="fixed top-16 left-4 z-50 animate-in fade-in zoom-in-95">
-          <Card ref={guideRef} className="w-80 shadow-xl border-dashed bg-background/95 backdrop-blur">
-            <CardContent className="p-4 space-y-3 text-sm text-muted-foreground">
-
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-foreground">راهنما</span>
-                <X className="cursor-pointer w-4" onClick={() => setGuideOpen(false)} />
-              </div>
-
-              <p>✅ دکمه‌ها → انتقال مستقیم یا اجرای عملیات</p>
-              <p>🧪 تست‌ها → شبیه‌سازی با بازخورد واقعی</p>
-              <p>⏳ تاخیر → شبیه‌سازی سرعت شبکه</p>
-              <p>🎯 هدف → بررسی بدون ریسک</p>
-              <p>🎨 Demo → بدون ذخیره اطلاعات</p>
-              <p>⚡ سریع → فقط کلیک کن</p>
-
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Main */}
-=======
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-5">
 
       {/* 🔘 Floating Guide Button */}
@@ -214,17 +114,8 @@ export default function TestButtons() {
         </div>
       )}
 
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
       <div className="max-w-4xl mx-auto space-y-6">
 
-<<<<<<< HEAD
-        <div>
-          <h1 className="text-2xl font-bold">🧪 تست سیستم</h1>
-          <div className="flex gap-2 mt-2 flex-wrap">
-            <Badge variant="outline">مقام: {role || "-"}</Badge>
-            <Badge variant="outline">سطح: {roleTier || "-"}</Badge>
-            {isDemoMode && <Badge className="bg-blue-500">Demo</Badge>}
-=======
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-2xl font-bold">🧪 تست سیستم</h1>
@@ -233,15 +124,11 @@ export default function TestButtons() {
             <Badge variant="outline">مقام: {role || "-"}</Badge>
             <Badge variant="outline">سطح: {roleTier || "-"}</Badge>
             {isDemoMode && <Badge className="bg-blue-500">Demo</Badge>}
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
         {/* Sections */}
 
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
         {(roleTier === "school" || !roleTier) && (
           <Section title="🏫 مکتب" color="from-blue-400 to-blue-600">
             <Action id="s1" label="ارسال آمار" path="/school/submit-statistics" />
@@ -261,11 +148,6 @@ export default function TestButtons() {
           </Section>
         )}
 
-<<<<<<< HEAD
-        <Section title="⚙️ عمومی" color="from-gray-400 to-gray-600">
-          <Action id="g1" label="Refresh" simulateMode />
-          <Action id="g2" label="Save" simulateMode />
-=======
         {(roleTier === "province" || !roleTier) && (
           <Section title="🌍 ولایت" color="from-purple-400 to-purple-600">
             <Action id="p1" label="آمار" path="/province" />
@@ -286,23 +168,14 @@ export default function TestButtons() {
           <Action id="g2" label="Save" simulateMode />
           <Action id="g3" label="Download" simulateMode />
           <Action id="g4" label="Print" simulateMode />
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
         </Section>
 
-<<<<<<< HEAD
-        <div className="flex justify-center pt-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            بازگشت
-          </Button>
-        </div>
-=======
         {/* Back */}
         <div className="flex justify-center pt-4">
           <Button variant="outline" onClick={() => navigate(-1)}>
             بازگشت
           </Button>
         </div>
->>>>>>> a4d138103e52e8495bca5a80b1cabc41d613e43a
 
       </div>
     </div>
