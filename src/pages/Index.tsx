@@ -41,7 +41,7 @@ export default function Index() {
     {
       icon: Building2,
       label: t('afghanistan.stats.totalSchools'),
-      value: '18000+',
+      value: '+18000',
       color: 'text-blue-600',
       bg: 'bg-blue-50',
     },
@@ -55,7 +55,7 @@ export default function Index() {
     {
       icon: BookOpen,
       label: t('afghanistan.stats.totalTeachers'),
-      value: '220,000',
+      value: '+220,000',
       color: 'text-purple-600',
       bg: 'bg-purple-50',
     },
@@ -97,38 +97,58 @@ export default function Index() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
 
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/80 backdrop-blur border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">{t('afghanistan.title')}</h1>
+      <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-background/80 via-card/70 to-background/80 backdrop-blur-xl">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              {t('afghanistan.title')}
+            </h1>
+
             <p className="text-sm text-muted-foreground">
               {t('afghanistan.description')}
             </p>
           </div>
 
-          <Button size="sm" variant="outline" onClick={handleContinue}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleContinue}
+            className="hover:bg-primary hover:text-white transition"
+          >
             {t('common.close')}
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-14">
 
-        {/* Welcome */}
-        <div className="max-w-3xl mx-auto text-center mb-12 space-y-4">
-          <div className="inline-flex p-3 bg-primary/10 rounded-full">
-            <Heart className="w-6 h-6 text-primary" />
+        {/* Hero / Motivation */}
+        <div className="max-w-3xl mx-auto text-center mb-14 space-y-6">
+
+          {/* Icon Badge */}
+          <div className="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-br from-primary/15 to-blue-500/10 shadow-sm">
+            <Heart className="w-7 h-7 text-primary animate-pulse" />
           </div>
 
-          <h2 className="text-3xl font-bold">
-            {t('afghanistan.motivation')}
+          {/* Main Heading */}
+          <h2 className="text-4xl font-extrabold tracking-tight leading-tight">
+            ساخت آینده آموزش در افغانستان
           </h2>
 
-          <p className="text-muted-foreground text-lg">
-            این سیستم برای بهبود نظام آموزشی افغانستان و ایجاد ارتباط بهتر میان تمام سطوح طراحی شده است.
+          {/* Subtitle */}
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            این سیستم برای اتصال تمام سطوح نظام آموزشی افغانستان طراحی شده است؛
+            با هدف توانمندسازی مکاتب، معلمان و مدیران از طریق داده‌های دقیق، لحظه‌ای و شفاف.
           </p>
-        </div>
 
+          {/* Motivation line */}
+          <div className="text-sm text-primary font-medium">
+            «قدم‌های کوچک در آموزش، نسل‌های بزرگ تغییر را می‌سازد.»
+          </div>
+
+        </div>
+        
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
           {stats.map((s, i) => {
