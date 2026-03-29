@@ -99,38 +99,7 @@ export default function AfghanistanInfoPage() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
-        {/* Welcome Section */}
-        <div className="max-w-3xl mx-auto mb-12 text-center space-y-4">
-          <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full">
-            <Heart className="w-6 h-6 text-primary" />
-          </div>
-          <h2 className="text-3xl font-bold">{t('afghanistan.motivation')}</h2>
-          <p className="text-lg text-muted-foreground">
-            این سیستم برای بهبود نظام آموزشی و ارتباط بهتر میان تمام اجزاء نظام تعلیمی افغانستان ایجاد شده است.
-          </p>
-        </div>
-
-        
-        {/* Information Cards */}
-        <div className="max-w-3xl mx-auto grid gap-6 mb-12">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">نام شما</CardTitle>
-              <CardDescription>{profile?.full_name || 'بدون نام'}</CardDescription>
-            </CardHeader>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">نقش شما</CardTitle>
-              <CardDescription>
-                {typeof role === 'string' && t(`roles.${role}`) || 'نامشخص'}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
+      
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">مکتب</CardTitle>
@@ -139,12 +108,6 @@ export default function AfghanistanInfoPage() {
           </Card>
         </div>
 
-        {/* Call to Action */}
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="text-center space-y-2">
-            <h3 className="text-xl font-bold">{t('afghanistan.readyToContinue')}</h3>
-            <p className="text-muted-foreground">{t('afghanistan.returnWhenReady')}</p>
-          </div>
 
           <div className="flex gap-4 justify-center">
             <Button 
