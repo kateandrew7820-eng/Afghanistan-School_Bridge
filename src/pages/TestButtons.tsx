@@ -4,196 +4,178 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useErrorToast } from "@/lib/errorToast";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 import {
-  CheckCircle2,
-  AlertTriangle,
-  Play,
-  Loader2,
+  CheckCircle2, AlertTriangle, Loader2, Play, Info, X
 } from "lucide-react";
 
-type ButtonStatus = "idle" | "loading" | "success" | "error";
+type Status = "idle" | "loading" | "success" | "error";
 
 export default function TestButtons() {
   const navigate = useNavigate();
   const { isDemoMode, role, roleTier } = useAuth();
   const { showSuccess, showErrorMessage } = useErrorToast();
 
-  const [buttonStates, setButtonStates] = useState<Record<string, ButtonStatus>>({});
-  const [messages, setMessages] = useState<Record<string, string>>({});
+  const [state, setState] = useState<Record<string, Status>>({});
+  const [msg, setMsg] = useState<Record<string, string>>({});
+  const [guideOpen, setGuideOpen] = useState(false);
 
-  const getState = (id: string) => buttonStates[id] || "idle";
-
-  const simulateAction = async (id: string, label: string) => {
-    setButtonStates((p) => ({ ...p, [id]: "loading" }));
+  const simulate = async (id: string, label: string) => {
+    setState(p => ({ ...p, [id]: "loading" }));
 
     try {
-      await new Promise((r) => setTimeout(r, 800 + Math.random() * 1200));
+      await new Promise(r => setTimeout(r, 700 + Math.random() * 1000));
 
       if (Math.random() > 0.15) {
-        setButtonStates((p) => ({ ...p, [id]: "success" }));
-        setMessages((p) => ({ ...p, [id]: `✅ ${label} با موفقیت انجام شد` }));
-        showSuccess(`${label} موفقانه انجام شد`, "موفقیت");
-      } else {
-        throw new Error();
-      }
+        setState(p => ({ ...p, [id]: "success" }));
+        setMsg(p => ({ ...p, [id]: `✅ ${label} انجام شد` }));
+        showSuccess(label);
+      } else throw new Error();
     } catch {
-      setButtonStates((p) => ({ ...p, [id]: "error" }));
-      setMessages((p) => ({ ...p, [id]: `❌ در اجرای ${label} خطا رخ داد` }));
-      showErrorMessage(`خطا در ${label}`, "خطا");
+      setState(p => ({ ...p, [id]: "error" }));
+      setMsg(p => ({ ...p, [id]: `❌ خطا در ${label}` }));
+      showErrorMessage(label);
     }
 
     setTimeout(() => {
-      setButtonStates((p) => ({ ...p, [id]: "idle" }));
-      setMessages((p) => ({ ...p, [id]: "" }));
-    }, 2500);
+      setState(p => ({ ...p, [id]: "idle" }));
+      setMsg(p => ({ ...p, [id]: "" }));
+    }, 2000);
   };
 
-  const ActionButton = ({
-    id,
-    label,
-    path,
-    simulate,
-  }: {
-    id: string;
-    label: string;
-    path?: string;
-    simulate?: boolean;
-  }) => {
-    const state = getState(id);
-
-    const handleClick = () => {
-      if (simulate) simulateAction(id, label);
-      if (path) navigate(path);
-    };
+  const Action = ({ id, label, path, simulateMode }: any) => {
+    const s = state[id] || "idle";
 
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 group">
         <Button
+          onClick={() => {
+            if (simulateMode) simulate(id, label);
+            if (path) navigate(path);
+          }}
+          disabled={s === "loading"}
+          className="w-full justify-start transition-all duration-300 hover:scale-[1.02]"
           variant="outline"
-          className="w-full justify-start"
-          disabled={state === "loading"}
-          onClick={handleClick}
         >
-          {state === "loading" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {state === "success" && <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />}
-          {state === "error" && <AlertTriangle className="mr-2 h-4 w-4 text-red-600" />}
-          {state === "idle" && <Play className="mr-2 h-4 w-4" />}
+          {s === "loading" && <Loader2 className="mr-2 animate-spin" />}
+          {s === "success" && <CheckCircle2 className="mr-2 text-green-600" />}
+          {s === "error" && <AlertTriangle className="mr-2 text-red-600" />}
+          {s === "idle" && <Play className="mr-2" />}
           {label}
         </Button>
 
-        {messages[id] && (
-          <p
-            className={`text-sm ${
-              state === "success" ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {messages[id]}
-          </p>
+        {/* feedback */}
+        {msg[id] && (
+          <div className="h-1 bg-muted rounded overflow-hidden">
+            <div className={`h-full ${
+              s === "success" ? "bg-green-500" : "bg-red-500"
+            } w-full animate-pulse`} />
+          </div>
         )}
       </div>
     );
   };
 
-  const Section = ({
-    title,
-    description,
-    children,
-  }: {
-    title: string;
-    description: string;
-    children: React.ReactNode;
-  }) => (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-3">{children}</CardContent>
+  const Section = ({ title, color, children }: any) => (
+    <Card className="overflow-hidden border-0 shadow-sm hover:shadow-md transition">
+      <div className={`h-1 bg-gradient-to-r ${color}`} />
+      <CardContent className="p-5 space-y-3">
+        <h3 className="font-semibold">{title}</h3>
+        {children}
+      </CardContent>
     </Card>
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-5">
+
+      {/* 🔘 Floating Guide Button */}
+      <div className="fixed top-4 right-4 z-50">
+        <Button size="icon" variant="secondary" onClick={() => setGuideOpen(true)}>
+          <Info className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* 📌 Guide Popup */}
+      {guideOpen && (
+        <div className="fixed top-16 right-4 w-72 bg-white shadow-xl rounded-xl p-4 z-50 animate-in fade-in">
+          <div className="flex justify-between items-center mb-2">
+            <span className="font-semibold text-sm">راهنما</span>
+            <X className="cursor-pointer w-4" onClick={() => setGuideOpen(false)} />
+          </div>
+
+          <div className="text-xs text-muted-foreground space-y-2">
+            <p>✅ دکمه‌ها → انتقال یا تست</p>
+            <p>🧪 تست‌ها → شبیه‌سازی</p>
+            <p>⚡ سریع، بدون ذخیره واقعی</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto space-y-6">
 
-        <div>
-          <h1 className="text-3xl font-bold">🧪 آزمایش دکمه‌ها</h1>
-          <p className="text-muted-foreground">
-            تمام عملکردهای مربوط به مقام خود را بررسی و آزمایش کنید
-          </p>
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">🧪 تست سیستم</h1>
 
-          <div className="flex gap-2 mt-3 flex-wrap">
-            <Badge variant="outline">مقام: {role || "نامشخص"}</Badge>
-            <Badge variant="outline">سطح: {roleTier || "نامشخص"}</Badge>
-            {isDemoMode && <Badge className="bg-blue-600">حالت نمایشی</Badge>}
+          <div className="flex gap-2 flex-wrap">
+            <Badge variant="outline">مقام: {role || "-"}</Badge>
+            <Badge variant="outline">سطح: {roleTier || "-"}</Badge>
+            {isDemoMode && <Badge className="bg-blue-500">Demo</Badge>}
           </div>
         </div>
 
-        {isDemoMode && (
-          <Alert className="border-blue-200 bg-blue-50">
-            <AlertTriangle className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
-              حالت نمایشی فعال است. هیچ داده واقعی ذخیره نمی‌شود.
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* Sections */}
 
         {(roleTier === "school" || !roleTier) && (
-          <Section title="🏫 دشبورد مکتب" description="عملکردهای مربوط به مکتب">
-            <ActionButton id="stats" label="ارسال آمار" path="/school/submit-statistics" />
-            <ActionButton id="reports" label="ارسال گزارش" path="/school/submit-reports" />
-            <ActionButton id="forms" label="ارسال فورم‌ها" path="/school/submit-forms" />
-            <ActionButton id="ann" label="مشاهده اعلانات" path="/school/announcements" />
-            <ActionButton id="sim1" label="🧪 تست ارسال" simulate />
+          <Section title="🏫 مکتب" color="from-blue-400 to-blue-600">
+            <Action id="s1" label="ارسال آمار" path="/school/submit-statistics" />
+            <Action id="s2" label="ارسال گزارش" path="/school/submit-reports" />
+            <Action id="s3" label="فورم‌ها" path="/school/submit-forms" />
+            <Action id="s4" label="اعلانات" path="/school/announcements" />
+            <Action id="s5" label="تست ارسال" simulateMode />
           </Section>
         )}
 
         {(roleTier === "district" || !roleTier) && (
-          <Section title="🔷 مدیریت ولسوالی" description="عملکردهای مدیریتی منطقه">
-            <ActionButton id="sub" label="مشاهده ارسال‌ها" path="/district/submissions" />
-            <ActionButton id="verify" label="تایید اطلاعات" path="/district/verify" />
-            <ActionButton id="schools" label="مدیریت مکاتب" path="/district/schools" />
-            <ActionButton id="sim2" label="🧪 تست تایید" simulate />
+          <Section title="🏢 ولسوالی" color="from-green-400 to-green-600">
+            <Action id="d1" label="ارسال‌ها" path="/district/submissions" />
+            <Action id="d2" label="تایید" path="/district/verify" />
+            <Action id="d3" label="مکاتب" path="/district/schools" />
+            <Action id="d4" label="تست تایید" simulateMode />
           </Section>
         )}
 
         {(roleTier === "province" || !roleTier) && (
-          <Section title="🔶 مدیریت ولایت" description="نظارت آموزشی در سطح ولایت">
-            <ActionButton id="analytics" label="مشاهده آمار" path="/province" />
-            <ActionButton id="export" label="صدور اطلاعات" simulate />
+          <Section title="🌍 ولایت" color="from-purple-400 to-purple-600">
+            <Action id="p1" label="آمار" path="/province" />
+            <Action id="p2" label="Export" simulateMode />
           </Section>
         )}
 
         {(roleTier === "ministry" || !roleTier) && (
-          <Section title="👑 وزارت معارف" description="مدیریت کلان سیستم آموزشی">
-            <ActionButton id="na" label="آمار ملی" path="/ministry/analytics" />
-            <ActionButton id="users" label="مدیریت کاربران" path="/ministry/users" />
-            <ActionButton id="rep" label="صدور گزارش‌ها" path="/ministry/export" />
+          <Section title="👑 وزارت" color="from-yellow-400 to-orange-500">
+            <Action id="m1" label="ملی" path="/ministry/analytics" />
+            <Action id="m2" label="کاربران" path="/ministry/users" />
+            <Action id="m3" label="گزارش" path="/ministry/export" />
           </Section>
         )}
 
-        <Section title="⚙️ عملکردهای عمومی" description="برای تمام مقام‌ها">
-          <ActionButton id="refresh" label="بازخوانی اطلاعات" simulate />
-          <ActionButton id="save" label="ذخیره تغییرات" simulate />
-          <ActionButton id="download" label="دانلود فایل" simulate />
-          <ActionButton id="print" label="چاپ گزارش" simulate />
+        <Section title="⚙️ عمومی" color="from-gray-400 to-gray-600">
+          <Action id="g1" label="Refresh" simulateMode />
+          <Action id="g2" label="Save" simulateMode />
+          <Action id="g3" label="Download" simulateMode />
+          <Action id="g4" label="Print" simulateMode />
         </Section>
 
-        <Card className="border-dashed">
-          <CardHeader>
-            <CardTitle>راهنمای استفاده</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
-            <p>✅ دکمه‌های واقعی شما را به صفحات سیستم هدایت می‌کنند.</p>
-            <p>🧪 دکمه‌های آزمایشی فقط برای تست عملکرد و نمایش بازخورد هستند.</p>
-            <p>⏳ زمان پاسخ‌دهی شبکه به صورت شبیه‌سازی‌شده نمایش داده می‌شود.</p>
-            <p>🎨 در حالت نمایشی هیچ داده واقعی ذخیره نمی‌شود.</p>
-          </CardContent>
-        </Card>
+        {/* Back */}
+        <div className="flex justify-center pt-4">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            بازگشت
+          </Button>
+        </div>
 
       </div>
     </div>
