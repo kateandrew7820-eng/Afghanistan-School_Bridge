@@ -78,7 +78,7 @@ export default function SchoolDashboard() {
         <div
           onClick={() => setOpenSend(!openSend)}
           className="relative cursor-pointer rounded-3xl p-6 text-white 
-          bg-gradient-to-br from-indigo-600 via-slate-900 to-cyan-500
+          bg-gradient-to-br from-indigo-500 via-slate-900 to-cyan-400
           shadow-xl hover:scale-[1.015] transition-all duration-300 overflow-hidden"
         >
           {/* subtle glow effect */}
