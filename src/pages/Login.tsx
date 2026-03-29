@@ -92,14 +92,16 @@ export default function Login() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const errors: typeof signInErrors = {};
-    const emailValidation = validateEmail(signInEmail, t);
+    const email = signInEmail.trim();
+
+    const emailValidation = validateEmail(email, t);
     const passwordValidation = validatePassword(signInPassword, 6, t);
 
+    const errors: any = {};
     if (!emailValidation.valid) errors.email = emailValidation.message;
     if (!passwordValidation.valid) errors.password = passwordValidation.message;
 
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(errors).length) {
       setSignInErrors(errors);
       return;
     }
@@ -107,36 +109,39 @@ export default function Login() {
     setIsLoading(true);
     setSignInErrors({});
 
-    const { error } = await signIn(signInEmail, signInPassword);
+    const { error } = await signIn(email, signInPassword);
+
+    setIsLoading(false);
 
     if (error) {
       toast({
         title: t('auth.signInFailed'),
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
-      setIsLoading(false);
       return;
     }
 
     toast({
-      title: '✓ خوش آمدید!',
-      description: 'در حال بارگذاری صفحه اصلی...'
+      title: "Welcome back 🚀",
+      description: "Redirecting...",
     });
 
-    setIsLoading(false);
+    navigate("/"); // clean success flow
   };
 
-  // ============================================================================
+// ============================================================================
   // SIGN UP HANDLER
   // ============================================================================
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const errors: typeof signUpErrors = {};
+    const email = signUpEmail.trim();
+  
+    const errors: any = {};
     const nameValidation = validateFullName(signUpFullName, t);
-    const emailValidation = validateEmail(signUpEmail, t);
+    const emailValidation = validateEmail(email, t);
     const passwordValidation = validatePassword(signUpPassword, 6, t);
 
     if (!nameValidation.valid) errors.name = nameValidation.message;
@@ -144,66 +149,36 @@ export default function Login() {
     if (!passwordValidation.valid) errors.password = passwordValidation.message;
 
     if (signUpPassword !== signUpConfirmPassword) {
-      errors.confirmPassword = t('auth.passwordNotMatch');
+      errors.confirmPassword = "Passwords do not match";
     }
 
-    if (Object.keys(errors).length > 0) {
+    if (Object.keys(errors).length) {
       setSignUpErrors(errors);
       return;
     }
 
     setIsLoading(true);
-    setSignupStep(1);
-    setSignUpErrors({});
 
-    toast({
-      title: 'در حال ایجاد حساب...',
-      description: 'لطفاً صبر کنید.'
-    });
+    const { error } = await signUp(email, signUpPassword, signUpFullName);
 
-    const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName);
+    setIsLoading(false);
 
     if (error) {
-      if (error.name === 'AutoLoginFailedError') {
-        toast({
-          title: '✓ حساب ایجاد شد!',
-          description: 'لطفاً با معلومات خود وارد شوید.',
-          variant: "default"
-        });
-        setSignupStep(2);
-        setTimeout(() => {
-          setCurrentTab('signin');
-          setSignInEmail(signUpEmail);
-          setSignInPassword(signUpPassword);
-          setSignUpEmail('');
-          setSignUpPassword('');
-          setSignUpConfirmPassword('');
-          setSignUpFullName('');
-          setSignupStep(0);
-        }, 1500);
-        setIsLoading(false);
-        return;
-      }
-
       toast({
-        title: 'ثبت‌نام ناکام شد',
+        title: "Signup failed",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
-      setSignupStep(0);
-      setIsLoading(false);
       return;
     }
 
-    setSignupStep(2);
     toast({
-      title: '✓ حساب ایجاد شد!',
-      description: 'در حال آماده‌سازی پروفایل...',
+      title: "Account created 🎉",
+      description: "Setting up your profile...",
     });
 
-    setTimeout(() => {
-      navigate('/setup-profile');
-    }, 1000);
+   // 🚀 FIX: NO SIGNIN REDIRECT
+    navigate("/setup-profile");
   };
 
   // ============================================================================
@@ -475,6 +450,7 @@ export default function Login() {
                           <Lock className="h-4 w-4 text-muted-foreground" />
                           {t('auth.password')}
                         </Label>
+
                         <div className="relative">
                           <Input
                             id="signup-password"
@@ -483,28 +459,39 @@ export default function Login() {
                             value={signUpPassword}
                             onChange={(e) => {
                               setSignUpPassword(e.target.value);
-                              if (signUpErrors.password) setSignUpErrors({ ...signUpErrors, password: undefined });
+                              if (signUpErrors.password) {
+                                setSignUpErrors({ ...signUpErrors, password: undefined });
+                              }
                             }}
                             disabled={isLoading || authLoading}
-                            className={`${signUpErrors.password ? 'border-destructive' : ''} h-10 pl-10`}
+                            className={`h-10 pl-10 ${signUpErrors.password ? 'border-destructive' : ''}`}
                             dir="ltr"
                           />
+
                           <button
                             type="button"
                             onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                            className="absolute left-3 top-1/2 -translate-y-1/2"
                             disabled={isLoading || authLoading}
                           >
-                            {showSignUpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showSignUpPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
                           </button>
                         </div>
+
                         {signUpErrors.password && (
                           <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
                             {signUpErrors.password}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground">حداقل ۶ حرف</p>
+
+                        <p className="text-xs text-muted-foreground">
+                          حداقل ۶ حرف
+                        </p>
                       </div>
 
                       {/* Confirm Password */}
@@ -513,6 +500,7 @@ export default function Login() {
                           <Lock className="h-4 w-4 text-muted-foreground" />
                           {t('auth.confirmPassword')}
                         </Label>
+
                         <div className="relative">
                           <Input
                             id="signup-confirm-password"
@@ -521,21 +509,29 @@ export default function Login() {
                             value={signUpConfirmPassword}
                             onChange={(e) => {
                               setSignUpConfirmPassword(e.target.value);
-                              if (signUpErrors.confirmPassword) setSignUpErrors({ ...signUpErrors, confirmPassword: undefined });
+                              if (signUpErrors.confirmPassword) {
+                                setSignUpErrors({ ...signUpErrors, confirmPassword: undefined });
+                              }
                             }}
                             disabled={isLoading || authLoading}
-                            className={`${signUpErrors.confirmPassword ? 'border-destructive' : ''} h-10 pl-10`}
+                            className={`h-10 pl-10 ${signUpErrors.confirmPassword ? 'border-destructive' : ''}`}
                             dir="ltr"
                           />
+
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
                             disabled={isLoading || authLoading}
                           >
-                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
                           </button>
                         </div>
+
                         {signUpErrors.confirmPassword && (
                           <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
@@ -543,7 +539,7 @@ export default function Login() {
                           </p>
                         )}
                       </div>
-
+                      
                       {/* Submit */}
                       <Button
                         type="submit"
