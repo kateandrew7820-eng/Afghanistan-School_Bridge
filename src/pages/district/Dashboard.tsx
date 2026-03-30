@@ -57,7 +57,7 @@ export default function DistrictDashboard() {
     try {
       const district = profile.district;
 
-      /* ---------------- Schools COUNT ---------------- */
+      /* ---------------- Schools ---------------- */
       const { count: schoolCount, error: schoolError } = await supabase
         .from("schools")
         .select("*", { count: "exact", head: true })
@@ -65,7 +65,7 @@ export default function DistrictDashboard() {
 
       if (schoolError) throw schoolError;
 
-      /* ---------------- Base Query Factory ---------------- */
+      /* ---------------- Submissions ---------------- */
       const baseQuery = (table: string) =>
         supabase
           .from(table)
@@ -73,14 +73,14 @@ export default function DistrictDashboard() {
           .eq("schools.district", district)
           .limit(20);
 
-      const [statsRes, reportsRes, formsRes] = await Promise.all([
+      const [a, b, c] = await Promise.all([
         baseQuery("statistics_submissions"),
         baseQuery("report_submissions"),
         baseQuery("form_submissions"),
       ]);
 
-      if (statsRes.error || reportsRes.error || formsRes.error) {
-        throw statsRes.error || reportsRes.error || formsRes.error;
+      if (a.error || b.error || c.error) {
+        throw a.error || b.error || c.error;
       }
 
       const normalize = (data: any[], type: string): Submission[] =>
@@ -93,12 +93,12 @@ export default function DistrictDashboard() {
         }));
 
       const all: Submission[] = [
-        ...normalize(statsRes.data || [], "آمار"),
-        ...normalize(reportsRes.data || [], "گزارش"),
-        ...normalize(formsRes.data || [], "فورم"),
+        ...normalize(a.data || [], "آمار"),
+        ...normalize(b.data || [], "گزارش"),
+        ...normalize(c.data || [], "فورم"),
       ];
 
-      /* ---------------- SINGLE PASS STATS ---------------- */
+      /* ---------------- Stats (single pass) ---------------- */
       let pending = 0;
       let approved = 0;
       let rejected = 0;
@@ -117,15 +117,16 @@ export default function DistrictDashboard() {
         rejected,
       });
 
-      /* ---------------- RECENT ---------------- */
-      const sorted = all
-        .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
-        .slice(0, 6);
+      /* ---------------- Recent ---------------- */
+      setRecent(
+        all
+          .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+          .slice(0, 6)
+      );
 
-      setRecent(sorted);
-    } catch (err: any) {
-      console.error("Dashboard fetch error:", err);
-      setError("خطا در بارگذاری داده‌ها");
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong while loading dashboard");
     } finally {
       setLoading(false);
     }
@@ -136,79 +137,90 @@ export default function DistrictDashboard() {
   }, [fetchData]);
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-white text-gray-900 px-4 py-6 space-y-8">
 
       {/* HEADER */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-gray-900">
-          داشبورد ناحیه
+      <div className="animate-fade-in space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          District Dashboard
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {profile?.district} — مدیریت هوشمند ارسال‌ها
+        <p className="text-gray-600 text-sm">
+          {profile?.district} — Smart submission management system
         </p>
       </div>
 
-      {/* ERROR STATE */}
+      {/* ERROR */}
       {error && (
-        <div className="text-red-600 text-sm">{error}</div>
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg animate-pulse">
+          {error}
+        </div>
       )}
 
       {/* STATS */}
       <div className="grid md:grid-cols-4 gap-4">
-        <StatCard title="مکاتب" value={stats.schools} loading={loading} />
-        <StatCard title="کل ارسال‌ها" value={stats.total} loading={loading} />
-        <StatCard title="تایید شده" value={stats.approved} loading={loading} />
-        <StatCard title="در انتظار" value={stats.pending} loading={loading} />
+        <StatCard title="Schools" value={stats.schools} loading={loading} />
+        <StatCard title="Total" value={stats.total} loading={loading} />
+        <StatCard title="Approved" value={stats.approved} loading={loading} />
+        <StatCard title="Pending" value={stats.pending} loading={loading} />
       </div>
 
-      {/* ACTION */}
+      {/* ACTION CARD */}
       <Link to="/district/submissions">
-        <Card className="cursor-pointer hover:shadow-md transition border-dashed">
-          <CardContent className="flex justify-between items-center p-4">
-            <span className="font-medium">مشاهده همه ارسال‌ها</span>
-            <Eye className="w-5 h-5 text-muted-foreground" />
+        <Card className="group cursor-pointer border border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+          <CardContent className="flex justify-between items-center p-5">
+            <span className="font-medium text-gray-800 group-hover:text-gray-900 transition">
+              View All Submissions
+            </span>
+            <Eye className="w-5 h-5 text-gray-500 group-hover:text-gray-700 transition" />
           </CardContent>
         </Card>
       </Link>
 
       {/* RECENT */}
-      <Card className="border-none shadow-sm">
+      <Card className="border border-gray-200 bg-white shadow-sm">
         <CardHeader>
-          <CardTitle>آخرین فعالیت‌ها</CardTitle>
+          <CardTitle className="text-gray-900">Recent Activity</CardTitle>
         </CardHeader>
 
         <CardContent>
           {loading ? (
-            <div className="flex justify-center py-6">
-              <Loader2 className="animate-spin text-muted-foreground" />
+            <div className="flex justify-center py-10">
+              <Loader2 className="animate-spin text-gray-500" />
             </div>
           ) : recent.length === 0 ? (
-            <p className="text-center text-muted-foreground py-6">
-              هنوز هیچ ارسالی ثبت نشده
+            <p className="text-center text-gray-500 py-10">
+              No submissions yet
             </p>
           ) : (
             <div className="space-y-3">
-              {recent.map((s) => (
+              {recent.map((s, i) => (
                 <div
                   key={s.id}
-                  className="flex justify-between items-center p-3 rounded-xl border bg-white hover:bg-gray-50 transition"
+                  className="flex justify-between items-center p-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:shadow-sm transition-all duration-200 animate-fade-in"
+                  style={{ animationDelay: `${i * 50}ms` }}
                 >
                   <div>
-                    <p className="font-medium text-sm">{s.school_name}</p>
-                    <p className="text-xs text-muted-foreground">{s.type}</p>
+                    <p className="font-semibold text-gray-900 text-sm">
+                      {s.school_name}
+                    </p>
+                    <p className="text-xs text-gray-500">{s.type}</p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <StatusBadge status={s.status} />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-gray-500">
                       {format(new Date(s.created_at), "d MMM")}
                     </span>
                   </div>
                 </div>
               ))}
 
-              <Button asChild variant="outline" className="w-full mt-3">
-                <Link to="/district/submissions">مشاهده کامل</Link>
+              <Button
+                asChild
+                variant="outline"
+                className="w-full mt-4 border-gray-300 hover:bg-gray-100 transition-all duration-300"
+              >
+                <Link to="/district/submissions">See Full List</Link>
               </Button>
             </div>
           )}
@@ -218,7 +230,7 @@ export default function DistrictDashboard() {
   );
 }
 
-/* ---------------- UI COMPONENTS ---------------- */
+/* ---------------- STAT CARD ---------------- */
 
 function StatCard({
   title,
@@ -230,9 +242,9 @@ function StatCard({
   loading: boolean;
 }) {
   return (
-    <Card className="hover:scale-[1.02] transition shadow-sm border-none">
+    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm text-muted-foreground">
+        <CardTitle className="text-sm text-gray-600 font-medium">
           {title}
         </CardTitle>
       </CardHeader>
@@ -246,27 +258,29 @@ function StatCard({
   );
 }
 
+/* ---------------- STATUS BADGE ---------------- */
+
 function StatusBadge({ status }: { status: Status }) {
   const map = {
-    approved: "bg-green-100 text-green-700",
-    pending: "bg-yellow-100 text-yellow-700",
-    rejected: "bg-red-100 text-red-700",
+    approved: "bg-green-50 text-green-700 border border-green-200",
+    pending: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    rejected: "bg-red-50 text-red-700 border border-red-200",
   };
 
   const label = {
-    approved: "تایید",
-    pending: "در انتظار",
-    rejected: "رد",
+    approved: "Approved",
+    pending: "Pending",
+    rejected: "Rejected",
   };
 
   return (
-    <Badge className={`${map[status]} border-none`}>
+    <Badge className={`${map[status]} transition-all duration-200`}>
       {label[status]}
     </Badge>
   );
 }
 
-/* ---------------- HELPERS ---------------- */
+/* ---------------- STATUS NORMALIZER ---------------- */
 
 function normalizeStatus(status: string): Status {
   if (["approved", "تأیید شده"].includes(status)) return "approved";
