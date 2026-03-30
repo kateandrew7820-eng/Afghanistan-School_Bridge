@@ -86,7 +86,7 @@ export default function SchoolDashboard() {
 
           <div className="relative z-10">
             <h2 className="text-lg font-bold tracking-wide">ارسال 📤</h2>
-            <p className="text-xs opacity-80">Submit data, reports, forms</p>
+            <p className="text-xs opacity-80">ثبت و ارسال اطلاعات، گزارش‌ها و فورم‌ها</p>
 
             {/* Expand */}
             <div className={`overflow-hidden transition-all duration-500 ${openSend ? 'max-h-80 mt-4' : 'max-h-0'}`}>
