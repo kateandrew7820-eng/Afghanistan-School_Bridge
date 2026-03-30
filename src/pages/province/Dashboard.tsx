@@ -101,12 +101,14 @@ export default function ProvinceDashboard() {
 
       {/* MOTIVATION BAR */}
       <div className="bg-slate-50 border rounded-xl p-4 flex justify-between items-center">
-        <p className="text-sm">
+        <p className="text-sm text-slate-800">
           📊 داده‌های دقیق امروز = تصمیم‌های قوی فردا
         </p>
-        <Badge variant="outline">به‌روز</Badge>
+        <Badge className="bg-slate-900 text-white">
+          به‌روز
+        </Badge>
       </div>
-
+      
       {/* STATS */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 
