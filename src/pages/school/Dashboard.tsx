@@ -77,9 +77,9 @@ export default function SchoolDashboard() {
       <div ref={sendRef}>
         <div
           onClick={() => setOpenSend(!openSend)}
-          className="relative cursor-pointer rounded-3xl p-6 text-white 
-          bg-gradient-to-br from-indigo-600 via-slate-900 to-cyan-500
-          shadow-xl hover:scale-[1.015] transition-all duration-300 overflow-hidden"
+          className="relative cursor-pointer rounded-3xl p-6 text-slate-800 
+          bg-gradient-to-br from-white via-slate-50 to-slate-100
+          shadow-md hover:scale-[1.01] transition-all duration-300 overflow-hidden"
         >
           {/* subtle glow effect */}
           <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px]" />
@@ -125,7 +125,7 @@ export default function SchoolDashboard() {
             <CardTitle className="text-sm">اطلاعیه‌ها</CardTitle>
           </div>
           <Link to="/school/announcements">
-            <Button size="sm" variant="ghost">→مشاهده همه</Button>
+            <Button size="sm" variant="ghost">➜مشاهده همه</Button>
           </Link>
         </CardHeader>
         <CardContent>
@@ -143,7 +143,7 @@ export default function SchoolDashboard() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            <CardTitle className="text-sm">مهلتها</CardTitle>
+            <CardTitle className="text-sm">فرصتها</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -162,7 +162,7 @@ export default function SchoolDashboard() {
       {verification.isVerified && (
         <div className="p-4 rounded-2xl bg-green-100 flex items-center gap-2">
           <CheckCircle2 className="text-green-600" />
-          <p className="text-sm">حساب شما تایید شده</p>
+          <p className="text-sm"> حساب شما تایید شده است</p>
         </div>
       )}
 
