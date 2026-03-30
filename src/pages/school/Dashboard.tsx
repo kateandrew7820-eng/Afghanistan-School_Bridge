@@ -23,7 +23,7 @@ export default function SchoolDashboard() {
   const sendRef = useRef<HTMLDivElement>(null);
 
   const [announcements, setAnnouncements] = useState([]);
-  const [deadlines, setDeadlines] = useState([]);
+  const [فرصت‌‌ها, setفرصت‌‌ها] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const verificationQueueRole = useMemo(
@@ -46,10 +46,10 @@ export default function SchoolDashboard() {
     async function fetchData() {
       const [a, d] = await Promise.all([
         supabase.from('announcements').select('*').eq('is_published', true).limit(3),
-        supabase.from('deadlines').select('*').eq('is_active', true).limit(5),
+        supabase.from('فرصت‌‌ها').select('*').eq('is_active', true).limit(5),
       ]);
       if (a.data) setAnnouncements(a.data);
-      if (d.data) setDeadlines(d.data);
+      if (d.data) setفرصت‌‌ها(d.data);
       setLoading(false);
     }
     fetchData();
@@ -125,7 +125,7 @@ export default function SchoolDashboard() {
             <CardTitle className="text-sm">اطلاعیه‌ها</CardTitle>
           </div>
           <Link to="/school/announcements">
-            <Button size="sm" variant="ghost">➜مشاهده همه</Button>
+            <Button size="sm" variant="ghost"> ➝ مشاهده همه</Button>
           </Link>
         </CardHeader>
         <CardContent>
@@ -138,7 +138,7 @@ export default function SchoolDashboard() {
         </CardContent>
       </Card>
 
-      {/* DEADLINES */}
+      {/* فرصت‌‌ها */}
       <Card className="rounded-2xl shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export default function SchoolDashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? <Skeleton className="h-20 w-full" /> : deadlines.map((d: any) => (
+          {loading ? <Skeleton className="h-20 w-full" /> : فرصت‌‌ها.map((d: any) => (
             <div key={d.id} className="p-3 rounded-xl border hover:bg-muted transition mb-2">
               <p className="text-sm font-medium">{d.title}</p>
               <p className="text-xs text-muted-foreground">

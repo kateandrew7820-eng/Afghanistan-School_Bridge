@@ -136,7 +136,7 @@ Ready to Get Started?
 
 ---
 
-## Announcements & Deadlines Section
+## Announcements & فرصت‌‌ها Section
 
 ### BEFORE (Simple list with small icons)
 ```

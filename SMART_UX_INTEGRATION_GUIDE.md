@@ -591,7 +591,7 @@ After integrating each component, verify:
 - [ ] Success notifications appear (top-right)
 - [ ] Error notifications appear (red)
 - [ ] Warning notifications appear (yellow)
-- [ ] Deadline alerts appear for urgent deadlines
+- [ ] Deadline alerts appear for urgent فرصت‌‌ها
 - [ ] Multiple notifications queue properly
 - [ ] Notifications auto-dismiss after 5 seconds
 

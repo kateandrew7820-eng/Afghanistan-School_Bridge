@@ -30,7 +30,7 @@ export const mockAnnouncements = [
   },
 ];
 
-export const mockDeadlines = [
+export const mockفرصت‌‌ها = [
   {
     id: '1',
     title: 'تجمیع نتایج ترمین اول',
@@ -113,7 +113,7 @@ export const mockReports = [
   },
 ];
 
-export const mockDocuments = [
+export const mockاسناد = [
   {
     id: '1',
     title: 'نمونه دستورالعمل تدریس ریاضی',

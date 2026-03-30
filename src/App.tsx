@@ -38,8 +38,8 @@ const SubmitStatistics = lazy(() => import("./pages/school/SubmitStatistics"));
 const SubmitReports = lazy(() => import("./pages/school/SubmitReports"));
 const SubmitForms = lazy(() => import("./pages/school/SubmitForms"));
 const SchoolAnnouncements = lazy(() => import("./pages/school/Announcements"));
-const SchoolDocuments = lazy(() => import("./pages/school/Documents"));
-const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
+const Schoolاسناد = lazy(() => import("./pages/school/اسناد"));
+const Schoolفرصت‌‌ها = lazy(() => import("./pages/school/فرصت‌‌ها"));
 
 // District Pages - Lazy loaded
 const DistrictDashboard = lazy(() => import("./pages/district/Dashboard"));
@@ -56,8 +56,8 @@ const PlaceholderPage = lazy(() => import("./components/PlaceholderPage"));
 // Legacy Admin Pages (will be used under ministry) - Lazy loaded
 const AdminSubmissions = lazy(() => import("./pages/admin/Submissions"));
 const AdminAnnouncements = lazy(() => import("./pages/admin/Announcements"));
-const AdminDocuments = lazy(() => import("./pages/admin/Documents"));
-const AdminDeadlines = lazy(() => import("./pages/admin/Deadlines"));
+const Adminاسناد = lazy(() => import("./pages/admin/اسناد"));
+const Adminفرصت‌‌ها = lazy(() => import("./pages/admin/فرصت‌‌ها"));
 const ManageSchools = lazy(() => import("./pages/admin/ManageSchools"));
 
 // Loading fallback component
@@ -209,14 +209,14 @@ function AppRoutes() {
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
-      <Route path="/school/documents" element={
+      <Route path="/school/اسناد" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolDocuments /></Suspense></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><Schoolاسناد /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
-      <Route path="/school/deadlines" element={
+      <Route path="/school/فرصت‌‌ها" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolDeadlines /></Suspense></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><Schoolفرصت‌‌ها /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
 
@@ -246,14 +246,14 @@ function AppRoutes() {
           <DistrictLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/district/documents" element={
+      <Route path="/district/اسناد" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><SchoolDocuments /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><Schoolاسناد /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/district/deadlines" element={
+      <Route path="/district/فرصت‌‌ها" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><SchoolDeadlines /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><Schoolفرصت‌‌ها /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
 
@@ -283,14 +283,14 @@ function AppRoutes() {
           <ProvinceLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
-      <Route path="/province/documents" element={
+      <Route path="/province/اسناد" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><SchoolDocuments /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><Schoolاسناد /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
-      <Route path="/province/deadlines" element={
+      <Route path="/province/فرصت‌‌ها" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><SchoolDeadlines /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><Schoolفرصت‌‌ها /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
 
@@ -320,14 +320,14 @@ function AppRoutes() {
           <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminAnnouncements /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
-      <Route path="/ministry/documents" element={
+      <Route path="/ministry/اسناد" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminDocuments /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><Adminاسناد /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
-      <Route path="/ministry/deadlines" element={
+      <Route path="/ministry/فرصت‌‌ها" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminDeadlines /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><Adminفرصت‌‌ها /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/users" element={

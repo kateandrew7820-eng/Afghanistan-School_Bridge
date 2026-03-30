@@ -286,7 +286,7 @@ Validation errors only show **after the user has left the field** (touch trackin
 Dangerous actions (delete, submit, approve/reject) show professional confirmation dialogs instead of browser `alert()` boxes.
 
 ### Interactive Cards
-Dashboard cards expand/collapse on click and automatically highlight items with approaching deadlines.
+Dashboard cards expand/collapse on click and automatically highlight items with approaching فرصت‌‌ها.
 
 ### Role-Based Guidance
 The system knows the user's role (student, teacher, principal, admin) and provides role-specific guidance and next steps.

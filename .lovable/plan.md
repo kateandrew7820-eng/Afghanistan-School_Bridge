@@ -113,7 +113,7 @@ Supabase `.upsert()` / `.insert()` without a terminal `.select()` or `.then()` r
 - Consider replacing the recharts exclude from optimizeDeps if it causes waterfall loading
 
 ### 4.3 Network efficiency
-- Add `staleTime` overrides for infrequently changing data (announcements, deadlines) to reduce refetches
+- Add `staleTime` overrides for infrequently changing data (announcements, فرصت‌‌ها) to reduce refetches
 - Use Supabase `.select()` with minimal columns instead of selecting all fields
 
 ---

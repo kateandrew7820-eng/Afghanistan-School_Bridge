@@ -11,7 +11,7 @@ export interface RolePermissions {
   canApproveVerification: boolean;
   canManageSchools: boolean;
   canSendAnnouncements: boolean;
-  canSetDeadlines: boolean;
+  canSetفرصت‌‌ها: boolean;
   canViewNationalStats: boolean;
   canExportReports: boolean;
 }
@@ -31,7 +31,7 @@ export function getRolePermissions(role: UserRole | null): RolePermissions {
     canApproveVerification: false,
     canManageSchools: false,
     canSendAnnouncements: false,
-    canSetDeadlines: false,
+    canSetفرصت‌‌ها: false,
     canViewNationalStats: false,
     canExportReports: false,
   };
@@ -58,7 +58,7 @@ export function getRolePermissions(role: UserRole | null): RolePermissions {
         canViewAnalytics: true,
         canViewAllSubmissions: true,
         canSendAnnouncements: true,
-        canSetDeadlines: true,
+        canSetفرصت‌‌ها: true,
         canExportReports: true,
       };
 
@@ -72,7 +72,7 @@ export function getRolePermissions(role: UserRole | null): RolePermissions {
         canViewNationalStats: true,
         canApproveVerification: true,
         canSendAnnouncements: true,
-        canSetDeadlines: true,
+        canSetفرصت‌‌ها: true,
         canExportReports: true,
       };
 
@@ -90,7 +90,7 @@ export function getRolePermissions(role: UserRole | null): RolePermissions {
         canApproveVerification: true,
         canManageSchools: true,
         canSendAnnouncements: true,
-        canSetDeadlines: true,
+        canSetفرصت‌‌ها: true,
         canViewNationalStats: true,
         canExportReports: true,
       };

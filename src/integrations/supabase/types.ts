@@ -47,7 +47,7 @@ export type Database = {
         }
         Relationships: []
       }
-      center_documents: {
+      center_اسناد: {
         Row: {
           category: string | null
           created_at: string
@@ -80,7 +80,7 @@ export type Database = {
         }
         Relationships: []
       }
-      deadlines: {
+      فرصت‌‌ها: {
         Row: {
           created_at: string
           created_by: string

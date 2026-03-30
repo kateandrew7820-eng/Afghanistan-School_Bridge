@@ -169,13 +169,13 @@ h6: text-base
   - Priority badges with colors
   - Staggered fade-in animations
 
-#### Deadlines Card
+#### فرصت‌‌ها Card
 - Gradient background (secondary/5)
 - Color-matched icon container
 - Individual deadline items with:
   - Gradient backgrounds on hover
   - Calendar icons with color matching
-  - Urgent deadlines highlighted in red
+  - Urgent فرصت‌‌ها highlighted in red
   - Pulsing animation for urgent items
   - Staggered animations
 

@@ -151,11 +151,11 @@ Added comprehensive CSS improvements:
 - Badges with priority colors
 - Staggered fade-in animations
 
-**Deadlines Card:**
+**فرصت‌‌ها Card:**
 - Gradient background (secondary/5)
 - Color-matched icons
 - Urgent items highlighted in red
-- Pulsing animation for urgent deadlines
+- Pulsing animation for urgent فرصت‌‌ها
 - Better spacing and organization
 
 **Status Banners:**

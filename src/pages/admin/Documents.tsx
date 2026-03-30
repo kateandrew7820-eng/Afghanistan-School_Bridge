@@ -21,11 +21,11 @@ interface Document {
   created_at: string;
 }
 
-export default function AdminDocuments() {
+export default function Adminاسناد() {
   const { user } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [اسناد, setاسناد] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,16 +37,16 @@ export default function AdminDocuments() {
   });
 
   useEffect(() => {
-    fetchDocuments();
+    fetchاسناد();
   }, []);
 
-  async function fetchDocuments() {
+  async function fetchاسناد() {
     const { data } = await supabase
-      .from('center_documents')
+      .from('center_اسناد')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (data) setDocuments(data);
+    if (data) setاسناد(data);
     setLoading(false);
   }
 
@@ -66,7 +66,7 @@ export default function AdminDocuments() {
     const filePath = `${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('center-documents')
+      .from('center-اسناد')
       .upload(filePath, selectedFile);
 
     if (uploadError) {
@@ -80,7 +80,7 @@ export default function AdminDocuments() {
     }
 
     // Create record
-    const { error } = await supabase.from('center_documents').insert({
+    const { error } = await supabase.from('center_اسناد').insert({
       title: newDocument.title,
       description: newDocument.description || null,
       file_path: filePath,
@@ -100,12 +100,12 @@ export default function AdminDocuments() {
     setIsAddDialogOpen(false);
     setNewDocument({ title: '', description: '', category: 'general' });
     setSelectedFile(null);
-    fetchDocuments();
+    fetchاسناد();
   };
 
   const handleDelete = async (id: string, filePath: string) => {
-    await supabase.storage.from('center-documents').remove([filePath]);
-    const { error } = await supabase.from('center_documents').delete().eq('id', id);
+    await supabase.storage.from('center-اسناد').remove([filePath]);
+    const { error } = await supabase.from('center_اسناد').delete().eq('id', id);
     
     if (error) {
       toast({ title: "حذف ناموفق", description: error.message, variant: "destructive" });
@@ -113,11 +113,11 @@ export default function AdminDocuments() {
     }
     
     toast({ title: "حذف شد" });
-    fetchDocuments();
+    fetchاسناد();
   };
 
   const downloadDocument = async (filePath: string, fileName: string) => {
-    const { data } = await supabase.storage.from('center-documents').download(filePath);
+    const { data } = await supabase.storage.from('center-اسناد').download(filePath);
     if (data) {
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
@@ -220,7 +220,7 @@ export default function AdminDocuments() {
 
       {loading ? (
         <p className="text-muted-foreground">در حال بارگذاری...</p>
-      ) : documents.length === 0 ? (
+      ) : اسناد.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">هنوز سندی آپلود نشده است</p>
@@ -228,7 +228,7 @@ export default function AdminDocuments() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {documents.map((doc) => (
+          {اسناد.map((doc) => (
             <Card key={doc.id}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">

@@ -23,7 +23,7 @@
 
 **Data Display:**
 - Recent Announcements (3 items max, sorted by date)
-- Upcoming Deadlines (5 items max, with days-left warning)
+- Upcoming فرصت‌‌ها (5 items max, with days-left warning)
 - View All buttons (navigate to detail pages)
 - Verified Status Badge (green banner if verified)
 - Verification Queue Panel (if admin role has pending approvals)
@@ -43,8 +43,8 @@
 
 **Quick Actions (3-4 clickable cards):**
 1. **Post Announcement** → `/admin/announcements` (Bell icon, blue)
-2. **Upload Document** → `/admin/documents` (FileUp icon, blue)
-3. **Set Deadline** → `/admin/deadlines` (Calendar icon, blue)
+2. **Upload Document** → `/admin/اسناد` (FileUp icon, blue)
+3. **Set Deadline** → `/admin/فرصت‌‌ها` (Calendar icon, blue)
 4. **Manage Schools** → `/admin/schools` (Users icon, blue)
 
 **Recent Submissions Section:**
@@ -285,7 +285,7 @@ deleteFile(bucket: string, path: string): Promise<boolean>
    - id, title, content, priority, created_at, is_published
    - Priorities: high, normal
 
-2. **mockDeadlines** (4 items)
+2. **mockفرصت‌‌ها** (4 items)
    - id, title, due_date, description, is_active
    - Dynamic dates (next 5-15 days from now)
 
@@ -300,7 +300,7 @@ deleteFile(bucket: string, path: string): Promise<boolean>
 5. **mockReports** (3 items)
    - id, title, month, status ('دانلود' = download)
 
-6. **mockDocuments** (3 items)
+6. **mockاسناد** (3 items)
    - id, title, type (PDF/Word), size, uploadedDate
 
 7. **mockDistrictStats**
@@ -311,12 +311,12 @@ deleteFile(bucket: string, path: string): Promise<boolean>
 
 ### 4.2 Supported Actions with Mock Data
 - View announcements (no action, display only)
-- View deadlines (no action, display only)
+- View فرصت‌‌ها (no action, display only)
 - View submissions (can change status in admin/Submissions page)
   - Change from pending → approved
   - Change to rejected (with reason dialog)
 - Download reports (no action, display only)
-- View documents (no action, display only)
+- View اسناد (no action, display only)
 
 ### 4.3 Demo Mode Behavior (`isDemoMode` flag)
 - All dashboards use mock data
@@ -509,7 +509,7 @@ interface VerificationStatus {
 ## 7. CURRENT IMPLEMENTATION STATUS
 
 ### Fully Implemented ✅
-- ✅ 3 School Dashboards (Dashboard, Announcements, Deadlines, Documents)
+- ✅ 3 School Dashboards (Dashboard, Announcements, فرصت‌‌ها, اسناد)
 - ✅ School submission forms (Statistics, Reports, Forms)
 - ✅ File upload with progress tracking
 - ✅ Admin Dashboard with stats and quick actions
@@ -550,10 +550,10 @@ interface VerificationStatus {
 | School Dashboard | Submit Reports | `/school/reports` | File upload | FileText |
 | School Dashboard | Submit Forms | `/school/forms` | Form submission | ClipboardList |
 | School Dashboard | View All (Announcements) | `/school/announcements` | Navigate | ArrowLeft |
-| School Dashboard | View All (Deadlines) | `/school/deadlines` | Navigate | ArrowLeft |
+| School Dashboard | View All (فرصت‌‌ها) | `/school/فرصت‌‌ها` | Navigate | ArrowLeft |
 | Admin Dashboard | Post Announcement | `/admin/announcements` | Navigate | Bell |
-| Admin Dashboard | Upload Document | `/admin/documents` | Navigate | FileUp |
-| Admin Dashboard | Set Deadline | `/admin/deadlines` | Navigate | Calendar |
+| Admin Dashboard | Upload Document | `/admin/اسناد` | Navigate | FileUp |
+| Admin Dashboard | Set Deadline | `/admin/فرصت‌‌ها` | Navigate | Calendar |
 | Admin Dashboard | Manage Schools | `/admin/schools` | Navigate | Users |
 | Admin Dashboard | View All Submissions | `/admin/submissions` | Navigate | ArrowRight |
 | Admin Submissions | Approve (per submission) | N/A | Update status | CheckCircle2 |
@@ -589,8 +589,8 @@ interface VerificationStatus {
 
 ### Content Tables:
 - `announcements` (title, content, priority, is_published, created_at)
-- `deadlines` (title, due_date, description, is_active)
-- `documents` (title, file_path, type, uploaded_date)
+- `فرصت‌‌ها` (title, due_date, description, is_active)
+- `اسناد` (title, file_path, type, uploaded_date)
 - `schools` (name, code, province, district)
 
 ---

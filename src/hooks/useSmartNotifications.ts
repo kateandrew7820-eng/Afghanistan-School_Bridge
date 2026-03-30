@@ -158,7 +158,7 @@ export function useSmartNotifications() {
     const tips = {
       form: 'Fill in all required fields marked with *. You can save your progress and return later.',
       dashboard: 'Click on any card to expand and see more details. Use filters to find what you need.',
-      submission: 'Make sure all documents are properly named and formatted before submission.',
+      submission: 'Make sure all اسناد are properly named and formatted before submission.',
       verification: 'Your account will be verified within 24-48 hours. Check back for updates.',
     };
 

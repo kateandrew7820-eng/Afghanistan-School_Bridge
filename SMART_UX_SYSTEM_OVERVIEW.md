@@ -380,7 +380,7 @@ import { AnimationClasses } from '@/lib/animations';
 - Deadline highlighting
 - Smart notifications
 - Guidance system
-- Real deadlines showing urgency
+- Real فرصت‌‌ها showing urgency
 - Copy-paste ready
 
 **When to use:** As template for updating your dashboards

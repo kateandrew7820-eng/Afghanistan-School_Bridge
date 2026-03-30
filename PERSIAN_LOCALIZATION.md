@@ -125,8 +125,8 @@
   - ارسال گزارشات (Submit Reports)
   - ارسال فورم‌ها (Submit Forms)
   - اطلاعیه‌ها (اعلانات)
-  - اسناد (Documents)
-  - فرصت‌ها (Deadlines)
+  - اسناد (اسناد)
+  - فرصت‌ها (فرصت‌‌ها)
 
 #### Test 3: Dashboard Access - District Admin
 

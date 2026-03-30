@@ -6,11 +6,11 @@
 import { useAuth } from '@/contexts/AuthContext';
 import {
   mockAnnouncements,
-  mockDeadlines,
+  mockفرصت‌‌ها,
   mockStudentStats,
   mockSubmissions,
   mockReports,
-  mockDocuments,
+  mockاسناد,
   mockDistrictStats,
   mockProvinceStats,
   mockMinistryStats,
@@ -22,11 +22,11 @@ export function useMockData() {
   return {
     isDemoMode,
     اعلانات: mockAnnouncements,
-    deadlines: mockDeadlines,
+    فرصت‌‌ها: mockفرصت‌‌ها,
     studentStats: mockStudentStats,
     submissions: mockSubmissions,
     reports: mockReports,
-    documents: mockDocuments,
+    اسناد: mockاسناد,
     districtStats: mockDistrictStats,
     provinceStats: mockProvinceStats,
     ministryStats: mockMinistryStats,

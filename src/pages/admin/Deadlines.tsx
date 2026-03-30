@@ -20,10 +20,10 @@ interface Deadline {
   is_active: boolean;
 }
 
-export default function AdminDeadlines() {
+export default function Adminفرصت‌‌ها() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [deadlines, setDeadlines] = useState<Deadline[]>([]);
+  const [فرصت‌‌ها, setفرصت‌‌ها] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,16 +34,16 @@ export default function AdminDeadlines() {
   });
 
   useEffect(() => {
-    fetchDeadlines();
+    fetchفرصت‌‌ها();
   }, []);
 
-  async function fetchDeadlines() {
+  async function fetchفرصت‌‌ها() {
     const { data } = await supabase
-      .from('deadlines')
+      .from('فرصت‌‌ها')
       .select('*')
       .order('due_date', { ascending: true });
     
-    if (data) setDeadlines(data);
+    if (data) setفرصت‌‌ها(data);
     setLoading(false);
   }
 
@@ -52,7 +52,7 @@ export default function AdminDeadlines() {
     if (!user) return;
     setIsSubmitting(true);
 
-    const { error } = await supabase.from('deadlines').insert({
+    const { error } = await supabase.from('فرصت‌‌ها').insert({
       title: newDeadline.title,
       description: newDeadline.description || null,
       due_date: newDeadline.due_date,
@@ -69,11 +69,11 @@ export default function AdminDeadlines() {
     toast({ title: "Deadline Added", description: "Schools can now see this deadline." });
     setIsAddDialogOpen(false);
     setNewDeadline({ title: '', description: '', due_date: '' });
-    fetchDeadlines();
+    fetchفرصت‌‌ها();
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('deadlines').delete().eq('id', id);
+    const { error } = await supabase.from('فرصت‌‌ها').delete().eq('id', id);
     
     if (error) {
       toast({ title: "Failed", description: error.message, variant: "destructive" });
@@ -81,10 +81,10 @@ export default function AdminDeadlines() {
     }
     
     toast({ title: "Deleted" });
-    fetchDeadlines();
+    fetchفرصت‌‌ها();
   };
 
-  const getDeadlineStatus = (dueDate: string) => {
+  const getفرصت‌‌هاtatus = (dueDate: string) => {
     const days = differenceInDays(new Date(dueDate), new Date());
     if (days < 0) return { label: 'Passed', variant: 'outline' as const };
     if (days === 0) return { label: 'Today', variant: 'destructive' as const };
@@ -163,7 +163,7 @@ export default function AdminDeadlines() {
 
       {loading ? (
         <p className="text-muted-foreground">درحال بارگذاری...</p>
-      ) : deadlines.length === 0 ? (
+      ) : فرصت‌‌ها.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground">فرصتی تعریف نشده است</p>
@@ -171,8 +171,8 @@ export default function AdminDeadlines() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {deadlines.map((deadline) => {
-            const status = getDeadlineStatus(deadline.due_date);
+          {فرصت‌‌ها.map((deadline) => {
+            const status = getفرصت‌‌هاtatus(deadline.due_date);
             return (
               <Card key={deadline.id}>
                 <CardHeader className="pb-2">

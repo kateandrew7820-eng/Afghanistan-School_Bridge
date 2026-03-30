@@ -213,8 +213,8 @@ function DashboardPage() {
 
   useEffect(() => {
     // Show deadline notifications
-    deadlines.forEach(d => notifyDeadlineApproaching(d));
-  }, [deadlines]);
+    فرصت‌‌ها.forEach(d => notifyDeadlineApproaching(d));
+  }, [فرصت‌‌ها]);
 
   const nextSteps = getNextStepsGuidance();
 
@@ -465,12 +465,12 @@ export default function SchoolReportForm() {
 if (isDemoMode || isDevMode) {
   // Mock deadline notifications
   useEffect(() => {
-    const mockDeadlines = [
+    const mockفرصت‌‌ها = [
       { title: 'First Quarter Report', due_date: new Date(Date.now() + 2*24*60*60*1000).toISOString() },
       { title: 'Student Enrollment Update', due_date: new Date(Date.now() + 5*24*60*60*1000).toISOString() },
     ];
 
-    mockDeadlines.forEach(d => notifyDeadlineApproaching(d));
+    mockفرصت‌‌ها.forEach(d => notifyDeadlineApproaching(d));
   }, [isDemoMode]);
 
   // Show smart tips

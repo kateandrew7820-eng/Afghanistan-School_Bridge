@@ -95,7 +95,7 @@
 │ 📄 Upload Reports                      │
 │ 📋 Fill Forms                          │
 │                                         │
-│ [اعلانات] [Deadlines]            │
+│ [اعلانات] [فرصت‌‌ها]            │
 │ 📢 Latest News...                      │
 │ 📅 Upcoming dates...                   │
 └─────────────────────────────────────────┘

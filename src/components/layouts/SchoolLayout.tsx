@@ -46,8 +46,8 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
     { href: '/school/reports', icon: FileText, label: t('school.submitReports') },
     { href: '/school/forms', icon: ClipboardList, label: t('school.submitForms') },
     { href: '/school/announcements', icon: Bell, label: t('navigation.announcements') },
-    { href: '/school/documents', icon: FileDown, label: t('navigation.documents') },
-    { href: '/school/deadlines', icon: Calendar, label: t('navigation.deadlines') },
+    { href: '/school/اسناد', icon: FileDown, label: t('navigation.اسناد') },
+    { href: '/school/فرصت‌‌ها', icon: Calendar, label: t('navigation.فرصت‌‌ها') },
   ];
 
   const currentPageLabel = navItems.find(i => i.href === location.pathname)?.label || t('navigation.dashboard');
