@@ -125,7 +125,7 @@ export default function SchoolDashboard() {
             <CardTitle className="text-sm">اطلاعیه‌ها</CardTitle>
           </div>
           <Link to="/school/announcements">
-            <Button size="sm" variant="ghost">همه</Button>
+            <Button size="sm" variant="ghost">→مشاهده همه</Button>
           </Link>
         </CardHeader>
         <CardContent>
@@ -143,7 +143,7 @@ export default function SchoolDashboard() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            <CardTitle className="text-sm">ددلاین‌ها</CardTitle>
+            <CardTitle className="text-sm">مهلتها</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -162,7 +162,7 @@ export default function SchoolDashboard() {
       {verification.isVerified && (
         <div className="p-4 rounded-2xl bg-green-100 flex items-center gap-2">
           <CheckCircle2 className="text-green-600" />
-          <p className="text-sm">Account verified</p>
+          <p className="text-sm">حساب شما تایید شده</p>
         </div>
       )}
 
@@ -172,7 +172,7 @@ export default function SchoolDashboard() {
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
               <AlertCircle className="h-4 w-4" />
-              Verification Queue
+              صف تایید معلمان
             </CardTitle>
           </CardHeader>
           <CardContent>
