@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, AlertCircle, Sparkles } from "lucide-react";
+import { Clock, AlertCircle } from "lucide-react";
+
 
 type Status = "pending" | "rejected" | "approved";
 
@@ -9,55 +10,72 @@ export default function PendingVerification() {
 
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<Status>("pending");
+  const [error, setError] = useState<string | null>(null);
 
-  const [countdown, setCountdown] = useState(3);
-  const [showDecision, setShowDecision] = useState(false);
-  const [fading, setFading] = useState(false);
+  // 🔥 REAL FETCH FUNCTION
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch("/api/verification-status", {
+        credentials: "include",
+      });
 
-  // simulate fetch
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setStatus("pending");
+      if (!res.ok) throw new Error("Network error");
+
+      const data = await res.json();
+      setStatus(data.status);
+      setError(null);
+    } catch (err: any) {
+      setError("خطا در دریافت وضعیت");
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
+  };
 
-    return () => clearTimeout(timer);
+  // 🚀 INITIAL LOAD
+  useEffect(() => {
+    fetchStatus();
   }, []);
 
-  // countdown
+  // 🔁 POLLING (every 5s if pending)
   useEffect(() => {
-    if (loading || status !== "pending") return;
+    if (status !== "pending") return;
 
     const interval = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          clearInterval(interval);
-          setShowDecision(true); // 👉 show decision UI instead of auto jump
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
+      fetchStatus();
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [loading, status]);
+  }, [status]);
 
-  const goHome = () => {
-    setFading(true);
-    setTimeout(() => navigate("/"), 600);
-  };
-
-  const goLogin = () => {
-    setFading(true);
-    setTimeout(() => navigate("/login"), 600);
-  };
+  // 🎯 AUTO REDIRECT
+  useEffect(() => {
+    if (status === "approved") {
+      setTimeout(() => navigate("/dashboard"), 800);
+    }
+  }, [status]);
 
   // LOADING
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3">
         <div className="h-10 w-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-muted-foreground">در حال بررسی حساب...</p>
+        <p>در حال بررسی حساب...</p>
+      </div>
+    );
+  }
+
+  // ERROR
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <AlertCircle className="text-red-500" />
+        <p>{error}</p>
+        <button
+          onClick={fetchStatus}
+          className="bg-gray-200 px-4 py-2 rounded"
+        >
+          تلاش مجدد
+        </button>
       </div>
     );
   }
@@ -66,18 +84,12 @@ export default function PendingVerification() {
   if (status === "rejected") {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-md bg-card border rounded-2xl p-6 text-center space-y-4 shadow-md">
-          <h2 className="text-red-500 text-xl font-bold">
-            حساب رد شده است
-          </h2>
-
-          <p className="text-muted-foreground">
-            لطفاً با مدیریت تماس بگیرید.
-          </p>
-
+        <div className="bg-white border rounded-xl p-6 text-center space-y-4">
+          <h2 className="text-red-500 font-bold">حساب رد شده</h2>
+          <p>لطفاً با پشتیبانی تماس بگیرید</p>
           <button
             onClick={() => navigate("/login")}
-            className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition"
+            className="bg-red-500 text-white px-4 py-2 rounded"
           >
             بازگشت به ورود
           </button>
@@ -86,69 +98,29 @@ export default function PendingVerification() {
     );
   }
 
-  // MAIN PENDING UI
+  // PENDING
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-yellow-50 via-background to-yellow-100 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="bg-white border rounded-xl p-8 text-center space-y-5">
 
-      {/* CARD */}
-      <div className="w-full max-w-lg bg-card border rounded-2xl shadow-xl p-8 text-center space-y-6">
+        <Clock className="w-12 h-12 text-yellow-500 animate-pulse mx-auto" />
 
-        {/* ICON */}
-        <div className="flex justify-center">
-          <Clock className="w-14 h-14 text-yellow-500 animate-pulse" />
-        </div>
+        <h1 className="text-xl font-bold">در حال بررسی</h1>
 
-        {/* TITLE */}
-        <h1 className="text-2xl font-bold">
-          وضعیت بررسی حساب
-        </h1>
-
-        {/* DESCRIPTION */}
-        <p className="text-muted-foreground">
-          حساب شما در حال بررسی توسط سیستم است.
+        <p className="text-gray-500 text-sm">
+          حساب شما هنوز تایید نشده است. این صفحه به صورت خودکار بروزرسانی می‌شود.
         </p>
 
-        {/* TIMER */}
-        {!showDecision && (
-          <div className="flex items-center justify-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg">
-            <AlertCircle className="w-4 h-4" />
-            انتقال خودکار در {countdown} ثانیه
-          </div>
-        )}
+        <div className="text-xs text-gray-400">
+          بررسی هر 5 ثانیه
+        </div>
 
-        {/* AFTER TIMER: DUOLINGO STYLE CARD */}
-        {showDecision && (
-          <div className="bg-gradient-to-br from-green-50 to-blue-50 border rounded-xl p-5 space-y-4 animate-fade-in">
-
-            <div className="flex items-center justify-center gap-2 text-green-600 font-semibold">
-              <Sparkles className="w-5 h-5" />
-              آماده انتقال هستید
-            </div>
-
-            <p className="text-sm text-gray-600 leading-relaxed">
-              شما به صفحه اصلی هدایت خواهید شد که شامل اطلاعات عمومی افغانستان است.
-              تا تکمیل بررسی حساب، دسترسی شما محدود باقی می‌ماند.
-            </p>
-
-            <div className="flex flex-col gap-3 pt-2">
-
-              <button
-                onClick={goHome}
-                className="bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition font-medium"
-              >
-                ادامه
-              </button>
-
-              <button
-                onClick={goLogin}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg transition"
-              >
-                لغو و بازگشت به ورود
-              </button>
-
-            </div>
-          </div>
-        )}
+        <button
+          onClick={() => navigate("/")}
+          className="bg-gray-200 px-4 py-2 rounded"
+        >
+          بازگشت به صفحه اصلی
+        </button>
 
       </div>
     </div>
