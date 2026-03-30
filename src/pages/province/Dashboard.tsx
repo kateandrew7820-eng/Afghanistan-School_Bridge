@@ -113,46 +113,46 @@ export default function ProvinceDashboard() {
         <Card className="bg-white border shadow-sm hover:shadow-md transition">
           <CardHeader className="flex flex-row justify-between pb-2">
             <CardTitle className="text-sm">ولسوالی‌ها</CardTitle>
-            <MapPin className="h-4 w-4 text-slate-400" />
+            <MapPin className="h-4 w-4 text-slate-900" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.totalDistricts}</div>
-            <p className="text-xs text-slate-500">در سطح ولایت</p>
+            <p className="text-xs text-slate-700">در سطح ولایت</p>
           </CardContent>
         </Card>
 
         <Card className="bg-white border shadow-sm hover:shadow-md transition">
           <CardHeader className="flex flex-row justify-between pb-2">
             <CardTitle className="text-sm">مکاتب</CardTitle>
-            <BarChart3 className="h-4 w-4 text-slate-400" />
+            <BarChart3 className="h-4 w-4 text-slate-900" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.totalSchools}</div>
-            <p className="text-xs text-slate-500">کل مکاتب</p>
+            <p className="text-xs text-slate-700">کل مکاتب</p>
           </CardContent>
         </Card>
 
         <Card className="bg-white border shadow-sm hover:shadow-md transition">
           <CardHeader className="flex flex-row justify-between pb-2">
             <CardTitle className="text-sm">دانش‌آموزان</CardTitle>
-            <Users className="h-4 w-4 text-slate-400" />
+            <Users className="h-4 w-4 text-slate-900" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {loading ? '...' : stats.totalStudents.toLocaleString('fa-AF')}
             </div>
-            <p className="text-xs text-slate-500">کل دانش‌آموزان</p>
+            <p className="text-xs text-slate-700">کل دانش‌آموزان</p>
           </CardContent>
         </Card>
 
         <Card className="bg-white border shadow-sm hover:shadow-md transition">
           <CardHeader className="flex flex-row justify-between pb-2">
             <CardTitle className="text-sm">نیاز به بررسی</CardTitle>
-            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <AlertCircle className="h-4 w-4 text-amber-900" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{loading ? '...' : stats.pendingSubmissions}</div>
-            <p className="text-xs text-slate-500">ارسال‌های معطل</p>
+            <p className="text-xs text-slate-700">ارسال‌های معطل</p>
           </CardContent>
         </Card>
 
@@ -163,22 +163,22 @@ export default function ProvinceDashboard() {
 
         <Card className="bg-slate-50 border">
           <CardContent className="p-4">
-            <p className="text-sm text-slate-500">کل ارسال‌ها</p>
+            <p className="text-sm text-slate-900">کل ارسال‌ها</p>
             <p className="text-3xl font-bold">{stats.totalSubmissions}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-green-50 border">
           <CardContent className="p-4">
-            <p className="text-sm text-green-600">تأیید شده</p>
-            <p className="text-3xl font-bold text-green-700">{stats.approvedSubmissions}</p>
+            <p className="text-sm text-green-800">تأیید شده</p>
+            <p className="text-3xl font-bold text-green-800">{stats.approvedSubmissions}</p>
           </CardContent>
         </Card>
 
         <Card className="bg-amber-50 border">
           <CardContent className="p-4">
             <p className="text-sm text-amber-600">در انتظار</p>
-            <p className="text-3xl font-bold text-amber-700">{stats.pendingSubmissions}</p>
+            <p className="text-3xl font-bold text-amber-800">{stats.pendingSubmissions}</p>
           </CardContent>
         </Card>
 
@@ -187,7 +187,7 @@ export default function ProvinceDashboard() {
       {/* LOADING */}
       {loading && (
         <div className="flex justify-center py-6">
-          <Loader2 className="animate-spin text-slate-400" />
+          <Loader2 className="animate-spin text-slate-800" />
         </div>
       )}
 
