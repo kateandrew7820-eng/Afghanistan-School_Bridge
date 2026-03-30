@@ -153,7 +153,7 @@ const handleApprove = async () => {
 | Button | Action | Status |
 |--------|--------|--------|
 | **مشاهده تمام** | View all announcements | ✅ Functional |
-| **مشاهده تمام** | View all فرصت‌‌ها | ✅ Functional |
+| **مشاهده تمام** | View all deadlines | ✅ Functional |
 | **مشاهده ارسال‌ها** | Go to submissions page | ✅ Functional |
 
 ## UX Features
@@ -191,7 +191,7 @@ useAuth().setDemoMode('school_admin', 'school');
 
 ### Available Mock Data
 - 5+ announcements
-- 4+ فرصت‌‌ها
+- 4+ deadlines
 - ~10+ mock submissions
 - Mock statistics for dashboards
 - Different submission statuses
@@ -228,7 +228,7 @@ useAuth().setDemoMode('school_admin', 'school');
 - `report_submissions` - File uploads
 - `form_submissions` - Generic forms
 - `announcements` - News/updates
-- `فرصت‌‌ها` - Submission فرصت‌‌ها
+- `deadlines` - Submission deadlines
 - `schools` - School registry
 
 ### Statuses

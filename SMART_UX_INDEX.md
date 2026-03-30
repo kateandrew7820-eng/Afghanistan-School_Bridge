@@ -284,7 +284,7 @@
 - [SMART_UX_INTEGRATION_GUIDE.md - InteractiveDashboardCard](SMART_UX_INTEGRATION_GUIDE.md#interactivedashboardcard-component)
 
 ### Notifications
-- [ENHANCED_DASHBOARD_EXAMPLE.tsx - فرصت‌‌ها and notifications](ENHANCED_DASHBOARD_EXAMPLE.tsx)
+- [ENHANCED_DASHBOARD_EXAMPLE.tsx - deadlines and notifications](ENHANCED_DASHBOARD_EXAMPLE.tsx)
 - [SMART_UX_GUIDE.md - Notifications Section](SMART_UX_GUIDE.md)
 - [src/hooks/useSmartNotifications.ts](src/hooks/useSmartNotifications.ts) - Source code
 - [SMART_UX_INTEGRATION_GUIDE.md - useSmartNotifications](SMART_UX_INTEGRATION_GUIDE.md#-notifications-not-showing)

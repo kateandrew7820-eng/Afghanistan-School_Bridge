@@ -15,26 +15,26 @@ interface Document {
   created_at: string;
 }
 
-export default function Schoolاسناد() {
-  const [اسناد, setاسناد] = useState<Document[]>([]);
+export default function SchoolDocuments() {
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchاسناد() {
+    async function fetchDocuments() {
       const { data } = await supabase
-        .from('center_اسناد')
+        .from('center_documents')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (data) setاسناد(data);
+      if (data) setDocuments(data);
       setLoading(false);
     }
 
-    fetchاسناد();
+    fetchDocuments();
   }, []);
 
   const downloadDocument = async (filePath: string, fileName: string) => {
-    const { data } = await supabase.storage.from('center-اسناد').download(filePath);
+    const { data } = await supabase.storage.from('center-documents').download(filePath);
     if (data) {
       const url = URL.createObjectURL(data);
       const a = document.createElement('a');
@@ -50,22 +50,22 @@ export default function Schoolاسناد() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <FileDown className="h-6 w-6" />
-          Center اسناد
+          Center Documents
         </h1>
         <p className="text-muted-foreground">Download guidelines, policies, and resources</p>
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading اسناد...</p>
-      ) : اسناد.length === 0 ? (
+        <p className="text-muted-foreground">Loading documents...</p>
+      ) : documents.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No اسناد available</p>
+            <p className="text-muted-foreground">No documents available</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {اسناد.map((doc) => (
+          {documents.map((doc) => (
             <Card key={doc.id}>
               <CardHeader>
                 <CardTitle className="text-lg">{doc.title}</CardTitle>

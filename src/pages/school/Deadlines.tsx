@@ -12,23 +12,23 @@ interface Deadline {
   due_date: string;
 }
 
-export default function Schoolفرصت‌‌ها() {
-  const [فرصت‌‌ها, setفرصت‌‌ها] = useState<Deadline[]>([]);
+export default function SchoolDeadlines() {
+  const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchفرصت‌‌ها() {
+    async function fetchDeadlines() {
       const { data } = await supabase
-        .from('فرصت‌‌ها')
+        .from('deadlines')
         .select('*')
         .eq('is_active', true)
         .order('due_date', { ascending: true });
       
-      if (data) setفرصت‌‌ها(data);
+      if (data) setDeadlines(data);
       setLoading(false);
     }
 
-    fetchفرصت‌‌ها();
+    fetchDeadlines();
   }, []);
 
   const getDaysRemaining = (dueDate: string) => {
@@ -39,7 +39,7 @@ export default function Schoolفرصت‌‌ها() {
     return `${days} days left`;
   };
 
-  const getفرصت‌‌هاtatus = (dueDate: string) => {
+  const getDeadlineStatus = (dueDate: string) => {
     const days = differenceInDays(new Date(dueDate), new Date());
     if (days < 0) return 'destructive';
     if (days <= 3) return 'default';
@@ -51,22 +51,22 @@ export default function Schoolفرصت‌‌ها() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Calendar className="h-6 w-6" />
-          فرصت‌‌ها
+          Deadlines
         </h1>
-        <p className="text-muted-foreground">Important dates and submission فرصت‌‌ها</p>
+        <p className="text-muted-foreground">Important dates and submission deadlines</p>
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading فرصت‌‌ها...</p>
-      ) : فرصت‌‌ها.length === 0 ? (
+        <p className="text-muted-foreground">Loading deadlines...</p>
+      ) : deadlines.length === 0 ? (
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">No active فرصت‌‌ها</p>
+            <p className="text-muted-foreground">No active deadlines</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
-          {فرصت‌‌ها.map((deadline) => (
+          {deadlines.map((deadline) => (
             <Card key={deadline.id}>
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-4">
@@ -76,7 +76,7 @@ export default function Schoolفرصت‌‌ها() {
                       Due: {format(new Date(deadline.due_date), 'EEEE, MMMM d, yyyy')}
                     </CardDescription>
                   </div>
-                  <Badge variant={getفرصت‌‌هاtatus(deadline.due_date) as any}>
+                  <Badge variant={getDeadlineStatus(deadline.due_date) as any}>
                     {getDaysRemaining(deadline.due_date)}
                   </Badge>
                 </div>

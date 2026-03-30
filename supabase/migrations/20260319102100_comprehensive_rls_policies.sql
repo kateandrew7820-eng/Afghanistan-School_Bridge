@@ -284,45 +284,45 @@ CREATE POLICY "Only admins can delete اعلانات" ON public.اعلانات
   FOR DELETE USING (public.is_admin());
 
 -- ============================================================================
--- 9. CENTER_اسناد TABLE - NOW WITH RLS
+-- 9. CENTER_DOCUMENTS TABLE - NOW WITH RLS
 -- ============================================================================
 
-DROP POLICY IF EXISTS "Anyone can view اسناد" ON public.center_اسناد;
-DROP POLICY IF EXISTS "Admins can manage اسناد" ON public.center_اسناد;
-DROP POLICY IF EXISTS "Authenticated users can view اسناد" ON public.center_اسناد;
-DROP POLICY IF EXISTS "Only admins can upload اسناد" ON public.center_اسناد;
-DROP POLICY IF EXISTS "Only admins can modify اسناد" ON public.center_اسناد;
+DROP POLICY IF EXISTS "Anyone can view documents" ON public.center_documents;
+DROP POLICY IF EXISTS "Admins can manage documents" ON public.center_documents;
+DROP POLICY IF EXISTS "Authenticated users can view documents" ON public.center_documents;
+DROP POLICY IF EXISTS "Only admins can upload documents" ON public.center_documents;
+DROP POLICY IF EXISTS "Only admins can modify documents" ON public.center_documents;
 
-CREATE POLICY "Authenticated users can view اسناد" ON public.center_اسناد 
+CREATE POLICY "Authenticated users can view documents" ON public.center_documents 
   FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY "Only admins can upload اسناد" ON public.center_اسناد 
+CREATE POLICY "Only admins can upload documents" ON public.center_documents 
   FOR INSERT WITH CHECK (public.is_admin());
 
-CREATE POLICY "Only admins can modify اسناد" ON public.center_اسناد 
+CREATE POLICY "Only admins can modify documents" ON public.center_documents 
   FOR UPDATE USING (public.is_admin());
 
-CREATE POLICY "Only admins can delete اسناد" ON public.center_اسناد 
+CREATE POLICY "Only admins can delete documents" ON public.center_documents 
   FOR DELETE USING (public.is_admin());
 
 -- ============================================================================
--- 10. فرصت‌‌ها TABLE - NOW WITH RLS
+-- 10. DEADLINES TABLE - NOW WITH RLS
 -- ============================================================================
 
-DROP POLICY IF EXISTS "Anyone can view فرصت‌‌ها" ON public.فرصت‌‌ها;
-DROP POLICY IF EXISTS "Admins can manage فرصت‌‌ها" ON public.فرصت‌‌ها;
-DROP POLICY IF EXISTS "Authenticated users can view فرصت‌‌ها" ON public.فرصت‌‌ها;
-DROP POLICY IF EXISTS "Only admins can create فرصت‌‌ها" ON public.فرصت‌‌ها;
-DROP POLICY IF EXISTS "Only admins can modify فرصت‌‌ها" ON public.فرصت‌‌ها;
+DROP POLICY IF EXISTS "Anyone can view deadlines" ON public.deadlines;
+DROP POLICY IF EXISTS "Admins can manage deadlines" ON public.deadlines;
+DROP POLICY IF EXISTS "Authenticated users can view deadlines" ON public.deadlines;
+DROP POLICY IF EXISTS "Only admins can create deadlines" ON public.deadlines;
+DROP POLICY IF EXISTS "Only admins can modify deadlines" ON public.deadlines;
 
-CREATE POLICY "Authenticated users can view فرصت‌‌ها" ON public.فرصت‌‌ها 
+CREATE POLICY "Authenticated users can view deadlines" ON public.deadlines 
   FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY "Only admins can create فرصت‌‌ها" ON public.فرصت‌‌ها 
+CREATE POLICY "Only admins can create deadlines" ON public.deadlines 
   FOR INSERT WITH CHECK (public.is_admin());
 
-CREATE POLICY "Only admins can update فرصت‌‌ها" ON public.فرصت‌‌ها 
+CREATE POLICY "Only admins can update deadlines" ON public.deadlines 
   FOR UPDATE USING (public.is_admin());
 
-CREATE POLICY "Only admins can delete فرصت‌‌ها" ON public.فرصت‌‌ها 
+CREATE POLICY "Only admins can delete deadlines" ON public.deadlines 
   FOR DELETE USING (public.is_admin());

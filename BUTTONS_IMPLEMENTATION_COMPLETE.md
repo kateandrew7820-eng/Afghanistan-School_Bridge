@@ -127,7 +127,7 @@ Login → Dashboard → National Stats → Review All → Manage → Confirm
 | Button | Action | Status |
 |--------|--------|--------|
 | مشاهده تمام | View all announcements | ✅ |
-| مشاهده تمام | View all فرصت‌‌ها | ✅ |
+| مشاهده تمام | View all deadlines | ✅ |
 | مشاهده ارسال‌ها | Go to submissions | ✅ |
 
 ### **File Upload Buttons**

@@ -146,11 +146,11 @@ This means:
 4. Verify each role sees correct dashboard
 ```
 
-### Scenario 3: Test اعلانات, فرصت‌‌ها, etc.
+### Scenario 3: Test اعلانات, Deadlines, etc.
 ```
 1. Login as any role (dev mode auto-verifies)
 2. See dashboard
-3. Try اعلانات, فرصت‌‌ها, submissions
+3. Try اعلانات, deadlines, submissions
 4. Add/edit content
 5. Test all features without approval bottleneck
 ```
@@ -221,7 +221,7 @@ if (DEV_MODE) {
 ✅ **Role Testing** - Test each role's dashboard quickly  
 ✅ **UI Testing** - See all UI flows without approval bottleneck  
 ✅ **Feature Development** - Develop new features in dashboards freely  
-✅ **Edit & Test** - Create اعلانات, فرصت‌‌ها, submissions, and test immediately  
+✅ **Edit & Test** - Create اعلانات, deadlines, submissions, and test immediately  
 
 ## QA/Testing Example
 

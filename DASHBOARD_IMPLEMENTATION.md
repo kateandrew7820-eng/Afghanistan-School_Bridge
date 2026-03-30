@@ -29,7 +29,7 @@
 
 ### **Tier 1: School Dashboard (HIGHEST PRIORITY)**
 Currently exists but needs enhancement:
-- ✅ Dashboard overview with اعلانات & فرصت‌‌ها
+- ✅ Dashboard overview with اعلانات & deadlines
 - ✅ Submit Statistics form (working with validation)
 - 🔄 SubmitReports.tsx - needs file upload UI
 - 🔄 SubmitForms.tsx - needs multi-form support
@@ -43,8 +43,8 @@ Currently exists but needs enhancement:
 /school/reports → Upload reports/PDFs (needs work)
 /school/forms → Submit monthly/yearly forms (needs work)
 /school/اعلانات → View اعلانات (done)
-/school/اسناد → View center اسناد (done)
-/school/فرصت‌‌ها → View فرصت‌‌ها (done)
+/school/documents → View center documents (done)
+/school/deadlines → View deadlines (done)
 /school/profile → User & school profile (todo)
 ```
 
@@ -56,7 +56,7 @@ Skeleton exists, needs metrics & functionality:
 - 📍 Submissions viewer (pending/approved/rejected)
 - 📍 Approve/reject submissions with feedback
 - 📍 School management interface
-- 📍 اعلانات/اسناد/فرصت‌‌ها management
+- 📍 اعلانات/documents/deadlines management
 
 **Required Pages:**
 ```
@@ -65,8 +65,8 @@ Skeleton exists, needs metrics & functionality:
 /district/verify → Approve/reject/provide feedback
 /district/schools → Manage district schools
 /district/اعلانات → Create/manage اعلانات
-/district/اسناد → Upload/manage اسناد
-/district/فرصت‌‌ها → Create/manage فرصت‌‌ها
+/district/documents → Upload/manage documents
+/district/deadlines → Create/manage deadlines
 ```
 
 ---
@@ -75,7 +75,7 @@ Skeleton exists, needs metrics & functionality:
 Skeleton exists, needs metrics & views:
 - 📍 Dashboard with district summary
 - 📍 Aggregate district data visualization
-- 📍 اعلانات & اسناد broadcast
+- 📍 اعلانات & documents broadcast
 - 📍 Analytics (submission trends, completion %)
 - 📍 District management
 
@@ -86,8 +86,8 @@ Skeleton exists, needs metrics & views:
 /province/districts → District list & management
 /province/submissions → Aggregate district submissions
 /province/اعلانات → Create/push اعلانات
-/province/اسناد → Upload/manage اسناد
-/province/فرصت‌‌ها → Create/manage فرصت‌‌ها
+/province/documents → Upload/manage documents
+/province/deadlines → Create/manage deadlines
 ```
 
 ---
@@ -100,7 +100,7 @@ Most comprehensive, needs full implementation:
 - 📍 User account creation/management
 - 📍 School registration & management
 - 📍 Excel/PDF report export
-- 📍 اعلانات/اسناد/فرصت‌‌ها broadcast nationwide
+- 📍 اعلانات/documents/deadlines broadcast nationwide
 
 **Required Pages:**
 ```
@@ -112,8 +112,8 @@ Most comprehensive, needs full implementation:
 /ministry/users → Create/manage user accounts
 /ministry/submissions → مشاهده همه submissions
 /ministry/اعلانات → Create/broadcast اعلانات
-/ministry/اسناد → Upload/manage national اسناد
-/ministry/فرصت‌‌ها → Create national فرصت‌‌ها
+/ministry/documents → Upload/manage national documents
+/ministry/deadlines → Create national deadlines
 /ministry/export → Generate reports (Excel/PDF)
 ```
 
@@ -163,7 +163,7 @@ SearchFilter - search + filtering UI
 - Get submission count by status (for district)
 - Aggregate school data to district level
 - Aggregate district data to province level
-- Broadcast اعلانات/اسناد
+- Broadcast اعلانات/documents
 - Get user's school/district/province info
 ```
 

@@ -90,8 +90,8 @@ CREATE TABLE public.اعلانات (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Create center اسناد table (for shared اسناد)
-CREATE TABLE public.center_اسناد (
+-- Create center documents table (for shared documents)
+CREATE TABLE public.center_documents (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   description TEXT,
@@ -102,8 +102,8 @@ CREATE TABLE public.center_اسناد (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Create فرصت‌‌ها table
-CREATE TABLE public.فرصت‌‌ها (
+-- Create deadlines table
+CREATE TABLE public.deadlines (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   description TEXT,
@@ -121,8 +121,8 @@ ALTER TABLE public.statistics_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.report_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.form_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.اعلانات ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.center_اسناد ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.فرصت‌‌ها ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.center_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.deadlines ENABLE ROW LEVEL SECURITY;
 
 -- Create security definer function to check roles
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
@@ -202,17 +202,17 @@ CREATE POLICY "Admins can update forms" ON public.form_submissions FOR UPDATE US
 CREATE POLICY "Anyone can view published اعلانات" ON public.اعلانات FOR SELECT USING (is_published = true);
 CREATE POLICY "Admins can manage اعلانات" ON public.اعلانات FOR ALL USING (public.is_admin());
 
--- Center اسناد policies (public read, admin write)
-CREATE POLICY "Anyone can view اسناد" ON public.center_اسناد FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Admins can manage اسناد" ON public.center_اسناد FOR ALL USING (public.is_admin());
+-- Center documents policies (public read, admin write)
+CREATE POLICY "Anyone can view documents" ON public.center_documents FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Admins can manage documents" ON public.center_documents FOR ALL USING (public.is_admin());
 
--- فرصت‌‌ها policies (public read, admin write)
-CREATE POLICY "Anyone can view فرصت‌‌ها" ON public.فرصت‌‌ها FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Admins can manage فرصت‌‌ها" ON public.فرصت‌‌ها FOR ALL USING (public.is_admin());
+-- Deadlines policies (public read, admin write)
+CREATE POLICY "Anyone can view deadlines" ON public.deadlines FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Admins can manage deadlines" ON public.deadlines FOR ALL USING (public.is_admin());
 
 -- Create storage buckets for file uploads
 INSERT INTO storage.buckets (id, name, public) VALUES ('school-reports', 'school-reports', false);
-INSERT INTO storage.buckets (id, name, public) VALUES ('center-اسناد', 'center-اسناد', true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('center-documents', 'center-documents', true);
 
 -- Storage policies for school-reports bucket
 CREATE POLICY "Schools can upload own reports" ON storage.objects FOR INSERT TO authenticated
@@ -224,15 +224,15 @@ USING (bucket_id = 'school-reports' AND (storage.foldername(name))[1] = public.g
 CREATE POLICY "Admins can مشاهده همه reports" ON storage.objects FOR SELECT TO authenticated
 USING (bucket_id = 'school-reports' AND public.is_admin());
 
--- Storage policies for center-اسناد bucket
-CREATE POLICY "Anyone can view center اسناد" ON storage.objects FOR SELECT TO authenticated
-USING (bucket_id = 'center-اسناد');
+-- Storage policies for center-documents bucket
+CREATE POLICY "Anyone can view center documents" ON storage.objects FOR SELECT TO authenticated
+USING (bucket_id = 'center-documents');
 
-CREATE POLICY "Admins can upload center اسناد" ON storage.objects FOR INSERT TO authenticated
-WITH CHECK (bucket_id = 'center-اسناد' AND public.is_admin());
+CREATE POLICY "Admins can upload center documents" ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'center-documents' AND public.is_admin());
 
-CREATE POLICY "Admins can delete center اسناد" ON storage.objects FOR DELETE TO authenticated
-USING (bucket_id = 'center-اسناد' AND public.is_admin());
+CREATE POLICY "Admins can delete center documents" ON storage.objects FOR DELETE TO authenticated
+USING (bucket_id = 'center-documents' AND public.is_admin());
 
 -- Create trigger to auto-create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()

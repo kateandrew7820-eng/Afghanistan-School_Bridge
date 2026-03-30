@@ -85,8 +85,8 @@ Perfect for testing without database
 - ✅ Submit Reports (with file upload)
 - ✅ Submit Forms (generic form)
 - ✅ View Announcements
-- ✅ View اسناد
-- ✅ View فرصت‌‌ها
+- ✅ View Documents
+- ✅ View Deadlines
 - ✅ All 6 test simulation buttons
 
 ### 🔷 District (District Admin)

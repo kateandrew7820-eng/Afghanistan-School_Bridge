@@ -49,7 +49,7 @@ interface SchoolStats {
   totalTeachers: number;
   teacherTrend: 'up' | 'down' | 'neutral';
   submissionRate: number;
-  getUpcoming فرصت‌‌ها: number;
+  getUpcoming Deadlines: number;
 }
 
 /**
@@ -74,7 +74,7 @@ export default function EnhancedSchoolDashboard() {
 
   // State
   const [announcements, setAnnouncements] = useState<AnnouncementData[]>([]);
-  const [فرصت‌‌ها, setفرصت‌‌ها] = useState<DeadlineData[]>([]);
+  const [deadlines, setDeadlines] = useState<DeadlineData[]>([]);
   const [stats, setStats] = useState<SchoolStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
@@ -101,7 +101,7 @@ export default function EnhancedSchoolDashboard() {
           },
         ];
 
-        const فرصت‌‌هاData = [
+        const deadlinesData = [
           {
             id: '1',
             title: 'Q1 Statistics Submission',
@@ -119,10 +119,10 @@ export default function EnhancedSchoolDashboard() {
         ];
 
         setAnnouncements(announcementsData);
-        setفرصت‌‌ها(فرصت‌‌هاData);
+        setDeadlines(deadlinesData);
 
         // Show deadline notifications for urgent ones
-        فرصت‌‌هاData.forEach(d => {
+        deadlinesData.forEach(d => {
           const daysLeft = Math.ceil((new Date(d.due_date).getTime() - Date.now()) / (1000*60*60*24));
           if (daysLeft <= 3) {
             notifyDeadlineApproaching(d);
@@ -135,7 +135,7 @@ export default function EnhancedSchoolDashboard() {
           totalTeachers: 18,
           teacherTrend: 'neutral',
           submissionRate: 87,
-          upcomingفرصت‌‌ها: 2,
+          upcomingDeadlines: 2,
         });
 
         setLoading(false);
@@ -263,14 +263,14 @@ export default function EnhancedSchoolDashboard() {
           description="Report student enrollment data"
           icon={<BarChart3 className="h-5 w-5" />}
           highlight={
-            فرصت‌‌ها.some(
+            deadlines.some(
               d => d.title.includes('Statistics') && 
               new Date(d.due_date).getTime() - Date.now() < 7*24*60*60*1000
             )
           }
           badge={{
-            label: فرصت‌‌ها.some(d => d.title.includes('Statistics')) ? 'Pending' : 'Updated',
-            variant: فرصت‌‌ها.some(d => d.title.includes('Statistics')) ? 'destructive' : 'default',
+            label: deadlines.some(d => d.title.includes('Statistics')) ? 'Pending' : 'Updated',
+            variant: deadlines.some(d => d.title.includes('Statistics')) ? 'destructive' : 'default',
           }}
           onExpand={() => {}}
           expandedContent={
@@ -302,7 +302,7 @@ export default function EnhancedSchoolDashboard() {
           expandedContent={
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Upload PDF اسناد with your school's monthly performance data
+                Upload PDF documents with your school's monthly performance data
               </p>
               <Button onClick={handleSubmitReport} className="w-full">
                 Upload Report
@@ -366,9 +366,9 @@ export default function EnhancedSchoolDashboard() {
           trend="up"
         />
         <SmartStatusCard
-          label="Upcoming فرصت‌‌ها"
-          value={stats?.upcomingفرصت‌‌ها || 0}
-          status={فرصت‌‌ها.length > 0 ? 'warning' : 'success'}
+          label="Upcoming Deadlines"
+          value={stats?.upcomingDeadlines || 0}
+          status={deadlines.length > 0 ? 'warning' : 'success'}
           trend="neutral"
         />
       </div>
@@ -411,24 +411,24 @@ export default function EnhancedSchoolDashboard() {
           </CardContent>
         </Card>
 
-        {/* فرصت‌‌ها */}
+        {/* Deadlines */}
         <Card className="animate-in slide-in-from-right">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Upcoming فرصت‌‌ها
+                Upcoming Deadlines
               </CardTitle>
               <CardDescription>Tasks that need your attention</CardDescription>
             </div>
-            <Link to="/school/فرصت‌‌ها">
+            <Link to="/school/deadlines">
               <Button variant="ghost" size="sm">
                 View All →
               </Button>
             </Link>
           </CardHeader>
           <CardContent className="space-y-3">
-            {فرصت‌‌ها.map((d) => {
+            {deadlines.map((d) => {
               const daysLeft = Math.ceil((new Date(d.due_date).getTime() - Date.now()) / (1000*60*60*24));
               const isUrgent = daysLeft <= 3;
 
@@ -482,7 +482,7 @@ export default function EnhancedSchoolDashboard() {
  * Key Features Demonstrated:
  * 
  * 1. Smart Notifications
- *    - Auto-shows فرصت‌‌ها that are approaching
+ *    - Auto-shows deadlines that are approaching
  *    - Contextual warnings for urgent announcements
  * 
  * 2. Interactive Cards

@@ -32,7 +32,7 @@ This checklist helps developers systematically upgrade pages to use smart UX fea
   - [ ] Show `SmartStatusCard` for key metrics
   - [ ] Add expandable school list
   - [ ] Highlight schools needing attention
-  - [ ] Show submission فرصت‌‌ها
+  - [ ] Show submission deadlines
 
 - [ ] ProvinceDashboard.tsx & MinistryDashboard.tsx
   - [ ] Add interactive status cards
@@ -48,7 +48,7 @@ This checklist helps developers systematically upgrade pages to use smart UX fea
   - [ ] Show smart notifications for actions
   - [ ] Highlight pending approvals
 
-- [ ] ManageSchools.tsx, اسناد.tsx, Announcements.tsx
+- [ ] ManageSchools.tsx, Documents.tsx, Announcements.tsx
   - [ ] Add delete confirmations
   - [ ] Use inline notifications
   - [ ] Add filter and sort to cards
@@ -85,7 +85,7 @@ This checklist helps developers systematically upgrade pages to use smart UX fea
   value={name}
   error={validation.errors.fullName}
   touched={validation.touched.fullName}
-  hint="Your full name will appear on official اسناد"
+  hint="Your full name will appear on official documents"
   required
   placeholder="Your full name"
   onChange={(e) => {

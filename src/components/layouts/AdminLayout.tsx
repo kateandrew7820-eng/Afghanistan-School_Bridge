@@ -22,8 +22,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { href: '/admin', icon: LayoutDashboard, label: t('navigation.dashboard') },
     { href: '/admin/submissions', icon: BarChart3, label: t('navigation.submissions') },
     { href: '/admin/announcements', icon: Bell, label: t('navigation.announcements') },
-    { href: '/admin/اسناد', icon: FileUp, label: t('navigation.اسناد') },
-    { href: '/admin/فرصت‌‌ها', icon: Calendar, label: t('navigation.فرصت‌‌ها') },
+    { href: '/admin/documents', icon: FileUp, label: t('navigation.documents') },
+    { href: '/admin/deadlines', icon: Calendar, label: t('navigation.deadlines') },
     { href: '/admin/schools', icon: School, label: t('navigation.manageSchools') },
   ];
 

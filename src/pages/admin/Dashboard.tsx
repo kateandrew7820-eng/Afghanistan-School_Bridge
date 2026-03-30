@@ -166,7 +166,7 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
-        <Link to="/admin/اسناد">
+        <Link to="/admin/documents">
           <Card className="hover:border-primary transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center gap-3">
               <FileUp className="h-5 w-5 text-primary" />
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
           </Card>
         </Link>
 
-        <Link to="/admin/فرصت‌‌ها">
+        <Link to="/admin/deadlines">
           <Card className="hover:border-primary transition-colors cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center gap-3">
               <Calendar className="h-5 w-5 text-primary" />
