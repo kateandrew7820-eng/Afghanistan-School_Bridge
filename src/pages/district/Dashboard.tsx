@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -7,10 +7,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  School, CheckCircle2, Clock, Eye, Loader2
-} from "lucide-react";
+import { School, Eye, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+
+/* ---------------- TYPES ---------------- */
 
 type Status = "pending" | "approved" | "rejected";
 
@@ -22,36 +22,50 @@ interface Submission {
   created_at: string;
 }
 
+interface Stats {
+  schools: number;
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+}
+
+/* ---------------- PAGE ---------------- */
+
 export default function DistrictDashboard() {
   const { profile } = useAuth();
 
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [error, setError] = useState<string | null>(null);
+
+  const [stats, setStats] = useState<Stats>({
     schools: 0,
     total: 0,
     pending: 0,
     approved: 0,
+    rejected: 0,
   });
 
   const [recent, setRecent] = useState<Submission[]>([]);
 
-  useEffect(() => {
-    if (profile?.district) fetchData();
-  }, [profile]);
+  const fetchData = useCallback(async () => {
+    if (!profile?.district) return;
 
-  async function fetchData() {
     setLoading(true);
+    setError(null);
 
     try {
-      const district = profile?.district;
+      const district = profile.district;
 
-      // ✅ 1. Schools count (filtered)
-      const { count: schoolCount } = await supabase
+      /* ---------------- Schools COUNT ---------------- */
+      const { count: schoolCount, error: schoolError } = await supabase
         .from("schools")
         .select("*", { count: "exact", head: true })
         .eq("district", district);
 
-      // ✅ 2. Optimized fetch (filtered + limited)
+      if (schoolError) throw schoolError;
+
+      /* ---------------- Base Query Factory ---------------- */
       const baseQuery = (table: string) =>
         supabase
           .from(table)
@@ -65,6 +79,10 @@ export default function DistrictDashboard() {
         baseQuery("form_submissions"),
       ]);
 
+      if (statsRes.error || reportsRes.error || formsRes.error) {
+        throw statsRes.error || reportsRes.error || formsRes.error;
+      }
+
       const normalize = (data: any[], type: string): Submission[] =>
         (data || []).map((item) => ({
           id: item.id,
@@ -74,38 +92,48 @@ export default function DistrictDashboard() {
           created_at: item.created_at,
         }));
 
-      const all = [
-        ...normalize(statsRes.data, "آمار"),
-        ...normalize(reportsRes.data, "گزارش"),
-        ...normalize(formsRes.data, "فورم"),
+      const all: Submission[] = [
+        ...normalize(statsRes.data || [], "آمار"),
+        ...normalize(reportsRes.data || [], "گزارش"),
+        ...normalize(formsRes.data || [], "فورم"),
       ];
 
-      const pending = all.filter((s) => s.status === "pending").length;
-      const approved = all.filter((s) => s.status === "approved").length;
+      /* ---------------- SINGLE PASS STATS ---------------- */
+      let pending = 0;
+      let approved = 0;
+      let rejected = 0;
+
+      for (const s of all) {
+        if (s.status === "pending") pending++;
+        else if (s.status === "approved") approved++;
+        else rejected++;
+      }
 
       setStats({
         schools: schoolCount || 0,
         total: all.length,
         pending,
         approved,
+        rejected,
       });
 
-      setRecent(
-        all
-          .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
-          .slice(0, 6) // clean limit
-      );
+      /* ---------------- RECENT ---------------- */
+      const sorted = all
+        .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+        .slice(0, 6);
 
+      setRecent(sorted);
+    } catch (err: any) {
+      console.error("Dashboard fetch error:", err);
+      setError("خطا در بارگذاری داده‌ها");
     } finally {
       setLoading(false);
     }
-  }
+  }, [profile?.district]);
 
-  function normalizeStatus(status: string): Status {
-    if (["approved", "تأیید شده"].includes(status)) return "approved";
-    if (["rejected", "رد شده"].includes(status)) return "rejected";
-    return "pending";
-  }
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
     <div className="space-y-6">
@@ -120,14 +148,17 @@ export default function DistrictDashboard() {
         </p>
       </div>
 
+      {/* ERROR STATE */}
+      {error && (
+        <div className="text-red-600 text-sm">{error}</div>
+      )}
+
       {/* STATS */}
       <div className="grid md:grid-cols-4 gap-4">
-
-        <StatCard title="مکاتب" value={stats.schools} loading={loading} tone="blue" />
-        <StatCard title="کل ارسال‌ها" value={stats.total} loading={loading} tone="purple" />
-        <StatCard title="تایید شده" value={stats.approved} loading={loading} tone="green" />
-        <StatCard title="در انتظار" value={stats.pending} loading={loading} tone="yellow" />
-
+        <StatCard title="مکاتب" value={stats.schools} loading={loading} />
+        <StatCard title="کل ارسال‌ها" value={stats.total} loading={loading} />
+        <StatCard title="تایید شده" value={stats.approved} loading={loading} />
+        <StatCard title="در انتظار" value={stats.pending} loading={loading} />
       </div>
 
       {/* ACTION */}
@@ -160,7 +191,7 @@ export default function DistrictDashboard() {
               {recent.map((s) => (
                 <div
                   key={s.id}
-                  className="flex justify-between items-center p-3 rounded-xl border bg-white dark:bg-gray-900 hover:bg-gray-50 transition"
+                  className="flex justify-between items-center p-3 rounded-xl border bg-white hover:bg-gray-50 transition"
                 >
                   <div>
                     <p className="font-medium text-sm">{s.school_name}</p>
@@ -183,30 +214,27 @@ export default function DistrictDashboard() {
           )}
         </CardContent>
       </Card>
-
     </div>
   );
 }
 
 /* ---------------- UI COMPONENTS ---------------- */
 
-function StatCard({ title, value, loading, tone }: any) {
-  const tones: any = {
-    blue: "bg-white text-gray-900 border-gray-100",
-    purple: "bg-white text-gray-900 border-gray-100",
-    green: "bg-white text-gray-900 border-gray-100",
-    yellow: "bg-yellow-50 text-yellow-700 border-yellow-100",
-  };
-  
+function StatCard({
+  title,
+  value,
+  loading,
+}: {
+  title: string;
+  value: number;
+  loading: boolean;
+}) {
   return (
     <Card className="hover:scale-[1.02] transition shadow-sm border-none">
-      <CardHeader className="flex flex-row justify-between pb-2">
+      <CardHeader className="pb-2">
         <CardTitle className="text-sm text-muted-foreground">
           {title}
         </CardTitle>
-        <div className={`p-2 rounded-lg ${tones[tone]}`}>
-          <School className="w-4 h-4" />
-        </div>
       </CardHeader>
 
       <CardContent>
@@ -236,4 +264,12 @@ function StatusBadge({ status }: { status: Status }) {
       {label[status]}
     </Badge>
   );
+}
+
+/* ---------------- HELPERS ---------------- */
+
+function normalizeStatus(status: string): Status {
+  if (["approved", "تأیید شده"].includes(status)) return "approved";
+  if (["rejected", "رد شده"].includes(status)) return "rejected";
+  return "pending";
 }
