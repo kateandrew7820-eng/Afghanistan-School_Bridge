@@ -1,95 +1,140 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from '@/contexts/LocalizationContext';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useMockData } from '@/hooks/useMockData';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, BarChart3, AlertCircle, Users, Loader2, TrendingUp } from 'lucide-react';
 
-interface ProvinceStats {
-  totalDistricts: number;
-  totalSchools: number;
-  totalSubmissions: number;
-  pendingSubmissions: number;
-  approvedSubmissions: number;
-  totalStudents: number;
+/* ---------------- TYPES ---------------- */
+type Status = 'pending' | 'approved' | 'rejected';
+
+interface Stats {
+  districts: number;
+  schools: number;
+  submissions: number;
+  pending: number;
+  approved: number;
+  students: number;
 }
 
-export default function ProvinceDashboard() {
-  const { profile, isDemoMode } = useAuth();
-  const { t } = useTranslation();
-  const mockData = useMockData();
-
+/* ---------------- DATA HOOK ---------------- */
+function useProvinceStats(province?: string) {
+  const [data, setData] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<ProvinceStats>({
-    totalDistricts: 0,
-    totalSchools: 0,
-    totalSubmissions: 0,
-    pendingSubmissions: 0,
-    approvedSubmissions: 0,
-    totalStudents: 0
-  });
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchProvinceData();
-  }, [profile]);
+  const fetchData = useCallback(async () => {
+    if (!province) return;
 
-  async function fetchProvinceData() {
     try {
       setLoading(true);
-
-      if (isDemoMode || !profile?.province) {
-        setStats({
-          totalDistricts: mockData.provinceStats.districts || 12,
-          totalSchools: mockData.provinceStats.schools || 385,
-          totalSubmissions: mockData.submissions.length,
-          pendingSubmissions: mockData.submissions.filter(s => s.status === 'در انتظار تأیید').length,
-          approvedSubmissions: mockData.submissions.filter(s => s.status === 'تأیید شده').length,
-          totalStudents: mockData.provinceStats.students || 125000
-        });
-        return;
-      }
+      setError(null);
 
       const [schoolsRes, statsRes, reportsRes, formsRes] = await Promise.all([
-        supabase.from('schools').select('*').eq('province', profile.province),
-        supabase.from('statistics_submissions').select('*'),
-        supabase.from('report_submissions').select('*'),
-        supabase.from('form_submissions').select('*')
+        supabase.from('schools')
+          .select('district')
+          .eq('province', province),
+
+        supabase.from('statistics_submissions')
+          .select('status,total_students')
+          .eq('province', province),
+
+        supabase.from('report_submissions')
+          .select('status')
+          .eq('province', province),
+
+        supabase.from('form_submissions')
+          .select('status')
+          .eq('province', province)
       ]);
 
       const schools = schoolsRes.data || [];
-      const allSubmissions = [
-        ...(statsRes.data || []),
-        ...(reportsRes.data || []),
-        ...(formsRes.data || [])
-      ];
+      const stats = statsRes.data || [];
+      const reports = reportsRes.data || [];
+      const forms = formsRes.data || [];
 
-      setStats({
-        totalDistricts: new Set(schools.map(s => s.district)).size,
-        totalSchools: schools.length,
-        totalSubmissions: allSubmissions.length,
-        pendingSubmissions: allSubmissions.filter(s => s.status === 'pending').length,
-        approvedSubmissions: allSubmissions.filter(s => s.status === 'approved').length,
-        totalStudents: (statsRes.data || []).reduce((sum, s: any) => sum + (s.total_students || 0), 0)
-      });
+      const all = [...stats, ...reports, ...forms];
 
-    } catch (e) {
-      console.error(e);
+      // single-pass aggregation ⚡
+      let pending = 0;
+      let approved = 0;
+
+      for (const s of all) {
+        const status = normalizeStatus(s.status);
+        if (status === 'pending') pending++;
+        if (status === 'approved') approved++;
+      }
+
+      const result: Stats = {
+        districts: new Set(schools.map(s => s.district)).size,
+        schools: schools.length,
+        submissions: all.length,
+        pending,
+        approved,
+        students: stats.reduce((sum, s: any) => sum + (s.total_students || 0), 0)
+      };
+
+      setData(result);
+
+    } catch (err: any) {
+      setError('خطا در دریافت داده‌ها');
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  }
+  }, [province]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+
+/* ---------------- HELPERS ---------------- */
+function normalizeStatus(status: string): Status {
+  if (!status) return 'pending';
+
+  if (['pending', 'در انتظار تأیید'].includes(status)) return 'pending';
+  if (['approved', 'تأیید شده'].includes(status)) return 'approved';
+  return 'rejected';
+}
+
+/* ---------------- UI COMPONENT ---------------- */
+function StatCard({ title, value, icon: Icon, loading }: any) {
+  return (
+    <Card className="bg-white border shadow-sm hover:shadow-md transition">
+      <CardHeader className="flex flex-row justify-between pb-2">
+        <CardTitle className="text-sm">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-slate-900" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
+          {loading ? <div className="h-6 w-16 bg-slate-200 animate-pulse rounded" /> : value}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------------- MAIN ---------------- */
+export default function ProvinceDashboard() {
+  const { profile } = useAuth();
+  const province = profile?.province;
+
+  const { data, loading, error, refetch } = useProvinceStats(province);
+
+  const stats = useMemo(() => data, [data]);
 
   return (
     <div className="space-y-6 bg-white text-slate-800 p-4 rounded-2xl">
 
       {/* HEADER */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">داشبورد ولایت</h1>
           <p className="text-sm text-slate-500">
-            {profile?.province || 'ولایت شما'} — مدیریت هوشمند و دقیق داده‌ها
+            {province || 'ولایت شما'}
           </p>
         </div>
 
@@ -99,97 +144,33 @@ export default function ProvinceDashboard() {
         </Badge>
       </div>
 
-      {/* MOTIVATION BAR */}
-      <div className="bg-slate-50 border rounded-xl p-4 flex justify-between items-center">
-        <p className="text-sm text-slate-800">
-          📊 داده‌های دقیق امروز = تصمیم‌های قوی فردا
-        </p>
-        <Badge className="bg-slate-900 text-white">
-          به‌روز
-        </Badge>
-      </div>
-      
+      {/* ERROR */}
+      {error && (
+        <div className="bg-red-50 border text-red-700 p-3 rounded-xl flex justify-between items-center">
+          <span>{error}</span>
+          <button onClick={refetch} className="text-sm underline">تلاش دوباره</button>
+        </div>
+      )}
+
       {/* STATS */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-
-        <Card className="bg-white border shadow-sm hover:shadow-md transition">
-          <CardHeader className="flex flex-row justify-between pb-2">
-            <CardTitle className="text-sm">ولسوالی‌ها</CardTitle>
-            <MapPin className="h-4 w-4 text-slate-900" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.totalDistricts}</div>
-            <p className="text-xs text-slate-700">در سطح ولایت</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border shadow-sm hover:shadow-md transition">
-          <CardHeader className="flex flex-row justify-between pb-2">
-            <CardTitle className="text-sm">مکاتب</CardTitle>
-            <BarChart3 className="h-4 w-4 text-slate-900" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.totalSchools}</div>
-            <p className="text-xs text-slate-700">کل مکاتب</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border shadow-sm hover:shadow-md transition">
-          <CardHeader className="flex flex-row justify-between pb-2">
-            <CardTitle className="text-sm">دانش‌آموزان</CardTitle>
-            <Users className="h-4 w-4 text-slate-900" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {loading ? '...' : stats.totalStudents.toLocaleString('fa-AF')}
-            </div>
-            <p className="text-xs text-slate-700">کل دانش‌آموزان</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white border shadow-sm hover:shadow-md transition">
-          <CardHeader className="flex flex-row justify-between pb-2">
-            <CardTitle className="text-sm">نیاز به بررسی</CardTitle>
-            <AlertCircle className="h-4 w-4 text-amber-900" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.pendingSubmissions}</div>
-            <p className="text-xs text-slate-700">ارسال‌های معطل</p>
-          </CardContent>
-        </Card>
-
+        <StatCard title="ولسوالی‌ها" value={stats?.districts} icon={MapPin} loading={loading} />
+        <StatCard title="مکاتب" value={stats?.schools} icon={BarChart3} loading={loading} />
+        <StatCard title="دانش‌آموزان" value={stats?.students?.toLocaleString('fa-AF')} icon={Users} loading={loading} />
+        <StatCard title="در انتظار" value={stats?.pending} icon={AlertCircle} loading={loading} />
       </div>
 
       {/* PERFORMANCE */}
       <div className="grid gap-4 md:grid-cols-3">
-
-        <Card className="bg-slate-50 border">
-          <CardContent className="p-4">
-            <p className="text-sm text-slate-900">کل ارسال‌ها</p>
-            <p className="text-3xl font-bold">{stats.totalSubmissions}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-green-50 border">
-          <CardContent className="p-4">
-            <p className="text-sm text-green-800">تأیید شده</p>
-            <p className="text-3xl font-bold text-green-800">{stats.approvedSubmissions}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-amber-50 border">
-          <CardContent className="p-4">
-            <p className="text-sm text-amber-600">در انتظار</p>
-            <p className="text-3xl font-bold text-amber-800">{stats.pendingSubmissions}</p>
-          </CardContent>
-        </Card>
-
+        <Card><CardContent className="p-4"><p>کل ارسال‌ها</p><p className="text-2xl font-bold">{stats?.submissions}</p></CardContent></Card>
+        <Card className="bg-green-50"><CardContent className="p-4"><p>تأیید شده</p><p className="text-2xl font-bold">{stats?.approved}</p></CardContent></Card>
+        <Card className="bg-amber-50"><CardContent className="p-4"><p>در انتظار</p><p className="text-2xl font-bold">{stats?.pending}</p></CardContent></Card>
       </div>
 
       {/* LOADING */}
       {loading && (
         <div className="flex justify-center py-6">
-          <Loader2 className="animate-spin text-slate-800" />
+          <Loader2 className="animate-spin" />
         </div>
       )}
 
