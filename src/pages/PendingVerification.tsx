@@ -1,95 +1,77 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, AlertCircle } from "lucide-react";
-
-
-type Status = "pending" | "rejected" | "approved";
+import { Clock, AlertCircle, RefreshCw } from "lucide-react";
+import { useVerification } from "@/hooks/useVerification";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PendingVerification() {
   const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
+  const verification = useVerification();
 
-  const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState<Status>("pending");
-  const [error, setError] = useState<string | null>(null);
+  // Poll profile status every 5s by re-fetching
+  useEffect(() => {
+    if (!user || !verification.isPending) return;
 
-  // 🔥 REAL FETCH FUNCTION
-  const fetchStatus = async () => {
-    try {
-      const res = await fetch("/api/verification-status", {
-        credentials: "include",
-      });
+    const channel = supabase
+      .channel('pending-verification')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          window.location.reload();
+        }
+      )
+      .subscribe();
 
-      if (!res.ok) throw new Error("Network error");
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, verification.isPending]);
 
-      const data = await res.json();
-      setStatus(data.status);
-      setError(null);
-    } catch (err: any) {
-      setError("خطا در دریافت وضعیت");
-    } finally {
-      setLoading(false);
+  // Auto redirect if verified
+  useEffect(() => {
+    if (verification.isVerified && verification.canAccessDashboard) {
+      navigate("/school/dashboard", { replace: true });
     }
-  };
+  }, [verification.isVerified, verification.canAccessDashboard, navigate]);
 
-  // 🚀 INITIAL LOAD
+  // Redirect if needs setup
   useEffect(() => {
-    fetchStatus();
-  }, []);
-
-  // 🔁 POLLING (every 5s if pending)
-  useEffect(() => {
-    if (status !== "pending") return;
-
-    const interval = setInterval(() => {
-      fetchStatus();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [status]);
-
-  // 🎯 AUTO REDIRECT
-  useEffect(() => {
-    if (status === "approved") {
-      setTimeout(() => navigate("/dashboard"), 800);
+    if (!loading && verification.needsSetup) {
+      navigate("/setup-profile", { replace: true });
     }
-  }, [status]);
+  }, [loading, verification.needsSetup, navigate]);
 
-  // LOADING
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-3">
-        <div className="h-10 w-10 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
-        <p>در حال بررسی حساب...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-background">
+        <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-muted-foreground">در حال بررسی حساب...</p>
       </div>
     );
   }
 
-  // ERROR
-  if (error) {
+  // Rejected
+  if (verification.isRejected) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <AlertCircle className="text-red-500" />
-        <p>{error}</p>
-        <button
-          onClick={fetchStatus}
-          className="bg-gray-200 px-4 py-2 rounded"
-        >
-          تلاش مجدد
-        </button>
-      </div>
-    );
-  }
-
-  // REJECTED
-  if (status === "rejected") {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="bg-white border rounded-xl p-6 text-center space-y-4">
-          <h2 className="text-red-500 font-bold">حساب رد شده</h2>
-          <p>لطفاً با پشتیبانی تماس بگیرید</p>
+      <div className="min-h-screen flex items-center justify-center p-6 bg-background" dir="rtl">
+        <div className="bg-card border border-border rounded-xl p-6 text-center space-y-4 max-w-sm w-full">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
+          <h2 className="text-destructive font-bold text-lg">حساب رد شده</h2>
+          {verification.rejectionReason && (
+            <p className="text-sm text-muted-foreground">{verification.rejectionReason}</p>
+          )}
+          <p className="text-sm text-muted-foreground">لطفاً با پشتیبانی تماس بگیرید</p>
           <button
             onClick={() => navigate("/login")}
-            className="bg-red-500 text-white px-4 py-2 rounded"
+            className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg text-sm"
           >
             بازگشت به ورود
           </button>
@@ -98,30 +80,25 @@ export default function PendingVerification() {
     );
   }
 
-  // PENDING
+  // Pending (default)
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="bg-white border rounded-xl p-8 text-center space-y-5">
-
-        <Clock className="w-12 h-12 text-yellow-500 animate-pulse mx-auto" />
-
-        <h1 className="text-xl font-bold">در حال بررسی</h1>
-
-        <p className="text-gray-500 text-sm">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background" dir="rtl">
+      <div className="bg-card border border-border rounded-xl p-8 text-center space-y-5 max-w-sm w-full">
+        <Clock className="w-12 h-12 text-primary animate-pulse mx-auto" />
+        <h1 className="text-xl font-bold text-foreground">در حال بررسی</h1>
+        <p className="text-muted-foreground text-sm">
           حساب شما هنوز تایید نشده است. این صفحه به صورت خودکار بروزرسانی می‌شود.
         </p>
-
-        <div className="text-xs text-gray-400">
-          بررسی هر 5 ثانیه
+        <div className="text-xs text-muted-foreground/60">
+          بروزرسانی خودکار فعال است
         </div>
-
         <button
-          onClick={() => navigate("/")}
-          className="bg-gray-200 px-4 py-2 rounded"
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center gap-2 bg-muted text-muted-foreground px-4 py-2 rounded-lg text-sm"
         >
-          بازگشت به صفحه اصلی
+          <RefreshCw className="w-4 h-4" />
+          بررسی مجدد
         </button>
-
       </div>
     </div>
   );
