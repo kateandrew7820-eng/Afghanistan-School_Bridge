@@ -1,338 +1,176 @@
-import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTranslation } from "@/contexts/LocalizationContext";
-import { supabase } from "@/lib/supabase";
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/contexts/LocalizationContext';
+import { useSubmissions } from '@/hooks/useSubmissions';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Map, School, Users, BarChart3, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-
-import {
-  Map,
-  School,
-  Users,
-  BarChart3,
-  TrendingUp,
-  Download,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
-
-/* ---------------- TYPES ---------------- */
-
-interface NationalStats {
-  provinces: number;
-  schools: number;
-  students: number;
-  teachers: number;
-  submissions: number;
-  submissionsThisMonth: number;
-  completionRate: number;
-  teacherStudentRatio: number;
-}
-
-/* ---------------- PAGE ---------------- */
+/* ------------------------------------------------------------------ */
+/*  DASHBOARD                                                          */
+/* ------------------------------------------------------------------ */
 
 export default function MinistryDashboard() {
-  const { profile, isDemoMode } = useAuth();
+  const { isDemoMode } = useAuth();
   const { t } = useTranslation();
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // All submissions (no province/district filter = national)
+  const { data, loading, error, refetch } = useSubmissions({ enabled: !isDemoMode });
 
-  const [stats, setStats] = useState<NationalStats>({
-    provinces: 0,
-    schools: 0,
-    students: 0,
-    teachers: 0,
-    submissions: 0,
-    submissionsThisMonth: 0,
-    completionRate: 0,
-    teacherStudentRatio: 0,
+  // Province count from schools
+  const { data: provinceCount } = useQuery({
+    queryKey: ['province-count'],
+    queryFn: async () => {
+      const { data } = await supabase.from('schools').select('province');
+      return new Set((data ?? []).map((s) => s.province)).size;
+    },
+    enabled: !isDemoMode,
+    staleTime: 60_000,
   });
 
-  /* ---------------- FETCH ---------------- */
-
-  const fetchNationalData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (isDemoMode) {
-        setStats({
-          provinces: 34,
-          schools: 1200,
-          students: 925000,
-          teachers: 26000,
-          submissions: 4800,
-          submissionsThisMonth: 2900,
-          completionRate: 78,
-          teacherStudentRatio: 36,
-        });
-        setLoading(false);
-        return;
-      }
-
-      const [schoolsRes, statsRes, reportsRes, formsRes] =
-        await Promise.all([
-          supabase.from("schools").select("id, province"),
-          supabase
-            .from("statistics_submissions")
-            .select("id, total_students, total_teachers, created_at"),
-          supabase.from("report_submissions").select("id, created_at"),
-          supabase.from("form_submissions").select("id, created_at"),
-        ]);
-
-      if (schoolsRes.error || statsRes.error || reportsRes.error || formsRes.error) {
-        throw new Error("Failed to fetch national data");
-      }
-
-      const schools = schoolsRes.data || [];
-      const statsSubmissions = statsRes.data || [];
-      const reports = reportsRes.data || [];
-      const forms = formsRes.data || [];
-
-      /* ---------------- CORE METRICS ---------------- */
-
-      const provinces = new Set(schools.map((s) => s.province)).size;
-
-      const totalStudents = statsSubmissions.reduce(
-        (sum, s) => sum + (s.total_students || 0),
-        0
-      );
-
-      const totalTeachers = statsSubmissions.reduce(
-        (sum, s) => sum + (s.total_teachers || 0),
-        0
-      );
-
-      const submissions = statsSubmissions.length + reports.length + forms.length;
-
-      /* ---------------- TIME FILTER (optimized) ---------------- */
-
-      const now = new Date();
-      const month = now.getMonth();
-      const year = now.getFullYear();
-
-      const isThisMonth = (d: string) => {
-        const date = new Date(d);
-        return date.getMonth() === month && date.getFullYear() === year;
+  // Demo mode fallback
+  const stats = useMemo(() => {
+    if (isDemoMode) {
+      return {
+        provinces: 34, schools: 1200, students: 925000, teachers: 26000,
+        total: 4800, pending: 1900, approved: 2900, rejected: 0,
       };
-
-      const submissionsThisMonth =
-        [...statsSubmissions, ...reports, ...forms].filter((s) =>
-          isThisMonth(s.created_at)
-        ).length;
-
-      /* ---------------- FINAL STATS ---------------- */
-
-      const completionRate =
-        submissions > 0
-          ? Math.round((submissionsThisMonth / submissions) * 100)
-          : 0;
-
-      const teacherStudentRatio =
-        totalTeachers > 0
-          ? Math.round(totalStudents / totalTeachers)
-          : 0;
-
-      setStats({
-        provinces,
-        schools: schools.length,
-        students: totalStudents,
-        teachers: totalTeachers,
-        submissions,
-        submissionsThisMonth,
-        completionRate,
-        teacherStudentRatio,
-      });
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load national dashboard data");
-    } finally {
-      setLoading(false);
     }
-  }, [isDemoMode]);
+    return {
+      provinces: provinceCount ?? 0,
+      schools: data?.schoolCount ?? 0,
+      students: data?.totalStudents ?? 0,
+      teachers: data?.totalTeachers ?? 0,
+      total: data?.stats.total ?? 0,
+      pending: data?.stats.pending ?? 0,
+      approved: data?.stats.approved ?? 0,
+      rejected: data?.stats.rejected ?? 0,
+    };
+  }, [isDemoMode, data, provinceCount]);
 
-  useEffect(() => {
-    fetchNationalData();
-  }, [fetchNationalData]);
+  const completionRate = stats.total > 0
+    ? Math.round((stats.approved / stats.total) * 100)
+    : 0;
 
-  /* ---------------- UI ---------------- */
+  const teacherRatio = stats.teachers > 0
+    ? Math.round(stats.students / stats.teachers)
+    : 0;
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 px-5 py-6 space-y-8">
+    <div className="min-h-screen bg-background text-foreground px-4 py-6 space-y-8">
 
       {/* HEADER */}
-      <div className="animate-fade-in">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          {t("ministry.dashboard")}
-        </h1>
-        <p className="text-gray-600 text-sm mt-1">
-          {t("ministry.nationalDesc")}
-        </p>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">{t('ministry.dashboard')}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t('ministry.nationalDesc')}</p>
       </div>
 
       {/* ERROR */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg animate-pulse">
-          {error}
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg flex justify-between items-center">
+          <span className="text-sm">{error}</span>
+          <button onClick={() => refetch()} className="text-sm underline">تلاش دوباره</button>
         </div>
       )}
 
       {/* KPI GRID */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-
-        <KpiCard title="Provinces" value={stats.provinces} icon={<Map />} loading={loading} />
-        <KpiCard title="Schools" value={stats.schools} icon={<School />} loading={loading} />
-        <KpiCard title="Students" value={Math.round(stats.students / 1000)} suffix="K" icon={<Users />} loading={loading} />
-        <KpiCard title="Teachers" value={Math.round(stats.teachers / 1000)} suffix="K" icon={<BarChart3 />} loading={loading} />
-
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <KpiCard title="ولایات" value={stats.provinces} icon={<Map className="w-4 h-4" />} loading={loading && !isDemoMode} />
+        <KpiCard title="مکاتب" value={stats.schools} icon={<School className="w-4 h-4" />} loading={loading && !isDemoMode} />
+        <KpiCard title="شاگردان" value={Math.round(stats.students / 1000)} suffix="K" icon={<Users className="w-4 h-4" />} loading={loading && !isDemoMode} />
+        <KpiCard title="معلمان" value={Math.round(stats.teachers / 1000)} suffix="K" icon={<BarChart3 className="w-4 h-4" />} loading={loading && !isDemoMode} />
       </div>
 
-      {/* SECOND KPI ROW */}
-      <div className="grid gap-4 md:grid-cols-3">
-
-        <KpiCard title="Total Submissions" value={stats.submissions} icon={<BarChart3 />} loading={loading} />
-
-        <KpiCard
-          title="This Month"
-          value={stats.submissionsThisMonth}
-          icon={<TrendingUp />}
-          loading={loading}
-          subtitle={`${stats.completionRate}% completion`}
-        />
-
-        <KpiCard
-          title="Teacher Ratio"
-          value={stats.teacherStudentRatio}
-          icon={<Users />}
-          loading={loading}
-          subtitle="Students per teacher"
-        />
-
+      {/* SECOND ROW */}
+      <div className="grid gap-3 md:grid-cols-3">
+        <KpiCard title="مجموع ارسال‌ها" value={stats.total} icon={<BarChart3 className="w-4 h-4" />} loading={loading && !isDemoMode} />
+        <KpiCard title="تأیید شده" value={stats.approved} icon={<TrendingUp className="w-4 h-4" />} loading={loading && !isDemoMode} subtitle={`${completionRate}% تکمیل`} />
+        <KpiCard title="نسبت معلم" value={teacherRatio} icon={<Users className="w-4 h-4" />} loading={loading && !isDemoMode} subtitle="شاگرد به ازای هر معلم" />
       </div>
 
       {/* ACTIONS */}
-      <div className="grid md:grid-cols-2 gap-4">
-
+      <div className="grid md:grid-cols-2 gap-3">
         <Link to="/ministry/submissions">
-          <Card className="group cursor-pointer border border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-            <CardHeader className="flex flex-row justify-between pb-2">
-              <CardTitle className="text-sm text-gray-800 group-hover:text-gray-900 transition">
-                View All Submissions
-              </CardTitle>
-              <CheckCircle2 className="w-4 h-4 text-gray-500" />
+          <Card className="group cursor-pointer border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <CardHeader className="flex flex-row justify-between pb-1">
+              <CardTitle className="text-sm group-hover:text-foreground transition">مشاهده تمام ارسال‌ها</CardTitle>
+              <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <p className="text-xs text-gray-500">
-                National submission overview
-              </p>
-            </CardContent>
+            <CardContent><p className="text-xs text-muted-foreground">مرور ملی ارسال‌ها</p></CardContent>
           </Card>
         </Link>
-
-        <Card className="bg-gray-50 border border-gray-200 hover:shadow-md transition">
-          <CardHeader className="flex flex-row justify-between pb-2">
-            <CardTitle className="text-sm text-gray-800">
-              National Analytics
-            </CardTitle>
-            <TrendingUp className="w-4 h-4 text-gray-500" />
+        <Card className="border bg-muted/30">
+          <CardHeader className="flex flex-row justify-between pb-1">
+            <CardTitle className="text-sm">تحلیل ملی</CardTitle>
+            <TrendingUp className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <p className="text-xs text-gray-600">
-              Aggregated insights across provinces
-            </p>
-          </CardContent>
+          <CardContent><p className="text-xs text-muted-foreground">بینش‌های تجمیعی ولایات</p></CardContent>
         </Card>
-
       </div>
 
-      {/* FOOTER ANALYTICS */}
-      <Card className="border border-gray-200 shadow-sm bg-white">
+      {/* INSIGHTS */}
+      <Card className="border shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-900">
-            <BarChart3 className="w-5 h-5" />
-            Aggregated Insights
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <BarChart3 className="w-4 h-4" /> بینش‌های تجمیعی
           </CardTitle>
         </CardHeader>
-
-        <CardContent className="space-y-3">
-
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="animate-spin text-gray-500" />
+        <CardContent className="space-y-2">
+          {(loading && !isDemoMode) ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
             </div>
           ) : (
             <>
-              <InsightRow label="Avg Attendance Rate" value="82%" />
-              <InsightRow label="Submission Completion" value={`${stats.completionRate}%`} />
-              <InsightRow label="Active Provinces" value={`${stats.provinces}/34`} />
+              <InsightRow label="نرخ تکمیل ارسال" value={`${completionRate}%`} />
+              <InsightRow label="ولایات فعال" value={`${stats.provinces}/34`} />
+              <InsightRow label="در انتظار بررسی" value={`${stats.pending}`} />
             </>
           )}
-
         </CardContent>
       </Card>
-
     </div>
   );
 }
 
-/* ---------------- KPI CARD ---------------- */
+/* ------------------------------------------------------------------ */
+/*  KPI CARD                                                           */
+/* ------------------------------------------------------------------ */
 
 function KpiCard({
-  title,
-  value,
-  icon,
-  loading,
-  subtitle,
-  suffix = "",
+  title, value, icon, loading, subtitle, suffix = '',
 }: {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  loading: boolean;
-  subtitle?: string;
-  suffix?: string;
+  title: string; value: number; icon: React.ReactNode; loading: boolean; subtitle?: string; suffix?: string;
 }) {
   return (
-    <Card className="bg-white border border-gray-200 hover:shadow-md hover:-translate-y-1 transition-all duration-300">
-      <CardHeader className="flex flex-row justify-between pb-2">
-        <CardTitle className="text-sm text-gray-600 font-medium">
-          {title}
-        </CardTitle>
-        <div className="text-gray-500">{icon}</div>
+    <Card className="border hover:shadow-md transition">
+      <CardHeader className="flex flex-row justify-between pb-1">
+        <CardTitle className="text-xs text-muted-foreground font-medium">{title}</CardTitle>
+        <div className="text-muted-foreground">{icon}</div>
       </CardHeader>
-
       <CardContent>
-        <div className="text-2xl font-bold text-gray-900">
-          {loading ? "..." : `${value}${suffix}`}
-        </div>
-
-        {subtitle && (
-          <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+        {loading ? <Skeleton className="h-7 w-16 rounded" /> : (
+          <div className="text-xl font-bold">{value}{suffix}</div>
         )}
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
       </CardContent>
     </Card>
   );
 }
 
-/* ---------------- INSIGHT ROW ---------------- */
+/* ------------------------------------------------------------------ */
+/*  INSIGHT ROW                                                        */
+/* ------------------------------------------------------------------ */
 
 function InsightRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition">
-      <span className="text-sm text-gray-700">{label}</span>
-      <Badge className="bg-gray-100 text-gray-800 border border-gray-200">
-        {value}
-      </Badge>
+    <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition">
+      <span className="text-sm">{label}</span>
+      <Badge variant="outline">{value}</Badge>
     </div>
   );
 }
