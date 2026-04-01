@@ -113,9 +113,11 @@ export type Database = {
       form_submissions: {
         Row: {
           created_at: string
+          district: string | null
           form_data: Json
           form_type: string
           id: string
+          province: string | null
           school_id: string
           status: string | null
           submitted_by: string
@@ -123,9 +125,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          district?: string | null
           form_data?: Json
           form_type: string
           id?: string
+          province?: string | null
           school_id: string
           status?: string | null
           submitted_by: string
@@ -133,9 +137,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          district?: string | null
           form_data?: Json
           form_type?: string
           id?: string
+          province?: string | null
           school_id?: string
           status?: string | null
           submitted_by?: string
@@ -217,9 +223,11 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          district: string | null
           file_name: string
           file_path: string
           id: string
+          province: string | null
           school_id: string
           status: string | null
           submitted_by: string
@@ -228,9 +236,11 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          district?: string | null
           file_name: string
           file_path: string
           id?: string
+          province?: string | null
           school_id: string
           status?: string | null
           submitted_by: string
@@ -239,9 +249,11 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          district?: string | null
           file_name?: string
           file_path?: string
           id?: string
+          province?: string | null
           school_id?: string
           status?: string | null
           submitted_by?: string
@@ -301,10 +313,12 @@ export type Database = {
           academic_year: string
           attendance_rate: number | null
           created_at: string
+          district: string | null
           female_students: number | null
           id: string
           male_students: number | null
           notes: string | null
+          province: string | null
           school_id: string
           status: string | null
           submitted_by: string
@@ -316,10 +330,12 @@ export type Database = {
           academic_year: string
           attendance_rate?: number | null
           created_at?: string
+          district?: string | null
           female_students?: number | null
           id?: string
           male_students?: number | null
           notes?: string | null
+          province?: string | null
           school_id: string
           status?: string | null
           submitted_by: string
@@ -331,10 +347,12 @@ export type Database = {
           academic_year?: string
           attendance_rate?: number | null
           created_at?: string
+          district?: string | null
           female_students?: number | null
           id?: string
           male_students?: number | null
           notes?: string | null
+          province?: string | null
           school_id?: string
           status?: string | null
           submitted_by?: string
@@ -375,6 +393,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_district: { Args: { _user_id: string }; Returns: string }
+      get_user_province: { Args: { _user_id: string }; Returns: string }
       get_user_school_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
