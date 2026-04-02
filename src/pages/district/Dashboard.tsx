@@ -13,9 +13,9 @@ import { format } from 'date-fns';
 /* ------------------------------------------------------------------ */
 
 const STATUS_CONFIG: Record<SubmissionStatus, { label: string; className: string }> = {
-  approved: { label: 'تأیید شده', className: 'bg-green-50 text-green-700 border-green-200' },
-  pending:  { label: 'در انتظار', className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  rejected: { label: 'رد شده',    className: 'bg-red-50 text-red-700 border-red-200' },
+  approved: { label: 'تأیید شده', className: 'bg-accent/10 text-accent border-accent/20' },
+  pending:  { label: 'در انتظار', className: 'bg-warning/10 text-warning border-warning/20' },
+  rejected: { label: 'رد شده',    className: 'bg-destructive/10 text-destructive border-destructive/20' },
 };
 
 const TYPE_LABELS: Record<string, string> = {
