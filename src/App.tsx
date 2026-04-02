@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
 import SetupProfile from "./pages/SetupProfile";
 import AfghanistanInfoPage from "./pages/AfghanistanInfoPage";
+import AuthCallback from "./pages/AuthCallback";
 
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
