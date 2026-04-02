@@ -29,7 +29,7 @@ export default function DistrictLayout({ children }: DistrictLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-background dark" dir="rtl">
+    <div className="min-h-screen bg-background" dir="rtl">
       {/* Top Status Bar */}
       <header className="fixed top-0 right-0 left-0 lg:right-64 h-14 bg-card border-b z-40 flex items-center justify-between px-4" role="banner">
         <div className="flex items-center gap-3">
