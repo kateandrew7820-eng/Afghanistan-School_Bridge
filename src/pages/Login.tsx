@@ -565,16 +565,19 @@ export default function Login() {
                       </Button>
                     </form>
                   ) : signupStep === 1 ? (
-                    <div className="py-8 space-y-6">
-                      <SignupProgress
-                        steps={[
-                          { title: 'ایجاد حساب', description: 'بررسی معلومات و ایجاد حساب', status: 'loading' },
-                          { title: 'آماده‌سازی پروفایل', description: 'تنظیم صفحه اصلی و دسترسی‌ها', status: 'pending' },
-                          { title: 'تکمیل', description: 'انتقال به صفحه اصلی', status: 'pending' }
-                        ]}
-                        currentStep={1}
-                      />
-                      <p className="text-center text-sm text-muted-foreground">چند ثانیه صبر کنید...</p>
+                    <div className="py-8 space-y-6 text-center animate-fade-in">
+                      <Mail className="w-16 h-16 text-primary mx-auto" />
+                      <h3 className="text-xl font-bold text-foreground">ایمیل خود را بررسی کنید</h3>
+                      <p className="text-muted-foreground text-sm">
+                        یک لینک تأیید به <strong dir="ltr">{signUpEmail}</strong> ارسال شد.
+                        <br />
+                        لطفاً روی لینک کلیک کنید تا حساب شما فعال شود.
+                      </p>
+                      <div className="flex flex-col gap-2 pt-2">
+                        <Button variant="outline" onClick={() => { setSignupStep(0); setCurrentTab('signin'); }}>
+                          بازگشت به ورود
+                        </Button>
+                      </div>
                     </div>
                   ) : (
                     <div className="py-8 space-y-4 text-center animate-fade-in">

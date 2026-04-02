@@ -164,6 +164,7 @@ function AppRoutes() {
 
       {/* User Setup & Verification Routes */}
       <Route path="/setup-profile" element={<SetupProfile />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
       <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
 
