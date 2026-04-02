@@ -165,20 +165,15 @@ export default function Login() {
 
     if (error) {
       toast({
-        title: "Signup failed",
+        title: "ثبت‌نام ناموفق",
         description: error.message,
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "Account created 🎉",
-      description: "Setting up your profile...",
-    });
-
-   // 🚀 FIX: NO SIGNIN REDIRECT
-    navigate("/setup-profile");
+    // Signup succeeded — email confirmation is required
+    setSignupStep(1); // Show "check your email" step
   };
 
   // ============================================================================
