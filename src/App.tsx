@@ -124,16 +124,10 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
     return <Navigate to={redirectMap[roleTier] || '/login'} replace />;
   }
 
-  // Check verification status (unless in demo mode, which bypasses verification)
-  if (!isDemoMode && !verification.canAccessDashboard) {
-    // User is verified OR in demo mode - allow access
-    // Otherwise they need to complete setup or await verification
-    if (verification.needsSetup) {
-      return <Navigate to="/setup-profile" replace />;
-    } else if (verification.isPending) {
-      return <Navigate to="/pending-verification" replace />;
-    }
-    // If rejected, still show the pending page to inform them
+  // Verification check: only redirect for setup, not lock users out entirely
+  // Users with pending/rejected status can still see their dashboard with limited access
+  if (!isDemoMode && verification.needsSetup) {
+    return <Navigate to="/setup-profile" replace />;
   }
 
   return <>{children}</>;

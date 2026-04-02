@@ -76,13 +76,13 @@ export default function ProvinceDashboard() {
             {loading ? <Skeleton className="h-8 w-16 mt-1" /> : <p className="text-2xl font-bold">{stats?.total ?? 0}</p>}
           </CardContent>
         </Card>
-        <Card className="border bg-green-50/50">
+        <Card className="border">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">تأیید شده</p>
             {loading ? <Skeleton className="h-8 w-16 mt-1" /> : <p className="text-2xl font-bold">{stats?.approved ?? 0}</p>}
           </CardContent>
         </Card>
-        <Card className="border bg-amber-50/50">
+        <Card className="border">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground">در انتظار</p>
             {loading ? <Skeleton className="h-8 w-16 mt-1" /> : <p className="text-2xl font-bold">{stats?.pending ?? 0}</p>}
