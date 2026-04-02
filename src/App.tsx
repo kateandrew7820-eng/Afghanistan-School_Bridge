@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
 import SetupProfile from "./pages/SetupProfile";
 import AfghanistanInfoPage from "./pages/AfghanistanInfoPage";
+import AuthCallback from "./pages/AuthCallback";
 
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
@@ -163,6 +164,7 @@ function AppRoutes() {
 
       {/* User Setup & Verification Routes */}
       <Route path="/setup-profile" element={<SetupProfile />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
       <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
 

@@ -221,23 +221,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
 
-      // =========================================================================
-      // STEP 1: Create the account
-      // =========================================================================
       const { data: { user: newUser }, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: fullName
-          }
+          data: { full_name: fullName },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       });
 
       if (signUpError) {
         let message = signUpError.message;
         if (signUpError.message.includes('already registered')) {
-          message = 'This email is already registered. Please sign in with your existing account.';
+          message = 'این ایمیل قبلاً ثبت شده است. لطفاً با حساب موجود وارد شوید.';
         }
         const error = new Error(message);
         setError(error);
@@ -245,70 +241,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!newUser) {
-        const error = new Error('Failed to create account. Please try again.');
+        const error = new Error('ایجاد حساب ناموفق بود. لطفاً دوباره تلاش کنید.');
         setError(error);
         return { error };
       }
 
-      // =========================================================================
-      // STEP 2: Auto-login with intelligent retry logic
-      // Database triggers may take time on slow connections or under load
-      // We implement exponential backoff: 300ms, 600ms, 900ms, 1200ms
-      // =========================================================================
-      const maxRetries = 4;
-      const initialDelayMs = 300;
-      let lastError: Error | null = null;
-
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        // Wait with exponential backoff: 300ms * attempt
-        const delayMs = initialDelayMs * attempt;
-        await new Promise(resolve => setTimeout(resolve, delayMs));
-
-        // Try auto-login
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (!signInError) {
-          // SUCCESS! Auto-login worked
-          // Auth listener will fire and update state automatically
-          setError(null);
-          return { error: null };
-        }
-
-        // Store error for final fallback message
-        lastError = signInError;
-
-        // If it's not a transient error, stop retrying immediately
-        // Common non-transient errors:
-        if (signInError.message.includes('Invalid login credentials')) {
-          // Credentials failed - this won't be fixed by waiting, stop retrying
-          break;
-        }
-
-        // Log retry attempt for debugging (only in dev)
-        if (import.meta.env.MODE === 'development') {
-          console.log(`Auto-login attempt ${attempt}/${maxRetries} failed, retrying in ${delayMs}ms...`, signInError.message);
-        }
-      }
-
-      // =========================================================================
-      // STEP 3: All auto-login attempts failed
-      // Instead of showing error, treat signup as successful
-      // User will see success page with option to manually sign-in from there
-      // =========================================================================
-      
-      // Account is definitely created at this point
-      // Auto-login failed, but that won't be fixed by retrying more
-      // Set a success state anyway - user can manually sign in
+      // Account created — email confirmation required.
+      // No auto-login attempt (email not verified yet).
       setError(null);
-      
-      // Return special error object that indicates account was created
-      // but auto-login failed - caller can show appropriate message
-      const fallbackError = new Error('auto-login-failed');
-      fallbackError.name = 'AutoLoginFailedError';
-      return { error: fallbackError };
+      return { error: null };
 
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Sign up failed');
