@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { School, Building2, Loader2, AlertCircle, Zap, CheckCircle2, Eye, EyeOff, ArrowLeft, Lock, Mail, User, Play } from 'lucide-react';
+import { School, Building2, Loader2, AlertCircle, Zap, CheckCircle2, Eye, EyeOff, ArrowLeft, Lock, Mail, User, Play, ShieldCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import SignupProgress from '@/components/SignupProgress';
+
+// ============================================================================
+// PASSWORD STRENGTH
+// ============================================================================
+
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { score, label: 'ضعیف', color: 'bg-destructive' };
+  if (score <= 2) return { score, label: 'متوسط', color: 'bg-amber-500' };
+  if (score <= 3) return { score, label: 'خوب', color: 'bg-blue-500' };
+  return { score, label: 'قوی', color: 'bg-green-500' };
+}
 
 // ============================================================================
 // VALIDATION HELPERS
@@ -25,23 +42,15 @@ const validateEmail = (email: string, t: any): { valid: boolean; message?: strin
 };
 
 const validatePassword = (password: string, minLength: number = 6, t: any): { valid: boolean; message?: string } => {
-  if (!password) {
-    return { valid: false, message: t('auth.passwordRequired') };
-  }
-  if (password.length < minLength) {
-    return { valid: false, message: t('auth.passwordMin', { minLength }) };
-  }
+  if (!password) return { valid: false, message: t('auth.passwordRequired') };
+  if (password.length < minLength) return { valid: false, message: t('auth.passwordMin', { minLength }) };
   return { valid: true };
 };
 
 const validateFullName = (fullName: string, t: any): { valid: boolean; message?: string } => {
   const trimmed = fullName.trim();
-  if (!trimmed) {
-    return { valid: false, message: t('auth.fullNameRequired') };
-  }
-  if (trimmed.split(' ').length < 2) {
-    return { valid: false, message: t('auth.firstAndLastName') };
-  }
+  if (!trimmed) return { valid: false, message: t('auth.fullNameRequired') };
+  if (trimmed.split(' ').length < 2) return { valid: false, message: t('auth.firstAndLastName') };
   return { valid: true };
 };
 
@@ -70,129 +79,121 @@ export default function Login() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Loading and UI state
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentTab, setCurrentTab] = useState('signin');
   const [signupStep, setSignupStep] = useState(0);
+  const submitGuardRef = useRef(false); // Prevent double submits
 
   const { signIn, signUp, error: authError, loading: authLoading, setDevQuickMode } = useAuth();
   const { toast } = useToast();
 
-  // Check URL params for initial tab
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'signup') {
-      setCurrentTab('signup');
-    }
+    if (tab === 'signup') setCurrentTab('signup');
   }, [searchParams]);
 
   // ============================================================================
-  // SIGN IN HANDLER
+  // SIGN IN HANDLER (with double-submit guard)
   // ============================================================================
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitGuardRef.current) return;
 
     const email = signInEmail.trim();
-
-    const emailValidation = validateEmail(email, t);
-    const passwordValidation = validatePassword(signInPassword, 6, t);
-
     const errors: any = {};
-    if (!emailValidation.valid) errors.email = emailValidation.message;
-    if (!passwordValidation.valid) errors.password = passwordValidation.message;
+    const ev = validateEmail(email, t);
+    const pv = validatePassword(signInPassword, 6, t);
+    if (!ev.valid) errors.email = ev.message;
+    if (!pv.valid) errors.password = pv.message;
 
     if (Object.keys(errors).length) {
       setSignInErrors(errors);
       return;
     }
 
-    setIsLoading(true);
+    submitGuardRef.current = true;
+    setIsSubmitting(true);
     setSignInErrors({});
 
     const { error } = await signIn(email, signInPassword);
 
-    setIsLoading(false);
+    setIsSubmitting(false);
+    submitGuardRef.current = false;
 
     if (error) {
-      toast({
-        title: t('auth.signInFailed'),
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: t('auth.signInFailed'), description: error.message, variant: "destructive" });
       return;
     }
 
-    toast({
-      title: "Welcome back 🚀",
-      description: "Redirecting...",
-    });
+    toast({ title: "خوش آمدید 🚀", description: "در حال انتقال..." });
+    navigate("/");
+  }, [signInEmail, signInPassword, signIn, navigate, t, toast]);
 
-    navigate("/"); // clean success flow
-  };
-
-// ============================================================================
-  // SIGN UP HANDLER
+  // ============================================================================
+  // SIGN UP HANDLER (with double-submit guard)
   // ============================================================================
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitGuardRef.current) return;
 
     const email = signUpEmail.trim();
-  
     const errors: any = {};
-    const nameValidation = validateFullName(signUpFullName, t);
-    const emailValidation = validateEmail(email, t);
-    const passwordValidation = validatePassword(signUpPassword, 6, t);
+    const nv = validateFullName(signUpFullName, t);
+    const ev = validateEmail(email, t);
+    const pv = validatePassword(signUpPassword, 6, t);
 
-    if (!nameValidation.valid) errors.name = nameValidation.message;
-    if (!emailValidation.valid) errors.email = emailValidation.message;
-    if (!passwordValidation.valid) errors.password = passwordValidation.message;
-
-    if (signUpPassword !== signUpConfirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
+    if (!nv.valid) errors.name = nv.message;
+    if (!ev.valid) errors.email = ev.message;
+    if (!pv.valid) errors.password = pv.message;
+    if (signUpPassword !== signUpConfirmPassword) errors.confirmPassword = "رمز عبور مطابقت ندارد";
 
     if (Object.keys(errors).length) {
       setSignUpErrors(errors);
       return;
     }
 
-    setIsLoading(true);
+    submitGuardRef.current = true;
+    setIsSubmitting(true);
 
     const { error } = await signUp(email, signUpPassword, signUpFullName);
 
-    setIsLoading(false);
+    setIsSubmitting(false);
+    submitGuardRef.current = false;
 
     if (error) {
-      toast({
-        title: "ثبت‌نام ناموفق",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "ثبت‌نام ناموفق", description: error.message, variant: "destructive" });
       return;
     }
 
-    // Signup succeeded — email confirmation is required
     setSignupStep(1); // Show "check your email" step
-  };
+  }, [signUpFullName, signUpEmail, signUpPassword, signUpConfirmPassword, signUp, t, toast]);
+
+  // ============================================================================
+  // PASSWORD STRENGTH STATE
+  // ============================================================================
+
+  const passwordStrength = signUpPassword ? getPasswordStrength(signUpPassword) : null;
 
   // ============================================================================
   // RENDER
   // ============================================================================
 
+  const isDisabled = isSubmitting || authLoading;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10" dir="rtl">
       {/* Background decoration */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tr from-secondary/10 to-transparent rounded-full blur-3xl" />
       </div>
 
-      {/* Main Content */}
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-md space-y-6">
           {/* Logo/Branding */}
-          <div className="text-center space-y-3 animate-fade-in">
+          <div className="text-center space-y-3">
             <div className="flex justify-center gap-3">
               <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10">
                 <School className="h-8 w-8 text-primary" />
@@ -210,8 +211,8 @@ export default function Login() {
           </div>
 
           {/* Main Card */}
-          <Card className="border-white/10 shadow-xl animate-slide-up">
-            <CardHeader className="space-y-1 border-b border-white/10">
+          <Card className="border-border shadow-xl">
+            <CardHeader className="space-y-1 border-b border-border">
               <CardTitle className="text-2xl">
                 {currentTab === 'signin' ? 'خوش آمدید' : t('auth.createAccount')}
               </CardTitle>
@@ -233,11 +234,11 @@ export default function Login() {
 
               {/* Dev Quick Enter - Dev Only */}
               {import.meta.env.MODE === 'development' && (
-                <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-300 dark:from-amber-950/30 dark:to-yellow-950/30 dark:border-amber-800">
+                <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-300">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">⚡</span>
-                      <h3 className="font-bold text-amber-900 dark:text-amber-100">ورود سریع توسعه‌دهنده</h3>
+                      <h3 className="font-bold text-amber-900">ورود سریع توسعه‌دهنده</h3>
                     </div>
                     <Button
                       onClick={() => {
@@ -264,7 +265,7 @@ export default function Login() {
                 </TabsList>
 
                 {/* ========== SIGN IN TAB ========== */}
-                <TabsContent value="signin" className="space-y-4 animate-fade-in">
+                <TabsContent value="signin" className="space-y-4">
                   <form onSubmit={handleSignIn} className="space-y-4">
                     {/* Email */}
                     <div className="space-y-2">
@@ -279,11 +280,12 @@ export default function Login() {
                         value={signInEmail}
                         onChange={(e) => {
                           setSignInEmail(e.target.value);
-                          if (signInErrors.email) setSignInErrors({ ...signInErrors, email: undefined });
+                          if (signInErrors.email) setSignInErrors(prev => ({ ...prev, email: undefined }));
                         }}
-                        disabled={isLoading || authLoading}
+                        disabled={isDisabled}
                         className={`${signInErrors.email ? 'border-destructive' : ''} h-10`}
                         dir="ltr"
+                        autoComplete="email"
                       />
                       {signInErrors.email && (
                         <p className="text-sm text-destructive flex items-center gap-1">
@@ -299,7 +301,6 @@ export default function Login() {
                         <Lock className="h-4 w-4 text-muted-foreground" />
                         {t('auth.password')}
                       </Label>
-
                       <div className="relative">
                         <Input
                           id="signin-password"
@@ -307,32 +308,24 @@ export default function Login() {
                           placeholder="••••••••"
                           value={signInPassword}
                           onChange={(e) => {
-                            const value = e.target.value;
-                            setSignInPassword(value);
-                            setSignInErrors((prev) => ({ ...prev, password: undefined }));
+                            setSignInPassword(e.target.value);
+                            setSignInErrors(prev => ({ ...prev, password: undefined }));
                           }}
-                          disabled={isLoading || authLoading}
-                          className={`h-10 pl-10 ${
-                            signInErrors.password ? 'border-destructive' : ''
-                          }`}
+                          disabled={isDisabled}
+                          className={`h-10 pl-10 ${signInErrors.password ? 'border-destructive' : ''}`}
                           dir="ltr"
                           autoComplete="current-password"
                         />
-
                         <button
                           type="button"
-                          onClick={() => setShowSignInPassword((prev) => !prev)}
+                          onClick={() => setShowSignInPassword(prev => !prev)}
                           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-                          disabled={isLoading || authLoading}
+                          disabled={isDisabled}
+                          tabIndex={-1}
                         >
-                          {showSignInPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
+                          {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-
                       {signInErrors.password && (
                         <p className="text-sm text-destructive flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
@@ -340,13 +333,14 @@ export default function Login() {
                         </p>
                       )}
                     </div>
+
                     {/* Submit */}
                     <Button
                       type="submit"
-                      className="w-full h-10 bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:shadow-primary/30 font-semibold"
-                      disabled={isLoading || authLoading}
+                      className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:shadow-primary/25 font-semibold transition-all"
+                      disabled={isDisabled}
                     >
-                      {isLoading || authLoading ? (
+                      {isDisabled ? (
                         <>
                           <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                           در حال ورود...
@@ -363,36 +357,25 @@ export default function Login() {
                   {/* Divider */}
                   <div className="relative my-4">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-muted"></div>
+                      <div className="w-full border-t border-muted" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
                       <span className="bg-card px-2 text-muted-foreground">{t('auth.noAccount')}</span>
                     </div>
                   </div>
 
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentTab('signup')}
-                    variant="outline"
-                    className="w-full h-10"
-                  >
+                  <Button type="button" onClick={() => setCurrentTab('signup')} variant="outline" className="w-full h-10">
                     {t('auth.createAccount')}
                   </Button>
 
-                  {/* Try Demo */}
-                  <Button
-                    type="button"
-                    onClick={() => navigate('/demo')}
-                    variant="secondary"
-                    className="w-full h-10 mt-2"
-                  >
+                  <Button type="button" onClick={() => navigate('/demo')} variant="secondary" className="w-full h-10 mt-2">
                     <Play className="ml-2 h-4 w-4" />
                     حالت نمایشی
                   </Button>
                 </TabsContent>
 
                 {/* ========== SIGN UP TAB ========== */}
-                <TabsContent value="signup" className="space-y-4 animate-fade-in">
+                <TabsContent value="signup" className="space-y-4">
                   {signupStep === 0 ? (
                     <form onSubmit={handleSignUp} className="space-y-4">
                       {/* Full Name */}
@@ -408,10 +391,11 @@ export default function Login() {
                           value={signUpFullName}
                           onChange={(e) => {
                             setSignUpFullName(e.target.value);
-                            if (signUpErrors.name) setSignUpErrors({ ...signUpErrors, name: undefined });
+                            if (signUpErrors.name) setSignUpErrors(prev => ({ ...prev, name: undefined }));
                           }}
-                          disabled={isLoading || authLoading}
+                          disabled={isDisabled}
                           className={`${signUpErrors.name ? 'border-destructive' : ''} h-10`}
+                          autoComplete="name"
                         />
                         {signUpErrors.name && (
                           <p className="text-sm text-destructive flex items-center gap-1">
@@ -435,11 +419,12 @@ export default function Login() {
                           value={signUpEmail}
                           onChange={(e) => {
                             setSignUpEmail(e.target.value);
-                            if (signUpErrors.email) setSignUpErrors({ ...signUpErrors, email: undefined });
+                            if (signUpErrors.email) setSignUpErrors(prev => ({ ...prev, email: undefined }));
                           }}
-                          disabled={isLoading || authLoading}
+                          disabled={isDisabled}
                           className={`${signUpErrors.email ? 'border-destructive' : ''} h-10`}
                           dir="ltr"
+                          autoComplete="email"
                         />
                         {signUpErrors.email && (
                           <p className="text-sm text-destructive flex items-center gap-1">
@@ -455,7 +440,6 @@ export default function Login() {
                           <Lock className="h-4 w-4 text-muted-foreground" />
                           {t('auth.password')}
                         </Label>
-
                         <div className="relative">
                           <Input
                             id="signup-password"
@@ -464,29 +448,23 @@ export default function Login() {
                             value={signUpPassword}
                             onChange={(e) => {
                               setSignUpPassword(e.target.value);
-                              if (signUpErrors.password) {
-                                setSignUpErrors({ ...signUpErrors, password: undefined });
-                              }
+                              if (signUpErrors.password) setSignUpErrors(prev => ({ ...prev, password: undefined }));
                             }}
-                            disabled={isLoading || authLoading}
+                            disabled={isDisabled}
                             className={`h-10 pl-10 ${signUpErrors.password ? 'border-destructive' : ''}`}
                             dir="ltr"
+                            autoComplete="new-password"
                           />
-
                           <button
                             type="button"
                             onClick={() => setShowSignUpPassword(!showSignUpPassword)}
-                            className="absolute left-3 top-1/2 -translate-y-1/2"
-                            disabled={isLoading || authLoading}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
+                            disabled={isDisabled}
+                            tabIndex={-1}
                           >
-                            {showSignUpPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
+                            {showSignUpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-
                         {signUpErrors.password && (
                           <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
@@ -494,9 +472,27 @@ export default function Login() {
                           </p>
                         )}
 
-                        <p className="text-xs text-muted-foreground">
-                          حداقل ۶ حرف
-                        </p>
+                        {/* Password strength meter */}
+                        {signUpPassword && passwordStrength && (
+                          <div className="space-y-1.5">
+                            <div className="flex gap-1">
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <div
+                                  key={i}
+                                  className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                                    i <= passwordStrength.score ? passwordStrength.color : 'bg-muted'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <ShieldCheck className="h-3 w-3" />
+                              قدرت رمز: {passwordStrength.label}
+                            </p>
+                          </div>
+                        )}
+
+                        <p className="text-xs text-muted-foreground">حداقل ۶ حرف</p>
                       </div>
 
                       {/* Confirm Password */}
@@ -505,7 +501,6 @@ export default function Login() {
                           <Lock className="h-4 w-4 text-muted-foreground" />
                           {t('auth.confirmPassword')}
                         </Label>
-
                         <div className="relative">
                           <Input
                             id="signup-confirm-password"
@@ -514,44 +509,45 @@ export default function Login() {
                             value={signUpConfirmPassword}
                             onChange={(e) => {
                               setSignUpConfirmPassword(e.target.value);
-                              if (signUpErrors.confirmPassword) {
-                                setSignUpErrors({ ...signUpErrors, confirmPassword: undefined });
-                              }
+                              if (signUpErrors.confirmPassword) setSignUpErrors(prev => ({ ...prev, confirmPassword: undefined }));
                             }}
-                            disabled={isLoading || authLoading}
+                            disabled={isDisabled}
                             className={`h-10 pl-10 ${signUpErrors.confirmPassword ? 'border-destructive' : ''}`}
                             dir="ltr"
+                            autoComplete="new-password"
                           />
-
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
-                            disabled={isLoading || authLoading}
+                            disabled={isDisabled}
+                            tabIndex={-1}
                           >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-
                         {signUpErrors.confirmPassword && (
                           <p className="text-sm text-destructive flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
                             {signUpErrors.confirmPassword}
                           </p>
                         )}
+                        {/* Real-time match indicator */}
+                        {signUpConfirmPassword && !signUpErrors.confirmPassword && signUpPassword === signUpConfirmPassword && (
+                          <p className="text-xs text-green-600 flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            رمز عبور مطابقت دارد
+                          </p>
+                        )}
                       </div>
-                      
+
                       {/* Submit */}
                       <Button
                         type="submit"
-                        className="w-full h-10 bg-gradient-to-r from-accent to-accent/80 hover:shadow-lg hover:shadow-accent/30 font-semibold text-accent-foreground"
-                        disabled={isLoading || authLoading}
+                        className="w-full h-11 bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg hover:shadow-primary/25 font-semibold transition-all"
+                        disabled={isDisabled}
                       >
-                        {isLoading || authLoading ? (
+                        {isDisabled ? (
                           <>
                             <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                             در حال ایجاد حساب...
@@ -564,54 +560,48 @@ export default function Login() {
                         )}
                       </Button>
                     </form>
-                  ) : signupStep === 1 ? (
-                    <div className="py-8 space-y-6 text-center animate-fade-in">
-                      <Mail className="w-16 h-16 text-primary mx-auto" />
-                      <h3 className="text-xl font-bold text-foreground">ایمیل خود را بررسی کنید</h3>
-                      <p className="text-muted-foreground text-sm">
-                        یک لینک تأیید به <strong dir="ltr">{signUpEmail}</strong> ارسال شد.
-                        <br />
-                        لطفاً روی لینک کلیک کنید تا حساب شما فعال شود.
-                      </p>
+                  ) : (
+                    /* Step 1: Check your email */
+                    <div className="py-8 space-y-6 text-center">
+                      <div className="p-4 rounded-full bg-primary/10 w-fit mx-auto">
+                        <Mail className="w-12 h-12 text-primary" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-bold text-foreground">ایمیل خود را بررسی کنید</h3>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                          یک لینک تأیید به <strong dir="ltr" className="text-foreground">{signUpEmail}</strong> ارسال شد.
+                          <br />
+                          لطفاً روی لینک کلیک کنید تا حساب شما فعال شود.
+                        </p>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+                        <p>• ایمیل ممکن است در پوشه Spam باشد</p>
+                        <p>• لینک تأیید تا ۲۴ ساعت معتبر است</p>
+                      </div>
                       <div className="flex flex-col gap-2 pt-2">
                         <Button variant="outline" onClick={() => { setSignupStep(0); setCurrentTab('signin'); }}>
                           بازگشت به ورود
                         </Button>
                       </div>
                     </div>
-                  ) : (
-                    <div className="py-8 space-y-4 text-center animate-fade-in">
-                      <div className="flex justify-center">
-                        <div className="p-4 rounded-full bg-accent/20 animate-pulse">
-                          <CheckCircle2 className="h-12 w-12 text-accent" />
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-accent">حساب ایجاد شد!</h3>
-                        <p className="text-muted-foreground mt-1">در حال انتقال...</p>
-                      </div>
-                    </div>
                   )}
 
                   {/* Divider */}
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-muted"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-card px-2 text-muted-foreground">{t('auth.haveAccount')}</span>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    onClick={() => setCurrentTab('signin')}
-                    variant="outline"
-                    className="w-full h-10"
-                    disabled={signupStep !== 0}
-                  >
-                    {t('auth.signIn')}
-                  </Button>
+                  {signupStep === 0 && (
+                    <>
+                      <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-muted" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="bg-card px-2 text-muted-foreground">{t('auth.haveAccount')}</span>
+                        </div>
+                      </div>
+                      <Button type="button" onClick={() => setCurrentTab('signin')} variant="outline" className="w-full h-10">
+                        {t('auth.signIn')}
+                      </Button>
+                    </>
+                  )}
                 </TabsContent>
               </Tabs>
 
@@ -625,7 +615,7 @@ export default function Login() {
           </Card>
 
           {/* Footer Stats */}
-          <div className="grid grid-cols-3 gap-4 text-center animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <div className="grid grid-cols-3 gap-4 text-center">
             <div className="space-y-1">
               <div className="text-2xl font-bold text-primary">20000+</div>
               <div className="text-xs text-muted-foreground">مکتب</div>
@@ -635,7 +625,7 @@ export default function Login() {
               <div className="text-xs text-muted-foreground">ولایت</div>
             </div>
             <div className="space-y-1">
-              <div className="text-2xl font-bold text-accent">11.7M+</div>
+              <div className="text-2xl font-bold text-primary">11.7M+</div>
               <div className="text-xs text-muted-foreground">شاگرد</div>
             </div>
           </div>

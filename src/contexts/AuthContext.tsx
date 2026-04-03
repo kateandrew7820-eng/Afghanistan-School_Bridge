@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, getUserRole, getUserProfile, UserRole, getRoleTier, getRoleDefaultRoute, FetchUserRoleResponse, FetchUserProfileResponse, retryWithBackoff } from '@/lib/supabase';
+import { supabase, getUserRole, getUserProfile, UserRole, getRoleTier, getRoleDefaultRoute } from '@/lib/supabase';
 
 interface Profile {
   id: string;
@@ -59,69 +59,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [demoRole, setDemoRole] = useState<UserRole | null>(null);
   const [demoTier, setDemoTier] = useState<'school' | 'district' | 'province' | 'ministry' | null>(null);
 
-  // Dev quick mode state (for fast development testing)
+  // Dev quick mode state
   const [isDevQuickMode, setIsDevQuickModeState] = useState(false);
   const [devQuickProfile, setDevQuickProfile] = useState<Profile | null>(null);
 
-  // Use demo role/tier if in demo mode, otherwise use dev quick mode, otherwise use actual role
+  // Prevent concurrent loadUserData calls
+  const loadingRef = useRef(false);
+
   const effectiveRole = isDemoMode ? demoRole : (isDevQuickMode ? 'teacher' : role);
   const effectiveTier = isDemoMode ? demoTier : (isDevQuickMode ? 'school' : getRoleTier(role));
   const roleTier = effectiveTier;
-  const defaultRoute = getRoleDefaultRoute(effectiveRole);
 
   /**
    * Load user role and profile from database
-   * Called after auth state change
-   * OPTIMIZED: Loads role and profile in PARALLEL instead of sequential
+   * Uses a ref guard to prevent concurrent calls
    */
-  const loadUserData = async (userId: string) => {
+  const loadUserData = useCallback(async (userId: string) => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     try {
-      // Load role and profile IN PARALLEL (not sequential) - 2-3x faster
-      // Use retry logic in case of temporary network issues
       const [roleResult, profileResult] = await Promise.all([
-        retryWithBackoff(
-          () => getUserRole(userId),
-          3,
-          500
-        ),
-        retryWithBackoff(
-          () => getUserProfile(userId),
-          3,
-          500
-        )
+        getUserRole(userId),
+        getUserProfile(userId),
       ]);
 
-      // Set role (critical for redirect)
       if (roleResult.error) {
-        // Don't break auth on role fetch failure - use default
+        console.warn('[Auth] Role fetch failed, using default:', roleResult.error.message);
         setRole('school');
       } else {
         setRole(roleResult.role);
       }
 
-      // Set profile (nice to have, not critical)
       if (profileResult.error) {
-        // Profile may not exist yet on new signup - that's ok
+        console.warn('[Auth] Profile fetch failed:', profileResult.error.message);
       }
       setProfile(profileResult.profile);
     } catch (err) {
-      // Graceful degradation - let user in with defaults
+      console.error('[Auth] loadUserData failed:', err);
       setRole('school');
       setProfile(null);
+    } finally {
+      loadingRef.current = false;
     }
-  };
+  }, []);
 
   /**
    * Initialize auth state
-   * Only run once on mount to avoid race conditions
+   * 1. Restore session from storage via getSession()
+   * 2. Subscribe to auth changes (NO async inside callback — fire-and-forget)
    */
   useEffect(() => {
     let isMounted = true;
-    let unsubscribe: (() => void) | null = null;
 
     const initializeAuth = async () => {
       try {
-        // Get current session
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (!isMounted) return;
@@ -136,64 +127,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setRole(null);
           setProfile(null);
         }
-
-        // Subscribe to auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, newSession) => {
-            if (!isMounted) return;
-
-            setSession(newSession);
-            setUser(newSession?.user ?? null);
-
-            if (newSession?.user) {
-              await loadUserData(newSession.user.id);
-            } else {
-              setRole(null);
-              setProfile(null);
-            }
-          }
-        );
-
-        unsubscribe = subscription?.unsubscribe;
       } catch (err) {
         if (isMounted) {
-          const authError = err instanceof Error ? err : new Error('Failed to initialize auth');
-          setError(authError);
+          setError(err instanceof Error ? err : new Error('Failed to initialize auth'));
         }
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
+
+    // Subscribe BEFORE getSession to avoid missing events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        if (!isMounted) return;
+
+        console.log('[Auth] onAuthStateChange:', event);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (newSession?.user) {
+          // Fire-and-forget — NO await inside onAuthStateChange
+          loadUserData(newSession.user.id);
+        } else {
+          setRole(null);
+          setProfile(null);
+        }
+      }
+    );
 
     initializeAuth();
 
     return () => {
       isMounted = false;
-      unsubscribe?.();
+      subscription?.unsubscribe();
     };
-  }, []);
+  }, [loadUserData]);
 
   /**
    * Sign in with email and password
-   * Includes comprehensive error handling
    */
   const signIn = async (email: string, password: string): Promise<{ error: Error | null }> => {
     try {
       setError(null);
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (signInError) {
-        // Provide user-friendly error messages
         let message = signInError.message;
-        if (signInError.message.includes('Invalid login credentials')) {
-          message = 'Invalid email or password. Please try again.';
-        } else if (signInError.message.includes('Email not confirmed')) {
-          message = 'Please verify your email address first.';
+        if (message.includes('Invalid login credentials')) {
+          message = 'ایمیل یا رمز عبور اشتباه است. لطفاً دوباره تلاش کنید.';
+        } else if (message.includes('Email not confirmed')) {
+          message = 'لطفاً ابتدا ایمیل خود را تأیید کنید.';
         }
         const error = new Error(message);
         setError(error);
@@ -211,11 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Sign up with email, password, and full name
-   * Creates account and automatically logs user in (modern UX pattern)
-   * Database triggers create profile and role automatically
-   * 
-   * IMPROVED: Smart retry logic for auto-login with exponential backoff
-   * Handles slow connections and temporary service issues gracefully
+   * Account is created → email confirmation required → no auto-login
    */
   const signUp = async (email: string, password: string, fullName: string): Promise<{ error: Error | null }> => {
     try {
@@ -232,8 +211,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (signUpError) {
         let message = signUpError.message;
-        if (signUpError.message.includes('already registered')) {
+        if (message.includes('already registered')) {
           message = 'این ایمیل قبلاً ثبت شده است. لطفاً با حساب موجود وارد شوید.';
+        } else if (message.includes('password') && message.includes('characters')) {
+          message = 'رمز عبور باید حداقل ۶ حرف باشد.';
         }
         const error = new Error(message);
         setError(error);
@@ -246,11 +227,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      // Account created — email confirmation required.
-      // No auto-login attempt (email not verified yet).
+      // If user was auto-confirmed (e.g. auto_confirm is on), identities will exist
+      // If email confirmation is required, identities array may be empty or user won't have a session
+      if (newUser.identities && newUser.identities.length === 0) {
+        // This means the email is already registered
+        const error = new Error('این ایمیل قبلاً ثبت شده است. لطفاً با حساب موجود وارد شوید.');
+        setError(error);
+        return { error };
+      }
+
       setError(null);
       return { error: null };
-
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Sign up failed');
       setError(error);
@@ -258,9 +245,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  /**
-   * Sign out the current user
-   */
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -269,40 +253,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
       setRole(null);
       setError(null);
-      // Also exit demo mode on sign out
       setIsDemoMode(false);
       setDemoRole(null);
       setDemoTier(null);
     } catch (err) {
-      const signOutError = err instanceof Error ? err : new Error('Sign out failed');
-      console.error('Sign out error:', signOutError);
-      setError(signOutError);
+      console.error('Sign out error:', err);
+      setError(err instanceof Error ? err : new Error('Sign out failed'));
     }
   };
 
-  /**
-   * Enter demo mode with specified role and tier
-   * Used for development/testing without authentication
-   * Only works in development environment
-   */
   const setDemoModeFunc = (role: UserRole, tier: 'school' | 'district' | 'province' | 'ministry') => {
-    console.log('Entering demo mode with role:', role, 'tier:', tier);
     setDemoRole(role);
     setDemoTier(tier);
     setIsDemoMode(true);
     setLoading(false);
-    // Mock user for demo mode
-    setUser({
-      id: 'demo-user',
-      email: 'demo@example.com',
-    } as any);
+    setUser({ id: 'demo-user', email: 'demo@example.com' } as any);
   };
 
-  /**
-   * Exit demo mode and return to normal auth flow
-   */
   const exitDemoModeFunc = () => {
-    console.log('Exiting demo mode');
     setIsDemoMode(false);
     setDemoRole(null);
     setDemoTier(null);
@@ -310,33 +278,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setRole(null);
   };
 
-  /**
-   * Enter dev quick mode for fast development testing
-   * Creates a mock user without authentication
-   * Only works in development environment
-   */
   const setDevQuickModeFunc = () => {
-    // Check if running in development environment
-    if (import.meta.env.MODE !== 'development') {
-      console.warn('Quick mode is only available in development environment');
-      return;
-    }
+    if (import.meta.env.MODE !== 'development') return;
     
-    console.log('Entering dev quick mode...');
-    
-    // Create mock dev user
     const mockDevUser = {
       id: 'dev-quick-user-' + Date.now(),
       email: 'developer@test.local',
-      user_metadata: {
-        full_name: 'سازنده'
-      },
+      user_metadata: { full_name: 'سازنده' },
       app_metadata: {},
       aud: 'authenticated',
       created_at: new Date().toISOString(),
     } as any;
 
-    // Create mock dev profile
     const mockDevProfile: Profile = {
       id: 'dev-profile-' + Date.now(),
       user_id: mockDevUser.id,
@@ -354,7 +307,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       schools: null,
     };
 
-    // Set state for dev quick mode
     setUser(mockDevUser);
     setProfile(mockDevProfile);
     setRole('teacher');
@@ -362,21 +314,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setDevQuickProfile(mockDevProfile);
     setLoading(false);
     setError(null);
-
-    console.log('Dev quick mode activated with mock user:', mockDevUser.id);
-  };
-
-  /**
-   * Exit dev quick mode
-   */
-  const exitDevQuickModeFunc = () => {
-    console.log('Exiting dev quick mode');
-    setIsDevQuickModeState(false);
-    setUser(null);
-    setProfile(null);
-    setRole(null);
-    setDevQuickProfile(null);
-    setLoading(false);
   };
 
   return (
