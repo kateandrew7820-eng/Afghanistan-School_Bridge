@@ -24,7 +24,7 @@ interface Submission {
 
 export default function AdminSubmissions() {
   const { role, isDemoMode } = useAuth();
-  const mockData = useMockData();
+  const mockData = { submissions: [] as any[] };
   const { toast } = useToast();
   const [statistics, setStatistics] = useState<Submission[]>([]);
   const [reports, setReports] = useState<Submission[]>([]);

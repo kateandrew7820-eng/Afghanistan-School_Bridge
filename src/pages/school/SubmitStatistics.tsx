@@ -19,7 +19,7 @@ export default function SubmitStatistics() {
   const { toast } = useToast();
   const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
-  const { submitStatistics: mockSubmitStatistics } = useMockSubmission();
+  const mockSubmitStatistics = async (_data: any) => ({ success: true, message: 'Demo mode' });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

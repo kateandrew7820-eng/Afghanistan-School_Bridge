@@ -22,7 +22,7 @@ export default function SubmitReports() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
-  const { submitReport: mockSubmitReport } = useMockSubmission();
+  const mockSubmitReport = async (_data: any, _file: any) => ({ success: true, message: 'Demo mode' });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
