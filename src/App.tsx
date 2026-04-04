@@ -93,10 +93,11 @@ type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
  * If user is not verified and not in demo mode, redirects to /pending-verification
  */
 function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; allowedTier: AllowedTier }) {
-  const { user, role, loading, roleTier, isDemoMode } = useAuth();
+  const { user, role, loading, roleTier, isDemoMode, profileLoading } = useAuth();
   const verification = useVerification();
 
-  if (loading) {
+  // Show spinner while auth OR profile is loading
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
