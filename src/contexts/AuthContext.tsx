@@ -330,6 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       session,
       profile: isDevQuickMode ? devQuickProfile : profile,
+      profileLoading: isDevQuickMode || isDemoMode ? false : profileLoading,
       role: effectiveRole,
       roleTier,
       loading,
