@@ -57,7 +57,7 @@ function normalizeStatus(raw: string | null): SubmissionStatus {
 /* ------------------------------------------------------------------ */
 
 function queryKey(opts: UseSubmissionsOptions) {
-  return ['submissions', opts.province ?? 'all', opts.district ?? 'all'] as const;
+  return ['submissions', opts.province ?? 'all', opts.district ?? 'all', opts.school_id ?? 'all'] as const;
 }
 
 /* ------------------------------------------------------------------ */
