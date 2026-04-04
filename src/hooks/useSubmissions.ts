@@ -37,6 +37,7 @@ export interface SubmissionsData {
 interface UseSubmissionsOptions {
   province?: string | null;
   district?: string | null;
+  school_id?: string | null;
   enabled?: boolean;
 }
 
