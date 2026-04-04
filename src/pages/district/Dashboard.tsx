@@ -1,32 +1,14 @@
-import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSubmissions, SubmissionStatus } from '@/hooks/useSubmissions';
+import { useSubmissions } from '@/hooks/useSubmissions';
+import { useSubmissionActions } from '@/hooks/useSubmissionActions';
+import { DashboardStatCard } from '@/components/DashboardStatCard';
+import { SubmissionList } from '@/components/SubmissionList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
-import { format } from 'date-fns';
-
-/* ------------------------------------------------------------------ */
-/*  STATUS UI MAP                                                      */
-/* ------------------------------------------------------------------ */
-
-const STATUS_CONFIG: Record<SubmissionStatus, { label: string; className: string }> = {
-  approved: { label: 'تأیید شده', className: 'bg-accent/10 text-accent border-accent/20' },
-  pending:  { label: 'در انتظار', className: 'bg-warning/10 text-warning border-warning/20' },
-  rejected: { label: 'رد شده',    className: 'bg-destructive/10 text-destructive border-destructive/20' },
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  statistics: 'آمار',
-  report: 'گزارش',
-  form: 'فورم',
-};
-
-/* ------------------------------------------------------------------ */
-/*  DASHBOARD                                                          */
-/* ------------------------------------------------------------------ */
+import { Eye, School, BarChart3 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
 export default function DistrictDashboard() {
   const { profile } = useAuth();
@@ -37,19 +19,36 @@ export default function DistrictDashboard() {
     enabled: !!district,
   });
 
+  const { approve, reject, isUpdating } = useSubmissionActions();
+
+  // Schools in district
+  const { data: schools } = useQuery({
+    queryKey: ['district-schools', district],
+    queryFn: async () => {
+      if (!district) return [];
+      const { data } = await supabase
+        .from('schools')
+        .select('id, name, code')
+        .eq('district', district)
+        .eq('is_active', true);
+      return data ?? [];
+    },
+    enabled: !!district,
+    staleTime: 60_000,
+  });
+
   const stats = data?.stats;
-  const recent = data?.submissions.slice(0, 6) ?? [];
+  const recent = data?.submissions.slice(0, 8) ?? [];
 
   return (
     <div className="min-h-screen bg-background text-foreground px-4 py-6 space-y-8">
-
-      {/* HEADER */}
+      {/* Header */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">داشبورد ولسوالی</h1>
         <p className="text-sm text-muted-foreground">{district ?? 'ولسوالی شما'}</p>
       </div>
 
-      {/* ERROR */}
+      {/* Error */}
       {error && (
         <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg flex justify-between items-center">
           <span className="text-sm">{error}</span>
@@ -57,15 +56,44 @@ export default function DistrictDashboard() {
         </div>
       )}
 
-      {/* STATS */}
+      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard title="مکاتب" value={data?.schoolCount} loading={loading} />
-        <StatCard title="مجموع ارسال" value={stats?.total} loading={loading} />
-        <StatCard title="تأیید شده" value={stats?.approved} loading={loading} />
-        <StatCard title="در انتظار" value={stats?.pending} loading={loading} />
+        <DashboardStatCard title="مکاتب" value={schools?.length ?? data?.schoolCount} loading={loading} icon={<School className="w-4 h-4" />} />
+        <DashboardStatCard title="مجموع ارسال" value={stats?.total} loading={loading} />
+        <DashboardStatCard title="تأیید شده" value={stats?.approved} loading={loading} />
+        <DashboardStatCard title="در انتظار" value={stats?.pending} loading={loading} />
       </div>
 
-      {/* ACTION CARD */}
+      {/* Schools List */}
+      {schools && schools.length > 0 && (
+        <Card className="border shadow-sm">
+          <CardHeader><CardTitle className="text-sm">مکاتب ولسوالی</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {schools.slice(0, 6).map((s) => (
+              <div key={s.id} className="flex justify-between items-center p-3 rounded-xl border hover:bg-muted/50 transition">
+                <div className="flex items-center gap-2">
+                  <School className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium">{s.name}</p>
+                </div>
+                {s.code && <span className="text-xs text-muted-foreground">{s.code}</span>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent Submissions with Approve/Reject */}
+      <SubmissionList
+        title="ارسال‌های اخیر"
+        submissions={recent}
+        loading={loading}
+        showActions
+        onApprove={approve}
+        onReject={(id, table) => reject(id, table)}
+        actionLoading={isUpdating}
+      />
+
+      {/* Action Card */}
       <Link to="/district/submissions">
         <Card className="group cursor-pointer border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
           <CardContent className="flex justify-between items-center p-4">
@@ -74,66 +102,6 @@ export default function DistrictDashboard() {
           </CardContent>
         </Card>
       </Link>
-
-      {/* RECENT */}
-      <Card className="border shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-sm">فعالیت‌های اخیر</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}
-            </div>
-          ) : recent.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8 text-sm">هنوز ارسالی وجود ندارد</p>
-          ) : (
-            <div className="space-y-2">
-              {recent.map((s) => (
-                <div key={s.id} className="flex justify-between items-center p-3 rounded-xl border hover:bg-muted/50 transition">
-                  <div>
-                    <p className="text-sm font-medium">{TYPE_LABELS[s.type] ?? s.type}</p>
-                    <p className="text-xs text-muted-foreground">{s.district}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={`text-xs ${STATUS_CONFIG[s.status].className}`}>
-                      {STATUS_CONFIG[s.status].label}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(s.created_at), 'd MMM')}
-                    </span>
-                  </div>
-                </div>
-              ))}
-
-              <Button asChild variant="outline" className="w-full mt-3" size="sm">
-                <Link to="/district/submissions">مشاهده لیست کامل</Link>
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  STAT CARD                                                          */
-/* ------------------------------------------------------------------ */
-
-function StatCard({ title, value, loading }: { title: string; value?: number; loading: boolean }) {
-  return (
-    <Card className="border shadow-sm hover:shadow-md transition">
-      <CardHeader className="pb-1">
-        <CardTitle className="text-xs text-muted-foreground font-medium">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <Skeleton className="h-7 w-16 rounded" />
-        ) : (
-          <div className="text-xl font-bold">{value ?? 0}</div>
-        )}
-      </CardContent>
-    </Card>
   );
 }

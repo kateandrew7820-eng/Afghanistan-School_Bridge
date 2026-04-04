@@ -1,15 +1,14 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubmissions } from '@/hooks/useSubmissions';
+import { useSubmissionActions } from '@/hooks/useSubmissionActions';
+import { DashboardStatCard } from '@/components/DashboardStatCard';
+import { SubmissionList } from '@/components/SubmissionList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, BarChart3, AlertCircle, Users, TrendingUp } from 'lucide-react';
+import { MapPin, BarChart3, Users, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-
-/* ------------------------------------------------------------------ */
-/*  DASHBOARD                                                          */
-/* ------------------------------------------------------------------ */
 
 export default function ProvinceDashboard() {
   const { profile } = useAuth();
@@ -20,27 +19,33 @@ export default function ProvinceDashboard() {
     enabled: !!province,
   });
 
-  // Distinct districts count
-  const { data: districtCount } = useQuery({
-    queryKey: ['district-count', province],
+  const { approve, reject, isUpdating } = useSubmissionActions();
+
+  // District breakdown
+  const { data: districtBreakdown } = useQuery({
+    queryKey: ['district-breakdown', province],
     queryFn: async () => {
-      if (!province) return 0;
+      if (!province) return [];
       const { data } = await supabase
         .from('schools')
         .select('district')
         .eq('province', province);
-      return new Set((data ?? []).map((s) => s.district)).size;
+      const counts: Record<string, number> = {};
+      for (const s of data ?? []) {
+        if (s.district) counts[s.district] = (counts[s.district] || 0) + 1;
+      }
+      return Object.entries(counts).map(([name, schoolCount]) => ({ name, schoolCount })).sort((a, b) => b.schoolCount - a.schoolCount);
     },
     enabled: !!province,
     staleTime: 60_000,
   });
 
   const stats = data?.stats;
+  const recent = data?.submissions.slice(0, 8) ?? [];
 
   return (
     <div className="space-y-6 bg-background text-foreground p-4 rounded-2xl">
-
-      {/* HEADER */}
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">داشبورد ولایت</h1>
@@ -52,7 +57,7 @@ export default function ProvinceDashboard() {
         </Badge>
       </div>
 
-      {/* ERROR */}
+      {/* Error */}
       {error && (
         <div className="bg-destructive/10 border border-destructive/30 text-destructive p-3 rounded-xl flex justify-between items-center">
           <span className="text-sm">{error}</span>
@@ -60,15 +65,33 @@ export default function ProvinceDashboard() {
         </div>
       )}
 
-      {/* STATS */}
+      {/* Stats */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <StatCard title="ولسوالی‌ها" value={districtCount} icon={MapPin} loading={loading} />
-        <StatCard title="مکاتب" value={data?.schoolCount} icon={BarChart3} loading={loading} />
-        <StatCard title="دانش‌آموزان" value={data?.totalStudents} icon={Users} loading={loading} format />
-        <StatCard title="در انتظار" value={stats?.pending} icon={AlertCircle} loading={loading} />
+        <DashboardStatCard title="ولسوالی‌ها" value={districtBreakdown?.length} icon={<MapPin className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="مکاتب" value={data?.schoolCount} icon={<BarChart3 className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="دانش‌آموزان" value={data?.totalStudents} icon={<Users className="h-4 w-4" />} loading={loading} format />
+        <DashboardStatCard title="در انتظار" value={stats?.pending} loading={loading} />
       </div>
 
-      {/* PERFORMANCE */}
+      {/* District Breakdown */}
+      {districtBreakdown && districtBreakdown.length > 0 && (
+        <Card className="border shadow-sm">
+          <CardHeader><CardTitle className="text-sm">ولسوالی‌ها</CardTitle></CardHeader>
+          <CardContent className="space-y-2">
+            {districtBreakdown.map((d) => (
+              <div key={d.name} className="flex justify-between items-center p-3 rounded-xl border hover:bg-muted/50 transition">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium">{d.name}</p>
+                </div>
+                <Badge variant="outline" className="text-xs">{d.schoolCount} مکتب</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Performance */}
       <div className="grid gap-3 md:grid-cols-3">
         <Card className="border">
           <CardContent className="p-4">
@@ -89,38 +112,17 @@ export default function ProvinceDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Submissions with Actions */}
+      <SubmissionList
+        title="ارسال‌های اخیر"
+        submissions={recent}
+        loading={loading}
+        showActions
+        onApprove={approve}
+        onReject={(id, table) => reject(id, table)}
+        actionLoading={isUpdating}
+      />
     </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  STAT CARD                                                          */
-/* ------------------------------------------------------------------ */
-
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  loading,
-  format: doFormat,
-}: {
-  title: string;
-  value?: number;
-  icon: React.ComponentType<{ className?: string }>;
-  loading: boolean;
-  format?: boolean;
-}) {
-  const display = doFormat ? (value ?? 0).toLocaleString('fa-AF') : (value ?? 0);
-
-  return (
-    <Card className="border shadow-sm hover:shadow-md transition">
-      <CardHeader className="flex flex-row justify-between pb-1">
-        <CardTitle className="text-xs text-muted-foreground">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        {loading ? <Skeleton className="h-7 w-16 rounded" /> : <div className="text-xl font-bold">{display}</div>}
-      </CardContent>
-    </Card>
   );
 }
