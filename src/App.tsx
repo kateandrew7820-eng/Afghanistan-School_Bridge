@@ -21,6 +21,7 @@ import AccessError from "./pages/AccessError";
 import SetupProfile from "./pages/SetupProfile";
 import AfghanistanInfoPage from "./pages/AfghanistanInfoPage";
 import AuthCallback from "./pages/AuthCallback";
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
