@@ -71,6 +71,7 @@ async function fetchSubmissions(opts: UseSubmissionsOptions): Promise<Submission
   let schoolsQuery = supabase.from('schools').select('id, province, district', { count: 'exact', head: true });
   if (province) schoolsQuery = schoolsQuery.eq('province', province);
   if (district) schoolsQuery = schoolsQuery.eq('district', district);
+  if (school_id) schoolsQuery = schoolsQuery.eq('id', school_id);
   const { count: schoolCount } = await schoolsQuery;
 
   // ---------- stats submissions (has student/teacher numbers) ----------
