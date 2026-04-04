@@ -37,6 +37,7 @@ export interface SubmissionsData {
 interface UseSubmissionsOptions {
   province?: string | null;
   district?: string | null;
+  school_id?: string | null;
   enabled?: boolean;
 }
 
@@ -56,7 +57,7 @@ function normalizeStatus(raw: string | null): SubmissionStatus {
 /* ------------------------------------------------------------------ */
 
 function queryKey(opts: UseSubmissionsOptions) {
-  return ['submissions', opts.province ?? 'all', opts.district ?? 'all'] as const;
+  return ['submissions', opts.province ?? 'all', opts.district ?? 'all', opts.school_id ?? 'all'] as const;
 }
 
 /* ------------------------------------------------------------------ */
@@ -64,26 +65,30 @@ function queryKey(opts: UseSubmissionsOptions) {
 /* ------------------------------------------------------------------ */
 
 async function fetchSubmissions(opts: UseSubmissionsOptions): Promise<SubmissionsData> {
-  const { province, district } = opts;
+  const { province, district, school_id } = opts;
 
   // ---------- schools count ----------
   let schoolsQuery = supabase.from('schools').select('id, province, district', { count: 'exact', head: true });
   if (province) schoolsQuery = schoolsQuery.eq('province', province);
   if (district) schoolsQuery = schoolsQuery.eq('district', district);
+  if (school_id) schoolsQuery = schoolsQuery.eq('id', school_id);
   const { count: schoolCount } = await schoolsQuery;
 
   // ---------- stats submissions (has student/teacher numbers) ----------
   let statsQ = supabase.from('statistics_submissions').select('id, status, created_at, school_id, province, district, total_students, total_teachers');
   if (province) statsQ = statsQ.eq('province', province);
   if (district) statsQ = statsQ.eq('district', district);
+  if (school_id) statsQ = statsQ.eq('school_id', school_id);
 
   let reportsQ = supabase.from('report_submissions').select('id, status, created_at, school_id, province, district');
   if (province) reportsQ = reportsQ.eq('province', province);
   if (district) reportsQ = reportsQ.eq('district', district);
+  if (school_id) reportsQ = reportsQ.eq('school_id', school_id);
 
   let formsQ = supabase.from('form_submissions').select('id, status, created_at, school_id, province, district');
   if (province) formsQ = formsQ.eq('province', province);
   if (district) formsQ = formsQ.eq('district', district);
+  if (school_id) formsQ = formsQ.eq('school_id', school_id);
 
   const [statsRes, reportsRes, formsRes] = await Promise.all([statsQ, reportsQ, formsQ]);
 
@@ -170,7 +175,7 @@ export function useSubmissions(opts: UseSubmissionsOptions = {}) {
     const tables = ['statistics_submissions', 'report_submissions', 'form_submissions'] as const;
 
     const channel = supabase
-      .channel(`submissions-${opts.province ?? 'all'}-${opts.district ?? 'all'}`)
+      .channel(`submissions-${opts.province ?? 'all'}-${opts.district ?? 'all'}-${opts.school_id ?? 'all'}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: tables[0] }, () => queryClient.invalidateQueries({ queryKey: key }))
       .on('postgres_changes', { event: '*', schema: 'public', table: tables[1] }, () => queryClient.invalidateQueries({ queryKey: key }))
       .on('postgres_changes', { event: '*', schema: 'public', table: tables[2] }, () => queryClient.invalidateQueries({ queryKey: key }))
@@ -179,7 +184,7 @@ export function useSubmissions(opts: UseSubmissionsOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [opts.province, opts.district, queryClient]);
+  }, [opts.province, opts.district, opts.school_id, queryClient]);
 
   return {
     data: query.data ?? null,

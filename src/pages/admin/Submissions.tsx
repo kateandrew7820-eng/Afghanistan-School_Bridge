@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { canApprove, getVerificationQueueFilter } from '@/lib/verificationHierarchy';
-import { useMockData } from '@/hooks/useMockData';
+// Mock data removed - using real data only
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ interface Submission {
 
 export default function AdminSubmissions() {
   const { role, isDemoMode } = useAuth();
-  const mockData = useMockData();
+  const mockData = { submissions: [] as any[] };
   const { toast } = useToast();
   const [statistics, setStatistics] = useState<Submission[]>([]);
   const [reports, setReports] = useState<Submission[]>([]);

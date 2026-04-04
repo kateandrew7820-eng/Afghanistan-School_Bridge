@@ -21,6 +21,7 @@ import AccessError from "./pages/AccessError";
 import SetupProfile from "./pages/SetupProfile";
 import AfghanistanInfoPage from "./pages/AfghanistanInfoPage";
 import AuthCallback from "./pages/AuthCallback";
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
@@ -92,10 +93,11 @@ type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
  * If user is not verified and not in demo mode, redirects to /pending-verification
  */
 function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; allowedTier: AllowedTier }) {
-  const { user, role, loading, roleTier, isDemoMode } = useAuth();
+  const { user, role, loading, roleTier, isDemoMode, profileLoading } = useAuth();
   const verification = useVerification();
 
-  if (loading) {
+  // Show spinner while auth OR profile is loading
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -166,6 +168,7 @@ function AppRoutes() {
       <Route path="/setup-profile" element={<SetupProfile />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
+      <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
       <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
 
       {/* Demo Mode - Choose role and see dashboards without auth */}

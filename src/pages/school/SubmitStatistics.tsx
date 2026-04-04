@@ -11,7 +11,7 @@ import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { validateNumberRange, validateRequired } from '@/lib/validation';
-import { useMockSubmission } from '@/hooks/useMockSubmission';
+// Mock submission removed - using real submissions
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function SubmitStatistics() {
@@ -19,7 +19,7 @@ export default function SubmitStatistics() {
   const { toast } = useToast();
   const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
-  const { submitStatistics: mockSubmitStatistics } = useMockSubmission();
+  const mockSubmitStatistics = async (_data: any) => ({ success: true, message: 'Demo mode' });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

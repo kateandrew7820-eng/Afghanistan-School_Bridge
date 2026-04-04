@@ -14,7 +14,7 @@ import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { FileUploadProgress } from '@/components/FileUploadProgress';
 import { validateFileSize, validateFileType, validateRequired } from '@/lib/validation';
-import { useMockSubmission } from '@/hooks/useMockSubmission';
+// Mock submission removed - using real submissions
 
 export default function SubmitReports() {
   const { user, profile, isDemoMode } = useAuth();
@@ -22,7 +22,7 @@ export default function SubmitReports() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
-  const { submitReport: mockSubmitReport } = useMockSubmission();
+  const mockSubmitReport = async (_data: any, _file: any) => ({ success: true, message: 'Demo mode' });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

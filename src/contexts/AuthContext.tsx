@@ -29,6 +29,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  profileLoading: boolean;
   role: UserRole | null;
   roleTier: 'school' | 'district' | 'province' | 'ministry' | null;
   loading: boolean;
@@ -50,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -77,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserData = useCallback(async (userId: string) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
+    setProfileLoading(true);
     try {
       const [roleResult, profileResult] = await Promise.all([
         getUserRole(userId),
@@ -100,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
     } finally {
       loadingRef.current = false;
+      setProfileLoading(false);
     }
   }, []);
 
@@ -141,16 +145,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (event, newSession) => {
         if (!isMounted) return;
 
+        // Only react to meaningful events
+        if (event === 'INITIAL_SESSION') return;
+        
         console.log('[Auth] onAuthStateChange:', event);
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        if (newSession?.user) {
-          // Fire-and-forget — NO await inside onAuthStateChange
-          loadUserData(newSession.user.id);
-        } else {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (newSession?.user) {
+            loadUserData(newSession.user.id);
+          }
+        } else if (event === 'SIGNED_OUT') {
           setRole(null);
           setProfile(null);
+          setProfileLoading(false);
         }
       }
     );
@@ -321,6 +330,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       session,
       profile: isDevQuickMode ? devQuickProfile : profile,
+      profileLoading: isDevQuickMode || isDemoMode ? false : profileLoading,
       role: effectiveRole,
       roleTier,
       loading,

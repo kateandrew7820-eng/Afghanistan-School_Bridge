@@ -352,7 +352,33 @@ export default function Login() {
                         </>
                       )}
                     </Button>
-                  </form>
+                    </form>
+
+                    {/* Forgot Password */}
+                    <div className="text-center">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const email = signInEmail.trim();
+                          if (!email) {
+                            toast({ title: 'لطفاً ایمیل خود را وارد کنید', variant: 'destructive' });
+                            return;
+                          }
+                          const { supabase } = await import('@/integrations/supabase/client');
+                          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                            redirectTo: `${window.location.origin}/reset-password`,
+                          });
+                          if (error) {
+                            toast({ title: 'خطا', description: error.message, variant: 'destructive' });
+                          } else {
+                            toast({ title: 'لینک بازنشانی ارسال شد', description: 'ایمیل خود را بررسی کنید' });
+                          }
+                        }}
+                        className="text-xs text-muted-foreground hover:text-primary transition"
+                      >
+                        رمز عبور خود را فراموش کرده‌اید؟
+                      </button>
+                    </div>
 
                   {/* Divider */}
                   <div className="relative my-4">

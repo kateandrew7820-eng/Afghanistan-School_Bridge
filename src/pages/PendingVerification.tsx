@@ -39,7 +39,7 @@ export default function PendingVerification() {
   // Auto redirect if verified
   useEffect(() => {
     if (verification.isVerified && verification.canAccessDashboard) {
-      navigate("/school/dashboard", { replace: true });
+      navigate("/school", { replace: true });
     }
   }, [verification.isVerified, verification.canAccessDashboard, navigate]);
 

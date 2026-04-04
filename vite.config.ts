@@ -80,7 +80,5 @@ export default defineConfig(({ mode }) => ({
       'react-hook-form',
       '@tanstack/react-query',
     ],
-    // Exclude large libraries to be loaded on demand
-    exclude: ['recharts'],
   },
 }));
