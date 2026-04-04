@@ -6,42 +6,39 @@ export interface VerificationStatus {
   isRejected: boolean;
   rejectionReason: string | null;
   verifiedAt: string | null;
-  canAccessDashboard: boolean; // isVerified OR isDemoMode
-  needsSetup: boolean; // User exists but hasn't filled setup profile yet
+  canAccessDashboard: boolean;
+  needsSetup: boolean;
 }
 
 /**
- * Hook to check user's verification status
- * Returns status information and whether user can access their dashboard
- * 
- * In demo mode, users bypass all verification checks
+ * Hook to check user's verification status.
+ * Respects profileLoading to avoid false redirects.
  */
 export function useVerification(): VerificationStatus {
-  const { profile, isDemoMode } = useAuth();
+  const { profile, isDemoMode, profileLoading } = useAuth();
 
-  // Demo mode bypasses all verification
   if (isDemoMode) {
     return {
-      isVerified: true,
-      isPending: false,
-      isRejected: false,
-      rejectionReason: null,
-      verifiedAt: null,
-      canAccessDashboard: true,
-      needsSetup: false,
+      isVerified: true, isPending: false, isRejected: false,
+      rejectionReason: null, verifiedAt: null,
+      canAccessDashboard: true, needsSetup: false,
     };
   }
 
-  // Check if user needs to complete setup (no status field yet)
+  // While profile is still loading, don't trigger needsSetup
+  if (profileLoading) {
+    return {
+      isVerified: false, isPending: false, isRejected: false,
+      rejectionReason: null, verifiedAt: null,
+      canAccessDashboard: false, needsSetup: false,
+    };
+  }
+
   if (!profile?.status) {
     return {
-      isVerified: false,
-      isPending: false,
-      isRejected: false,
-      rejectionReason: null,
-      verifiedAt: null,
-      canAccessDashboard: false,
-      needsSetup: true,
+      isVerified: false, isPending: false, isRejected: false,
+      rejectionReason: null, verifiedAt: null,
+      canAccessDashboard: false, needsSetup: true,
     };
   }
 

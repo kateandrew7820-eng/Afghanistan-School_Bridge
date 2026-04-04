@@ -184,7 +184,7 @@ export function useSubmissions(opts: UseSubmissionsOptions = {}) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [opts.province, opts.district, queryClient]);
+  }, [opts.province, opts.district, opts.school_id, queryClient]);
 
   return {
     data: query.data ?? null,
