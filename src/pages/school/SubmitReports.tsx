@@ -14,7 +14,7 @@ import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { FileUploadProgress } from '@/components/FileUploadProgress';
 import { validateFileSize, validateFileType, validateRequired } from '@/lib/validation';
-import { useMockSubmission } from '@/hooks/useMockSubmission';
+// Mock submission removed - using real submissions
 
 export default function SubmitReports() {
   const { user, profile, isDemoMode } = useAuth();
