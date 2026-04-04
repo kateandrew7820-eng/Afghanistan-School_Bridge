@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { canApprove, getVerificationQueueFilter } from '@/lib/verificationHierarchy';
-import { useMockData } from '@/hooks/useMockData';
+// Mock data removed - using real data only
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
