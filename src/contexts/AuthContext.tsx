@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUserData = useCallback(async (userId: string) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
+    setProfileLoading(true);
     try {
       const [roleResult, profileResult] = await Promise.all([
         getUserRole(userId),
@@ -102,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(null);
     } finally {
       loadingRef.current = false;
+      setProfileLoading(false);
     }
   }, []);
 
