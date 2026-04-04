@@ -29,6 +29,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  profileLoading: boolean;
   role: UserRole | null;
   roleTier: 'school' | 'district' | 'province' | 'ministry' | null;
   loading: boolean;
