@@ -65,7 +65,7 @@ function queryKey(opts: UseSubmissionsOptions) {
 /* ------------------------------------------------------------------ */
 
 async function fetchSubmissions(opts: UseSubmissionsOptions): Promise<SubmissionsData> {
-  const { province, district } = opts;
+  const { province, district, school_id } = opts;
 
   // ---------- schools count ----------
   let schoolsQuery = supabase.from('schools').select('id, province, district', { count: 'exact', head: true });
