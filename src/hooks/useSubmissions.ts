@@ -78,14 +78,17 @@ async function fetchSubmissions(opts: UseSubmissionsOptions): Promise<Submission
   let statsQ = supabase.from('statistics_submissions').select('id, status, created_at, school_id, province, district, total_students, total_teachers');
   if (province) statsQ = statsQ.eq('province', province);
   if (district) statsQ = statsQ.eq('district', district);
+  if (school_id) statsQ = statsQ.eq('school_id', school_id);
 
   let reportsQ = supabase.from('report_submissions').select('id, status, created_at, school_id, province, district');
   if (province) reportsQ = reportsQ.eq('province', province);
   if (district) reportsQ = reportsQ.eq('district', district);
+  if (school_id) reportsQ = reportsQ.eq('school_id', school_id);
 
   let formsQ = supabase.from('form_submissions').select('id, status, created_at, school_id, province, district');
   if (province) formsQ = formsQ.eq('province', province);
   if (district) formsQ = formsQ.eq('district', district);
+  if (school_id) formsQ = formsQ.eq('school_id', school_id);
 
   const [statsRes, reportsRes, formsRes] = await Promise.all([statsQ, reportsQ, formsQ]);
 
