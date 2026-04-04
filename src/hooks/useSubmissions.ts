@@ -175,7 +175,7 @@ export function useSubmissions(opts: UseSubmissionsOptions = {}) {
     const tables = ['statistics_submissions', 'report_submissions', 'form_submissions'] as const;
 
     const channel = supabase
-      .channel(`submissions-${opts.province ?? 'all'}-${opts.district ?? 'all'}`)
+      .channel(`submissions-${opts.province ?? 'all'}-${opts.district ?? 'all'}-${opts.school_id ?? 'all'}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: tables[0] }, () => queryClient.invalidateQueries({ queryKey: key }))
       .on('postgres_changes', { event: '*', schema: 'public', table: tables[1] }, () => queryClient.invalidateQueries({ queryKey: key }))
       .on('postgres_changes', { event: '*', schema: 'public', table: tables[2] }, () => queryClient.invalidateQueries({ queryKey: key }))
