@@ -145,16 +145,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       (event, newSession) => {
         if (!isMounted) return;
 
+        // Only react to meaningful events
+        if (event === 'INITIAL_SESSION') return;
+        
         console.log('[Auth] onAuthStateChange:', event);
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        if (newSession?.user) {
-          // Fire-and-forget — NO await inside onAuthStateChange
-          loadUserData(newSession.user.id);
-        } else {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          if (newSession?.user) {
+            loadUserData(newSession.user.id);
+          }
+        } else if (event === 'SIGNED_OUT') {
           setRole(null);
           setProfile(null);
+          setProfileLoading(false);
         }
       }
     );
