@@ -334,7 +334,52 @@ export default function SetupProfile() {
               )}
 
               <FormFieldWrapper label="نام مکتب" error={touched.school_name ? errors.school_name : undefined}>
-                <Input id="school_name" name="school_name" value={formData.school_name} onChange={handleChange} onBlur={handleBlur} placeholder="نام مکتب یا موسسه آموزشی" disabled={isLoading} aria-invalid={!!errors.school_name} />
+                <Input
+                  id="school_name"
+                  name="school_name"
+                  value={formData.school_name}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setSchoolSearch(e.target.value);
+                    setSelectedSchoolId(null);
+                  }}
+                  onBlur={handleBlur}
+                  placeholder="نام مکتب را تایپ کنید..."
+                  disabled={isLoading}
+                  aria-invalid={!!errors.school_name}
+                />
+                {schoolSearch.length >= 2 && !selectedSchoolId && (
+                  <div className="border rounded-md mt-1 max-h-32 overflow-y-auto bg-card shadow-sm">
+                    {(existingSchools ?? [])
+                      .filter(s => s.name.includes(schoolSearch))
+                      .slice(0, 5)
+                      .map(s => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          className="w-full text-right px-3 py-2 text-sm hover:bg-muted transition-colors border-b last:border-b-0"
+                          onClick={() => {
+                            setSelectedSchoolId(s.id);
+                            setSchoolSearch('');
+                            setFormData(prev => ({
+                              ...prev,
+                              school_name: s.name,
+                              province: s.province ?? prev.province,
+                              district: s.district ?? prev.district,
+                            }));
+                          }}
+                        >
+                          <span className="font-medium">{s.name}</span>
+                          <span className="text-xs text-muted-foreground mr-2">
+                            {s.district} — {s.province}
+                          </span>
+                        </button>
+                      ))}
+                    {(existingSchools ?? []).filter(s => s.name.includes(schoolSearch)).length === 0 && (
+                      <p className="px-3 py-2 text-xs text-muted-foreground">مکتب جدید — بعد از تأیید ادمین ثبت خواهد شد</p>
+                    )}
+                  </div>
+                )}
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولسوالی" error={touched.district ? errors.district : undefined}>
