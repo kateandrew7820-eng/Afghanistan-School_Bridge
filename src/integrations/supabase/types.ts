@@ -393,6 +393,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_update_profile_status: {
+        Args: {
+          _rejection_reason?: string
+          _status: string
+          _target_user_id: string
+        }
+        Returns: boolean
+      }
       get_user_district: { Args: { _user_id: string }; Returns: string }
       get_user_province: { Args: { _user_id: string }; Returns: string }
       get_user_school_id: { Args: { _user_id: string }; Returns: string }
