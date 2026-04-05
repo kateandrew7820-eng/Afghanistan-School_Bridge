@@ -13,6 +13,7 @@ import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError'
 import { validateNumberRange, validateRequired } from '@/lib/validation';
 // Mock submission removed - using real submissions
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { sanitizeError } from '@/lib/sanitizeError';
 
 export default function SubmitStatistics() {
   const { user, profile, isDemoMode } = useAuth();
@@ -73,8 +74,12 @@ export default function SubmitStatistics() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?.school_id || !user) {
-      showErrorMessage('اطلاعات نیمرفتار کامل نیست', 'خطا');
+    if (!user) {
+      showErrorMessage('لطفاً وارد سیستم شوید', 'خطا');
+      return;
+    }
+    if (!profile?.school_id) {
+      showErrorMessage('مکتب شما هنوز ثبت نشده است. لطفاً با مدیر سیستم تماس بگیرید.', 'خطا');
       return;
     }
     if (!validateForm()) {

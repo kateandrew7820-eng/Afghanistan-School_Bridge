@@ -13,6 +13,7 @@ import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { TEMPORARY_TEST_MODE, getApproverLabel } from '@/lib/testMode';
+import { useQuery } from '@tanstack/react-query';
 
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
@@ -39,6 +40,23 @@ export default function SetupProfile() {
   const { showErrorMessage, showSuccess } = useErrorToast();
 
   const isQuickMode = searchParams.get('quickMode') === 'true';
+
+  // School lookup query
+  const { data: existingSchools } = useQuery({
+    queryKey: ['schools-lookup'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('schools')
+        .select('id, name, province, district')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
+  const [schoolSearch, setSchoolSearch] = useState('');
 
   const [formData, setFormData] = useState({
     full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
@@ -134,6 +152,16 @@ export default function SetupProfile() {
       // In production: status = 'pending_verification' (hierarchical approval)
       // Both paths use pending_verification - the difference is WHO confirms
       // ============================================================
+      // Try to find matching school
+      let schoolId = selectedSchoolId;
+      if (!schoolId && formData.school_name && formData.province && formData.district) {
+        // Try exact match
+        const match = (existingSchools ?? []).find(
+          s => s.name === formData.school_name && s.province === formData.province && s.district === formData.district
+        );
+        if (match) schoolId = match.id;
+      }
+
       const profileData: any = {
         user_id: user.id,
         full_name: formData.full_name,
@@ -141,6 +169,7 @@ export default function SetupProfile() {
         province: formData.province,
         role: formData.role,
         school_name: formData.school_name,
+        school_id: schoolId || null,
         phone_number: formData.phone_number || null,
         status: 'pending_verification',
         updated_at: new Date().toISOString(),
@@ -305,7 +334,52 @@ export default function SetupProfile() {
               )}
 
               <FormFieldWrapper label="نام مکتب" error={touched.school_name ? errors.school_name : undefined}>
-                <Input id="school_name" name="school_name" value={formData.school_name} onChange={handleChange} onBlur={handleBlur} placeholder="نام مکتب یا موسسه آموزشی" disabled={isLoading} aria-invalid={!!errors.school_name} />
+                <Input
+                  id="school_name"
+                  name="school_name"
+                  value={formData.school_name}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setSchoolSearch(e.target.value);
+                    setSelectedSchoolId(null);
+                  }}
+                  onBlur={handleBlur}
+                  placeholder="نام مکتب را تایپ کنید..."
+                  disabled={isLoading}
+                  aria-invalid={!!errors.school_name}
+                />
+                {schoolSearch.length >= 2 && !selectedSchoolId && (
+                  <div className="border rounded-md mt-1 max-h-32 overflow-y-auto bg-card shadow-sm">
+                    {(existingSchools ?? [])
+                      .filter(s => s.name.includes(schoolSearch))
+                      .slice(0, 5)
+                      .map(s => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          className="w-full text-right px-3 py-2 text-sm hover:bg-muted transition-colors border-b last:border-b-0"
+                          onClick={() => {
+                            setSelectedSchoolId(s.id);
+                            setSchoolSearch('');
+                            setFormData(prev => ({
+                              ...prev,
+                              school_name: s.name,
+                              province: s.province ?? prev.province,
+                              district: s.district ?? prev.district,
+                            }));
+                          }}
+                        >
+                          <span className="font-medium">{s.name}</span>
+                          <span className="text-xs text-muted-foreground mr-2">
+                            {s.district} — {s.province}
+                          </span>
+                        </button>
+                      ))}
+                    {(existingSchools ?? []).filter(s => s.name.includes(schoolSearch)).length === 0 && (
+                      <p className="px-3 py-2 text-xs text-muted-foreground">مکتب جدید — بعد از تأیید ادمین ثبت خواهد شد</p>
+                    )}
+                  </div>
+                )}
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولسوالی" error={touched.district ? errors.district : undefined}>

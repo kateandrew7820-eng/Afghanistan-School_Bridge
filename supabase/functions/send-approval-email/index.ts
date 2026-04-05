@@ -1,18 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
-/**
- * ============================================================
- * 🚧 TEMPORARY TEST MODE: Send Approval Email
- * ============================================================
- * 
- * This edge function sends a confirmation email when a user
- * is approved by the global confirmer (masoudsalik2024@gmail.com).
- * 
- * In production, this should be replaced with proper email
- * infrastructure (Lovable Email or similar).
- * ============================================================
- */
-
 const DASHBOARD_ROUTES: Record<string, string> = {
   'student': '/school',
   'teacher': '/school',
@@ -42,6 +29,52 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate JWT and check caller is admin
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(
+      authHeader.replace('Bearer ', '')
+    );
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const callerId = claimsData.claims.sub;
+
+    // Verify caller is admin/ministry
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', callerId)
+      .in('role', ['admin', 'ministry_admin']);
+
+    if (!roleData?.length) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { userId, userName, userRole, approverLabel } = await req.json();
 
     if (!userId) {
@@ -51,38 +84,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create Supabase admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     // Get user email from auth
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
 
     if (userError || !userData?.user?.email) {
       console.error('Failed to get user email:', userError);
       return new Response(
-        JSON.stringify({ error: 'Could not find user email', details: userError?.message }),
+        JSON.stringify({ error: 'Could not find user' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const userEmail = userData.user.email;
     const dashboardRoute = DASHBOARD_ROUTES[userRole] || '/school';
-    
-    // Determine the app URL
-    const appUrl = Deno.env.get('SUPABASE_URL')?.includes('supabase')
-      ? 'https://schoolbridge-afg.lovable.app'
-      : 'http://localhost:5173';
-    
+    const appUrl = 'https://schoolbridge-afg.lovable.app';
     const dashboardLink = `${appUrl}${dashboardRoute}`;
     const roleLabel = ROLE_LABELS[userRole] || userRole;
 
-    // Log the approval (since we may not have email infra yet)
     console.log(`[APPROVAL EMAIL] To: ${userEmail}, Name: ${userName}, Role: ${roleLabel}`);
 
-    // For now, log the email content (email sending requires domain setup)
     const emailContent = {
       to: userEmail,
       subject: '✅ حساب شما تأیید شد',
@@ -93,8 +113,6 @@ Deno.serve(async (req) => {
 
 برای ورود به دشبورد ${roleLabel} خود، روی لینک زیر کلیک کنید:
 ${dashboardLink}
-
-اگر این ایمیل را انتظار نداشتید، لطفاً آن را نادیده بگیرید.
 
 با احترام،
 سیستم مدیریت مکاتب افغانستان
@@ -107,7 +125,6 @@ ${dashboardLink}
       JSON.stringify({ 
         success: true, 
         message: 'Approval notification logged',
-        emailTo: userEmail,
         dashboardLink,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -115,7 +132,7 @@ ${dashboardLink}
   } catch (err) {
     console.error('Error in send-approval-email:', err);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: err instanceof Error ? err.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

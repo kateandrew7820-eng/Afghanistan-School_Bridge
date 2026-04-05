@@ -11,7 +11,7 @@ import { SmartConfirmationDialog } from "@/components/SmartConfirmationDialog";
 import { getRoleTier } from "@/lib/supabase";
 import { useVerification } from "@/hooks/useVerification";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ErrorSimulationPanel } from "@/lib/errorSimulation";
+
 
 // Pages - Core pages loaded immediately, others lazy-loaded for performance
 import Login from "./pages/Login";
@@ -45,12 +45,22 @@ const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
 
 // District Pages - Lazy loaded
 const DistrictDashboard = lazy(() => import("./pages/district/Dashboard"));
+const DistrictSubmissions = lazy(() => import("./pages/district/Submissions"));
+const DistrictVerifyData = lazy(() => import("./pages/district/VerifyData"));
+const DistrictSchools = lazy(() => import("./pages/district/Schools"));
 
 // Province Pages - Lazy loaded
 const ProvinceDashboard = lazy(() => import("./pages/province/Dashboard"));
+const ProvinceDistricts = lazy(() => import("./pages/province/Districts"));
+const ProvinceAnalytics = lazy(() => import("./pages/province/Analytics"));
+const ProvinceSubmissions = lazy(() => import("./pages/province/Submissions"));
 
 // Ministry Pages - Lazy loaded
 const MinistryDashboard = lazy(() => import("./pages/ministry/Dashboard"));
+const MinistryAnalytics = lazy(() => import("./pages/ministry/Analytics"));
+const MinistryProvinces = lazy(() => import("./pages/ministry/Provinces"));
+const MinistryUsers = lazy(() => import("./pages/ministry/Users"));
+const MinistryExport = lazy(() => import("./pages/ministry/Export"));
 
 // Shared
 const PlaceholderPage = lazy(() => import("./components/PlaceholderPage"));
@@ -227,17 +237,17 @@ function AppRoutes() {
       } />
       <Route path="/district/submissions" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="School Submissions" description="View and verify submissions from schools in your district" /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictSubmissions /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/verify" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Verify Data" description="Review and approve school data submissions" /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictVerifyData /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/schools" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Schools" description="Manage schools in your district" /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictSchools /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/announcements" element={
@@ -264,17 +274,17 @@ function AppRoutes() {
       } />
       <Route path="/province/districts" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Districts" description="View and manage districts in your province" /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceDistricts /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/analytics" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Analytics" description="Province-level analytics and trend data" /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceAnalytics /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/submissions" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Submissions" description="View aggregated submissions from all districts" /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceSubmissions /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/announcements" element={
@@ -301,12 +311,12 @@ function AppRoutes() {
       } />
       <Route path="/ministry/analytics" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="National Analytics" description="Nation-wide data analysis and trends" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryAnalytics /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/provinces" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Provinces" description="View all 34 provinces and their data" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryProvinces /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/submissions" element={
@@ -331,7 +341,7 @@ function AppRoutes() {
       } />
       <Route path="/ministry/users" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Manage Users" description="Create and manage user accounts for all levels" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryUsers /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/schools" element={
@@ -341,7 +351,7 @@ function AppRoutes() {
       } />
       <Route path="/ministry/export" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Export Reports" description="Generate and download national reports in Excel and PDF" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryExport /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
 
@@ -359,7 +369,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <SmartConfirmationDialog />
-            {import.meta.env.DEV && <ErrorSimulationPanel />}
+            
 
             <AuthProvider>
               <BrowserRouter>

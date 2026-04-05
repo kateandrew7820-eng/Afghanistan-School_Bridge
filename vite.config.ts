@@ -17,25 +17,11 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    dedupe: ["react", "react-dom", "react/jsx-runtime"],
+    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query"],
   },
   build: {
-    // Target modern browsers for smaller bundles
     target: "es2020",
-    
-    // Aggressive minification settings
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        passes: 3,
-      },
-      mangle: true,
-      format: {
-        comments: false,
-      },
-    },
+    minify: 'esbuild',
     
     // Optimize for smaller chunks
     rollupOptions: {
