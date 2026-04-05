@@ -369,7 +369,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <SmartConfirmationDialog />
-            {import.meta.env.DEV && <ErrorSimulationPanel />}
+            
 
             <AuthProvider>
               <BrowserRouter>
