@@ -45,12 +45,22 @@ const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
 
 // District Pages - Lazy loaded
 const DistrictDashboard = lazy(() => import("./pages/district/Dashboard"));
+const DistrictSubmissions = lazy(() => import("./pages/district/Submissions"));
+const DistrictVerifyData = lazy(() => import("./pages/district/VerifyData"));
+const DistrictSchools = lazy(() => import("./pages/district/Schools"));
 
 // Province Pages - Lazy loaded
 const ProvinceDashboard = lazy(() => import("./pages/province/Dashboard"));
+const ProvinceDistricts = lazy(() => import("./pages/province/Districts"));
+const ProvinceAnalytics = lazy(() => import("./pages/province/Analytics"));
+const ProvinceSubmissions = lazy(() => import("./pages/province/Submissions"));
 
 // Ministry Pages - Lazy loaded
 const MinistryDashboard = lazy(() => import("./pages/ministry/Dashboard"));
+const MinistryAnalytics = lazy(() => import("./pages/ministry/Analytics"));
+const MinistryProvinces = lazy(() => import("./pages/ministry/Provinces"));
+const MinistryUsers = lazy(() => import("./pages/ministry/Users"));
+const MinistryExport = lazy(() => import("./pages/ministry/Export"));
 
 // Shared
 const PlaceholderPage = lazy(() => import("./components/PlaceholderPage"));
