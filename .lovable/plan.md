@@ -2,158 +2,160 @@
 
 # Production Upgrade Plan — SchoolBridge Afghanistan
 
-## Summary
+## Current State Assessment
 
-A comprehensive upgrade covering 8 areas: auth reliability, data pipeline integrity, dashboard differentiation, RLS security, routing stability, UI consistency, performance, and code cleanup.
+The codebase has a solid foundation: auth flow with email verification, four-tier dashboards (school/district/province/ministry), RLS policies, real-time subscriptions, and submission CRUD. However, several gaps remain before production readiness.
 
----
+## Phase 1: Security Fixes (Critical)
 
-## Phase 1: Fix Critical Auth & Routing (Blockers)
+### 1A. Self-Approval Vulnerability
+Users can currently call `supabase.from('profiles').update({ status: 'verified' })` on their own row and bypass admin approval entirely.
 
-### 1A. Auth Flow Hardening
-- **AuthContext**: Add `onAuthStateChange` event filtering — only react to `SIGNED_IN`, `SIGNED_OUT`, `TOKEN_REFRESHED` events (ignore `INITIAL_SESSION` to avoid double-load)
-- **Login page**: Add password reset link + `/reset-password` route with `supabase.auth.updateUser({ password })`
-- **AuthCallback**: Add timeout fallback UI if token exchange takes >10s; handle `access_denied` error param
-- **Session refresh**: Ensure `autoRefreshToken: true` is working (already set in client.ts) — add a silent re-auth check on app mount
+**Fix**: Create a migration that drops the current "Users can update own profile" policy and replaces it with one that prevents modifying `status`, `verified_at`, `verified_by_user_id`, and `rejection_reason` columns. Use a SECURITY DEFINER function for admin-only status changes.
 
-### 1B. Routing & Redirect Fix
-- **Root cause**: `useVerification` returns `needsSetup: true` when `profile?.status` is falsy, which forces redirect to `/setup-profile` even for logged-in users whose profile hasn't loaded yet
-- **Fix**: Add a `profileLoading` state to AuthContext; `useVerification` should return `needsSetup: false` while profile is still loading
-- **ProtectedRoute**: Show loading spinner while profile is being fetched, not redirect
-- **PendingVerification redirect**: Change `/school/dashboard` to `/school` (correct route)
+### 1B. Edge Function Authentication
+`send-approval-email` has no JWT check and wildcard CORS, allowing anyone to enumerate user emails by UUID.
 
----
+**Fix**: Add `Authorization` header validation, verify caller is admin via `user_roles`, remove `emailTo` from response, restrict CORS origin.
 
-## Phase 2: Differentiate Dashboards (School vs District vs Province vs Ministry)
+### 1C. Realtime Channel Authorization
+Any authenticated user can subscribe to any channel and receive row-change events for all schools.
 
-### 2A. School Dashboard (Teacher/Principal View)
-- Use `useSubmissions({ district: profile.district, schoolId: profile.school_id })` — add `school_id` filter to `useSubmissions` hook
-- Show: own school's submission history, status of each submission, quick-submit cards
-- Remove `VerificationPanel` from school dashboard (principals don't verify teachers here)
-- Add submission count badges per type (statistics/reports/forms)
+**Fix**: Remove the broad realtime publication. Instead, use client-side filtered channels with RLS-protected queries (the existing approach of invalidating React Query on change is safe since the query itself respects RLS).
 
-### 2B. District Dashboard
-- Already uses `useSubmissions({ district })` — keep this
-- Add: list of schools in district with submission status per school
-- Add: approve/reject actions for pending submissions
-- Add: aggregated stats (total schools, completion rate)
+### 1D. Error Sanitization
+Raw database errors (table names, constraint names) are leaked to users across 10+ files.
 
-### 2C. Province Dashboard  
-- Already uses `useSubmissions({ province })` — keep this
-- Add: district breakdown table showing submission counts per district
-- Add: province-level aggregation charts
-- Remove duplicate code with district dashboard
+**Fix**: Create `src/lib/sanitizeError.ts` with a code-to-Persian-message map. Replace all `description: error.message` calls.
 
-### 2D. Ministry Dashboard
-- Already uses `useSubmissions({})` for national view — keep this  
-- Add: province-level breakdown table
-- Add: national completion metrics
-- Add: export capability placeholder
+### 1E. Input Length Constraints
+Profile text fields have no length limits; `handle_new_user()` inserts unbounded metadata.
 
----
+**Fix**: Migration to add VARCHAR constraints (full_name 255, phone_number 50, district/province/school_name 255). Update trigger to truncate.
 
-## Phase 3: Data Pipeline & Submission Flow
+### 1F. Leaked Password Protection
+Enable HIBP password check via Cloud auth settings.
 
-### 3A. Extend `useSubmissions` Hook
-- Add optional `school_id` filter for school-level dashboard
-- Add `approve` and `reject` mutation functions using React Query `useMutation`
-- Mutation updates `status` column + invalidates cache
-- Add optimistic updates for approve/reject actions
+### 1G. Storage DELETE Policy
+Add missing DELETE policy on `storage.objects` for `school-reports` bucket scoped to school folder.
 
-### 3B. Submission Insert Validation
-- In `SubmitStatistics`, `SubmitReports`, `SubmitForms`: validate that `profile.school_id` exists before insert
-- Ensure `school_id` is always passed; trigger auto-populates `province`/`district`
-- Add error UI if user has no school assigned
+## Phase 2: Placeholder Pages Replacement
 
-### 3C. Approval Actions (New)
-- Create `useSubmissionActions` hook with `approveSubmission(id, table)` and `rejectSubmission(id, table, reason)`
-- Wire into District and Province dashboards
-- Add confirmation dialog before approve/reject
+Multiple routes still render generic `PlaceholderPage` components:
+- `/district/submissions`, `/district/verify`, `/district/schools`
+- `/province/districts`, `/province/analytics`, `/province/submissions`
+- `/ministry/analytics`, `/ministry/provinces`, `/ministry/users`, `/ministry/export`
 
----
+**Fix**: Build real pages for each:
 
-## Phase 4: Database & Security
+| Route | Content |
+|-------|---------|
+| `/district/submissions` | Full submission list with filters (type, status, date), pagination, approve/reject actions |
+| `/district/verify` | Pending submissions only, batch approve/reject |
+| `/district/schools` | School management table (name, code, contact, submission count) |
+| `/province/districts` | District list with school counts and submission stats per district |
+| `/province/analytics` | Charts (recharts): submissions over time, approval rates, district comparison |
+| `/province/submissions` | All province submissions with district filter |
+| `/ministry/analytics` | National charts: province comparison, trend lines, KPIs |
+| `/ministry/provinces` | All 34 provinces table with key metrics |
+| `/ministry/users` | User management: list profiles, approve/reject pending accounts, assign roles |
+| `/ministry/export` | Export submissions as CSV/Excel using client-side generation |
 
-### 4A. RLS Policy Audit & Fix
-- Run security scan to identify gaps
-- Ensure submission tables have proper policies:
-  - School users: `SELECT/INSERT` only where `school_id = get_user_school_id(auth.uid())`
-  - District admins: `SELECT/UPDATE` where `district = get_user_district(auth.uid())`
-  - Province admins: `SELECT/UPDATE` where `province = get_user_province(auth.uid())`
-  - Ministry admins: `SELECT/UPDATE` on all rows
-- Add `UPDATE` policies for status changes (approve/reject) restricted by tier
+## Phase 3: Data Pipeline Hardening
 
-### 4B. Migration: Add Missing Constraints
-- Add `total_teachers` column to `statistics_submissions` if missing
-- Ensure `status` defaults to `'pending'` on all submission tables (already done)
+### 3A. Submission Validation
+Currently `SubmitStatistics`, `SubmitReports`, `SubmitForms` don't check if `profile.school_id` exists before insert. If null, the insert fails silently or with a confusing RLS error.
 
----
+**Fix**: Add guard at top of each submit page — if no `school_id`, show an alert directing user to contact admin. Also ensure `submitted_by: user.id` is always set.
 
-## Phase 5: UI Consistency & Polish
+### 3B. Form Data JSONB Validation
+Add a Postgres trigger to validate `form_data` size (<100KB) and required fields before insert.
 
-### 5A. Light Theme Enforcement
-- Verify all layouts have `dark` class removed (done for District/Province/Ministry)
-- Audit `SchoolLayout` — ensure no dark classes
-- Replace any remaining hardcoded colors (`text-cyan-300`, `bg-green-100`) with design tokens
+### 3C. Confirmation Dialog for Approve/Reject
+The `SubmissionList` currently fires approve/reject on single click with no confirmation. Add a confirmation dialog (using existing `SmartConfirmationDialog`) with optional rejection reason input.
 
-### 5B. Consistent Card & Badge Styles
-- Unify status badge colors across all dashboards using shared `STATUS_CONFIG` from district dashboard
-- Extract to shared `src/lib/statusConfig.ts`
+## Phase 4: Auth & UX Polish
 
-### 5C. Loading & Error States
-- Ensure all dashboards show `Skeleton` components while loading
-- Add retry button on error states consistently
-- Add empty state messages when no submissions exist
+### 4A. SetupProfile → School Linking
+`SetupProfile` currently saves `school_name` as text but never links to an actual `schools` table record. This means `school_id` stays null, breaking submission inserts.
 
----
+**Fix**: Add a school lookup/autocomplete in SetupProfile. If school exists in DB, set `school_id`. If not, create the school record or allow admin to link later.
 
-## Phase 6: Performance & Code Cleanup
+### 4B. User Management Page (Ministry)
+Build `/ministry/users` to allow ministry admins to:
+- View all pending profiles
+- Approve/reject accounts (updating `status`, `verified_at`, `verified_by_user_id`)
+- Assign roles via `user_roles` table
+- This replaces the current manual approval flow
 
-### 6A. Remove Dead Files
-- Delete ~30 markdown documentation files from project root (not needed in production)
-- Remove `ENHANCED_DASHBOARD_EXAMPLE.tsx`, `ENHANCED_FORM_EXAMPLE.tsx`, `SERVER_CONFIG.js`
+### 4C. Demo Mode Cleanup
+Demo mode sets a fake user object with `id: 'demo-user'`. This can trigger Supabase queries that fail. Ensure all data-fetching hooks check `isDemoMode` and return mock data instead of querying.
 
-### 6B. Code Deduplication
-- Extract shared dashboard stat cards into `src/components/DashboardStatCard.tsx`
-- Extract submission list component into `src/components/SubmissionList.tsx`
-- Remove `src/hooks/useMockData.ts`, `src/hooks/useMockSubmission.ts` — replace with real data paths
+## Phase 5: UI Consistency
 
-### 6C. Query Optimization
-- Province dashboard's district count query: use `select('district')` with distinct — already done
-- Ministry dashboard's province count: same pattern — already done
-- Remove any `.limit()` calls that cap stats queries
+### 5A. Responsive Audit
+All layouts are already light-themed (no dark classes found). Verify:
+- Mobile sidebar behavior is consistent across all four layouts
+- Province and Ministry layouts match the School/District pattern (h-14 header, w-64 sidebar)
 
----
+### 5B. Empty States
+Add meaningful empty state illustrations/messages for:
+- No submissions yet (school dashboard)
+- No schools in district
+- No pending verifications
 
-## Files to Create/Edit
+### 5C. Date Localization
+`format(new Date(...), 'd MMM')` outputs English month names. Add `date-fns/locale/fa-IR` or use a custom Dari formatter.
 
-| Action | File | Purpose |
-|--------|------|---------|
-| Edit | `src/contexts/AuthContext.tsx` | Add profileLoading state, filter auth events |
-| Edit | `src/hooks/useVerification.ts` | Respect profileLoading |
-| Edit | `src/App.tsx` | Fix ProtectedRoute loading logic |
-| Create | `src/pages/ResetPassword.tsx` | Password reset page |
-| Edit | `src/pages/Login.tsx` | Add forgot password link |
-| Edit | `src/hooks/useSubmissions.ts` | Add school_id filter, approve/reject mutations |
-| Create | `src/hooks/useSubmissionActions.ts` | Approve/reject hook |
-| Edit | `src/pages/school/Dashboard.tsx` | Own-school data, remove verification panel |
-| Edit | `src/pages/district/Dashboard.tsx` | Add school list, approve/reject UI |
-| Edit | `src/pages/province/Dashboard.tsx` | Add district breakdown |
-| Edit | `src/pages/ministry/Dashboard.tsx` | Add province breakdown |
-| Create | `src/lib/statusConfig.ts` | Shared status badge config |
-| Create | `src/components/SubmissionList.tsx` | Reusable submission table |
-| Edit | `src/pages/PendingVerification.tsx` | Fix redirect path |
-| Migration | RLS policies | Tier-based access for submissions |
-| Delete | Root `.md` files, example files | Cleanup |
+## Phase 6: Performance & Cleanup
+
+### 6A. Remove Unused Files
+- `src/lib/errorSimulation.tsx` and `ErrorSimulationPanel` (dev-only but still bundled)
+- `src/pages/SetupProfileExample.tsx`
+- `src/pages/QuickEnter.tsx`
+- `src/components/WelcomeGuide.tsx`, `SignupProgress.tsx` if unused
+
+### 6B. Bundle Optimization
+Current Vite config uses Terser (slower). Switch to esbuild minification (default, faster). The manual chunks are already good.
+
+### 6C. Query Deduplication
+Province and Ministry dashboards both query `schools` table for breakdowns. Add `staleTime` and shared query keys to avoid redundant fetches.
 
 ---
 
 ## Implementation Order
 
-1. Auth + routing fix (unblocks everything)
-2. RLS migration (security before features)
-3. `useSubmissions` extensions + `useSubmissionActions`
-4. Dashboard rebuilds (school → district → province → ministry)
-5. UI polish + shared components
-6. Cleanup dead files
+1. **Security fixes** (Phase 1) — self-approval vulnerability is critical
+2. **Auth/profile linking** (Phase 4A, 4B) — unblocks real data flow
+3. **Placeholder page replacements** (Phase 2) — biggest user-facing gap
+4. **Data pipeline hardening** (Phase 3) — ensures submissions work end-to-end
+5. **UI polish** (Phase 5) — dates, empty states, responsive
+6. **Cleanup** (Phase 6) — dead code, bundle size
+
+## Files to Create/Edit
+
+| Action | File | Purpose |
+|--------|------|---------|
+| Create | `src/lib/sanitizeError.ts` | Centralized error sanitization |
+| Create | `src/pages/district/Submissions.tsx` | Full submissions page |
+| Create | `src/pages/district/VerifyData.tsx` | Pending verification page |
+| Create | `src/pages/district/Schools.tsx` | School management |
+| Create | `src/pages/province/Districts.tsx` | District breakdown |
+| Create | `src/pages/province/Analytics.tsx` | Province analytics charts |
+| Create | `src/pages/province/Submissions.tsx` | Province submissions |
+| Create | `src/pages/ministry/Analytics.tsx` | National analytics |
+| Create | `src/pages/ministry/Provinces.tsx` | Province list |
+| Create | `src/pages/ministry/Users.tsx` | User/account management |
+| Create | `src/pages/ministry/Export.tsx` | Data export |
+| Edit | `src/App.tsx` | Wire new pages to routes |
+| Edit | `src/pages/SetupProfile.tsx` | Add school linking |
+| Edit | `src/components/SubmissionList.tsx` | Add confirmation dialog |
+| Edit | `src/pages/school/SubmitStatistics.tsx` | Add school_id guard |
+| Edit | `src/pages/school/SubmitReports.tsx` | Add school_id guard |
+| Edit | `src/pages/school/SubmitForms.tsx` | Add school_id guard |
+| Edit | `supabase/functions/send-approval-email/index.ts` | Add auth check |
+| Migration | Profiles UPDATE policy | Prevent self-approval |
+| Migration | VARCHAR constraints | Input length limits |
+| Migration | Form data validation trigger | JSONB size limit |
+| Migration | Storage DELETE policy | school-reports bucket |
 
