@@ -274,17 +274,17 @@ function AppRoutes() {
       } />
       <Route path="/province/districts" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Districts" description="View and manage districts in your province" /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceDistricts /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/analytics" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Analytics" description="Province-level analytics and trend data" /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceAnalytics /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/submissions" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Submissions" description="View aggregated submissions from all districts" /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceSubmissions /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
       <Route path="/province/announcements" element={
