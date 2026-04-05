@@ -13,6 +13,7 @@ import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError'
 import { validateNumberRange, validateRequired } from '@/lib/validation';
 // Mock submission removed - using real submissions
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { sanitizeError } from '@/lib/sanitizeError';
 
 export default function SubmitStatistics() {
   const { user, profile, isDemoMode } = useAuth();
