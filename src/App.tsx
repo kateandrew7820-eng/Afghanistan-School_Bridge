@@ -11,7 +11,7 @@ import { SmartConfirmationDialog } from "@/components/SmartConfirmationDialog";
 import { getRoleTier } from "@/lib/supabase";
 import { useVerification } from "@/hooks/useVerification";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { ErrorSimulationPanel } from "@/lib/errorSimulation";
+
 
 // Pages - Core pages loaded immediately, others lazy-loaded for performance
 import Login from "./pages/Login";
