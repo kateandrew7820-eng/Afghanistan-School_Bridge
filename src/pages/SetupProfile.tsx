@@ -56,10 +56,6 @@ export default function SetupProfile() {
 
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [schoolSearch, setSchoolSearch] = useState('');
-  const { executeWithErrorHandling } = useAPIError();
-  const { showErrorMessage, showSuccess } = useErrorToast();
-
-  const isQuickMode = searchParams.get('quickMode') === 'true';
 
   const [formData, setFormData] = useState({
     full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
