@@ -152,6 +152,16 @@ export default function SetupProfile() {
       // In production: status = 'pending_verification' (hierarchical approval)
       // Both paths use pending_verification - the difference is WHO confirms
       // ============================================================
+      // Try to find matching school
+      let schoolId = selectedSchoolId;
+      if (!schoolId && formData.school_name && formData.province && formData.district) {
+        // Try exact match
+        const match = (existingSchools ?? []).find(
+          s => s.name === formData.school_name && s.province === formData.province && s.district === formData.district
+        );
+        if (match) schoolId = match.id;
+      }
+
       const profileData: any = {
         user_id: user.id,
         full_name: formData.full_name,
@@ -159,6 +169,7 @@ export default function SetupProfile() {
         province: formData.province,
         role: formData.role,
         school_name: formData.school_name,
+        school_id: schoolId || null,
         phone_number: formData.phone_number || null,
         status: 'pending_verification',
         updated_at: new Date().toISOString(),
