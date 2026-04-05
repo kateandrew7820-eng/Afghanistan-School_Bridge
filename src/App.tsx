@@ -311,12 +311,12 @@ function AppRoutes() {
       } />
       <Route path="/ministry/analytics" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="National Analytics" description="Nation-wide data analysis and trends" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryAnalytics /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/provinces" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Provinces" description="View all 34 provinces and their data" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryProvinces /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/submissions" element={
