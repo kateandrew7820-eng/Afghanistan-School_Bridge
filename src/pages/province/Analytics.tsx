@@ -52,10 +52,10 @@ export default function ProvinceAnalytics() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardStatCard title="کل ارسال‌ها" value={data?.stats.total ?? 0} icon={BarChart3} />
-        <DashboardStatCard title="نرخ تأیید" value={`${approvalRate}%`} icon={CheckCircle2} />
-        <DashboardStatCard title="مکاتب" value={data?.schoolCount ?? 0} icon={School} />
-        <DashboardStatCard title="در انتظار" value={data?.stats.pending ?? 0} icon={Clock} />
+        <DashboardStatCard title="کل ارسال‌ها" value={data?.stats.total ?? 0} icon={<BarChart3 className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="نرخ تأیید" value={approvalRate} icon={<CheckCircle2 className="h-4 w-4" />} loading={loading} suffix="%" />
+        <DashboardStatCard title="مکاتب" value={data?.schoolCount ?? 0} icon={<School className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="در انتظار" value={data?.stats.pending ?? 0} icon={<Clock className="h-4 w-4" />} loading={loading} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

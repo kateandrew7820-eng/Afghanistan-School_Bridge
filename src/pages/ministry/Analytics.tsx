@@ -60,10 +60,10 @@ export default function MinistryAnalytics() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <DashboardStatCard title="کل ارسال‌ها" value={data?.stats.total ?? 0} icon={BarChart3} />
-        <DashboardStatCard title="نرخ تأیید" value={`${approvalRate}%`} icon={CheckCircle2} />
-        <DashboardStatCard title="کل مکاتب" value={data?.schoolCount ?? 0} icon={School} />
-        <DashboardStatCard title="کل دانش‌آموزان" value={data?.totalStudents ?? 0} icon={Users} />
+        <DashboardStatCard title="کل ارسال‌ها" value={data?.stats.total ?? 0} icon={<BarChart3 className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="نرخ تأیید" value={approvalRate} icon={<CheckCircle2 className="h-4 w-4" />} loading={loading} suffix="%" />
+        <DashboardStatCard title="کل مکاتب" value={data?.schoolCount ?? 0} icon={<School className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="کل دانش‌آموزان" value={data?.totalStudents ?? 0} icon={<Users className="h-4 w-4" />} loading={loading} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

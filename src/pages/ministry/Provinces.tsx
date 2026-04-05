@@ -29,7 +29,7 @@ export default function MinistryProvinces() {
         if (row.district) map[row.province].districts.add(row.district);
       }
 
-      return Array.from(map.entries())
+      return Object.entries(map)
         .map(([name, info]): ProvinceInfo => ({
           name,
           schoolCount: info.schools,

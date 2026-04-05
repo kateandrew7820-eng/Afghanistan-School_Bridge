@@ -23,9 +23,9 @@ export default function VerifyData() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <DashboardStatCard title="در انتظار" value={data?.stats.pending ?? 0} icon={Clock} />
-        <DashboardStatCard title="تأیید شده" value={data?.stats.approved ?? 0} icon={CheckCircle2} />
-        <DashboardStatCard title="رد شده" value={data?.stats.rejected ?? 0} icon={XCircle} />
+        <DashboardStatCard title="در انتظار" value={data?.stats.pending ?? 0} icon={<Clock className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="تأیید شده" value={data?.stats.approved ?? 0} icon={<CheckCircle2 className="h-4 w-4" />} loading={loading} />
+        <DashboardStatCard title="رد شده" value={data?.stats.rejected ?? 0} icon={<XCircle className="h-4 w-4" />} loading={loading} />
       </div>
 
       <SubmissionList
