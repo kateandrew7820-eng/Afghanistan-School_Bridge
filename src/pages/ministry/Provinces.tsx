@@ -21,13 +21,12 @@ export default function MinistryProvinces() {
         .eq('is_active', true);
       if (error) throw error;
 
-      const map = new Map<string, { schools: number; districts: Set<string> }>();
+      const map: Record<string, { schools: number; districts: Set<string> }> = {};
       for (const row of data ?? []) {
         if (!row.province) continue;
-        const entry = map.get(row.province) ?? { schools: 0, districts: new Set<string>() };
-        entry.schools++;
-        if (row.district) entry.districts.add(row.district);
-        map.set(row.province, entry);
+        if (!map[row.province]) map[row.province] = { schools: 0, districts: new Set<string>() };
+        map[row.province].schools++;
+        if (row.district) map[row.province].districts.add(row.district);
       }
 
       return Array.from(map.entries())
