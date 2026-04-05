@@ -341,7 +341,7 @@ function AppRoutes() {
       } />
       <Route path="/ministry/users" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Manage Users" description="Create and manage user accounts for all levels" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryUsers /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
       <Route path="/ministry/schools" element={
@@ -351,7 +351,7 @@ function AppRoutes() {
       } />
       <Route path="/ministry/export" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Export Reports" description="Generate and download national reports in Excel and PDF" /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryExport /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
 
