@@ -40,6 +40,27 @@ export default function SetupProfile() {
 
   const isQuickMode = searchParams.get('quickMode') === 'true';
 
+  // School lookup query
+  const { data: existingSchools } = useQuery({
+    queryKey: ['schools-lookup'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('schools')
+        .select('id, name, province, district')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
+  const [schoolSearch, setSchoolSearch] = useState('');
+  const { executeWithErrorHandling } = useAPIError();
+  const { showErrorMessage, showSuccess } = useErrorToast();
+
+  const isQuickMode = searchParams.get('quickMode') === 'true';
+
   const [formData, setFormData] = useState({
     full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
     role: isQuickMode ? 'teacher' : '',
