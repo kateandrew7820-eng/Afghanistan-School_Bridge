@@ -237,17 +237,17 @@ function AppRoutes() {
       } />
       <Route path="/district/submissions" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="School Submissions" description="View and verify submissions from schools in your district" /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictSubmissions /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/verify" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Verify Data" description="Review and approve school data submissions" /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictVerifyData /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/schools" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><PlaceholderPage title="Schools" description="Manage schools in your district" /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictSchools /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
       <Route path="/district/announcements" element={
