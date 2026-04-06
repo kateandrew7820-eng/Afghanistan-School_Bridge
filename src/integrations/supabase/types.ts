@@ -110,6 +110,38 @@ export type Database = {
         }
         Relationships: []
       }
+      districts: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          name: string
+          province_id: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          province_id: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          province_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "districts_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submissions: {
         Row: {
           created_at: string
@@ -161,10 +193,12 @@ export type Database = {
         Row: {
           created_at: string
           district: string | null
+          district_id: string | null
           full_name: string | null
           id: string
           phone_number: string | null
           province: string | null
+          province_id: string | null
           rejection_reason: string | null
           role: string | null
           school_id: string | null
@@ -178,10 +212,12 @@ export type Database = {
         Insert: {
           created_at?: string
           district?: string | null
+          district_id?: string | null
           full_name?: string | null
           id?: string
           phone_number?: string | null
           province?: string | null
+          province_id?: string | null
           rejection_reason?: string | null
           role?: string | null
           school_id?: string | null
@@ -195,10 +231,12 @@ export type Database = {
         Update: {
           created_at?: string
           district?: string | null
+          district_id?: string | null
           full_name?: string | null
           id?: string
           phone_number?: string | null
           province?: string | null
+          province_id?: string | null
           rejection_reason?: string | null
           role?: string | null
           school_id?: string | null
@@ -217,7 +255,42 @@ export type Database = {
             referencedRelation: "schools"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      provinces: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       report_submissions: {
         Row: {
@@ -276,10 +349,12 @@ export type Database = {
           contact_phone: string | null
           created_at: string
           district: string | null
+          district_id: string | null
           id: string
           is_active: boolean | null
           name: string
           province: string | null
+          province_id: string | null
           updated_at: string
         }
         Insert: {
@@ -288,10 +363,12 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           district?: string | null
+          district_id?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           province?: string | null
+          province_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -300,13 +377,30 @@ export type Database = {
           contact_phone?: string | null
           created_at?: string
           district?: string | null
+          district_id?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           province?: string | null
+          province_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "schools_district_id_fkey"
+            columns: ["district_id"]
+            isOneToOne: false
+            referencedRelation: "districts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schools_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       statistics_submissions: {
         Row: {

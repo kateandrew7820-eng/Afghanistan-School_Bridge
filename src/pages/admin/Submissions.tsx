@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { canApprove, getVerificationQueueFilter } from '@/lib/verificationHierarchy';
 // Mock data removed - using real data only
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle, Zap, ArrowRight, Clock } from 'lucide-react';
 import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
@@ -22,13 +22,7 @@ const ROLES = [
   { id: 'district_admin', label: 'رئیس معارف', value: 'district_admin' },
 ];
 
-const PROVINCES = [
-  'کابل', 'پنجشیر', 'باغلان', 'بامیان', 'بدخشان', 'بغلان', 'چغچران',
-  'دایکندی', 'غزنی', 'فاریاب', 'فراه', 'قندهار', 'قندز', 'کاپیسا',
-  'لغمان', 'لوگر', 'میدان وردک', 'میمنه', 'نیمروز', 'ننگرهار', 'نورستان',
-  'هرات', 'هلمند', 'پکتیا', 'پکتیکا', 'پروان', 'سمنگان', 'سرپل',
-  'تخار', 'ورزگان', 'یکاولنگ',
-];
+// Provinces and districts are now loaded from the database master tables
 
 export default function SetupProfile() {
   const navigate = useNavigate();
@@ -40,20 +34,6 @@ export default function SetupProfile() {
   const { showErrorMessage, showSuccess } = useErrorToast();
 
   const isQuickMode = searchParams.get('quickMode') === 'true';
-
-  // School lookup query
-  const { data: existingSchools } = useQuery({
-    queryKey: ['schools-lookup'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('schools')
-        .select('id, name, province, district')
-        .eq('is_active', true)
-        .order('name');
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
 
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [schoolSearch, setSchoolSearch] = useState('');
@@ -70,6 +50,51 @@ export default function SetupProfile() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load provinces from master table
+  const { data: masterProvinces } = useQuery({
+    queryKey: ['master-provinces'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('provinces')
+        .select('id, name, code')
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Load districts filtered by selected province
+  const { data: masterDistricts } = useQuery({
+    queryKey: ['master-districts', formData.province],
+    queryFn: async () => {
+      if (!formData.province) return [];
+      const province = masterProvinces?.find(p => p.name === formData.province);
+      if (!province) return [];
+      const { data, error } = await supabase
+        .from('districts')
+        .select('id, name')
+        .eq('province_id', province.id)
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!formData.province && !!masterProvinces?.length,
+  });
+
+  // School lookup query
+  const { data: existingSchools } = useQuery({
+    queryKey: ['schools-lookup'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('schools')
+        .select('id, name, province, district')
+        .eq('is_active', true)
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   useEffect(() => {
     if (isQuickMode && !isLoading) {
@@ -383,17 +408,33 @@ export default function SetupProfile() {
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولسوالی" error={touched.district ? errors.district : undefined}>
-                <Input id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur} placeholder="نام ولسوالی" disabled={isLoading} aria-invalid={!!errors.district} />
+                <select id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
+                  className={`w-full px-3 py-2 border rounded-md bg-background ${errors.district ? 'border-destructive' : 'border-input'}`}
+                  aria-invalid={!!errors.district}
+                >
+                  <option value="">انتخاب ولسوالی</option>
+                  {(masterDistricts ?? []).map(d => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
+                  ))}
+                </select>
+                {formData.province && !(masterDistricts ?? []).length && (
+                  <p className="text-xs text-muted-foreground mt-1">ولسوالی‌ها بارگذاری می‌شوند...</p>
+                )}
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولایت" error={touched.province ? errors.province : undefined}>
-                <select id="province" name="province" value={formData.province} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
+                <select id="province" name="province" value={formData.province}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setFormData(prev => ({ ...prev, province: e.target.value, district: '' }));
+                  }}
+                  onBlur={handleBlur} disabled={isLoading}
                   className={`w-full px-3 py-2 border rounded-md bg-background ${errors.province ? 'border-destructive' : 'border-input'}`}
                   aria-invalid={!!errors.province}
                 >
                   <option value="">انتخاب ولایت</option>
-                  {PROVINCES.map(province => (
-                    <option key={province} value={province}>{province}</option>
+                  {(masterProvinces ?? []).map(province => (
+                    <option key={province.id} value={province.name}>{province.name}</option>
                   ))}
                 </select>
               </FormFieldWrapper>

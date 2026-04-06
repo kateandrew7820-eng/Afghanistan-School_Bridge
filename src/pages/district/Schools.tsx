@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,8 @@ import sanitizeError from '@/lib/sanitizeError';
 import { School, Phone, Mail, Plus, Loader2, Search } from 'lucide-react';
 
 export default function DistrictSchools() {
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,6 +41,9 @@ export default function DistrictSchools() {
 
   const addSchoolMutation = useMutation({
     mutationFn: async (school: typeof newSchool) => {
+      if (!session?.access_token) {
+        throw new Error('لطفاً دوباره وارد سیستم شوید');
+      }
       const { error } = await supabase.from('schools').insert({
         name: school.name,
         code: school.code || null,

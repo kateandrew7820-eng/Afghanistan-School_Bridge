@@ -22,6 +22,12 @@ export default function Demo() {
   const { setDemoMode } = useAuth();
   const { t } = useTranslation();
 
+  // Gate demo mode to development only
+  if (import.meta.env.MODE !== 'development') {
+    navigate('/login');
+    return null;
+  }
+
   const routes: Record<string, string> = {
     school: "/school",
     district: "/district",

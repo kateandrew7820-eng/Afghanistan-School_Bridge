@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Check, X, Loader2, AlertCircle, Mail } from 'lucide-react';
 import { TEMPORARY_TEST_MODE, GLOBAL_CONFIRMER_EMAIL, getApproverLabel, getDashboardRouteForRole, isPendingExpired } from '@/lib/testMode';
 
