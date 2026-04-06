@@ -35,6 +35,22 @@ export default function SetupProfile() {
 
   const isQuickMode = searchParams.get('quickMode') === 'true';
 
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
+  const [schoolSearch, setSchoolSearch] = useState('');
+
+  const [formData, setFormData] = useState({
+    full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
+    role: isQuickMode ? 'teacher' : '',
+    school_name: isQuickMode ? 'مکتب توسعه' : '',
+    district: isQuickMode ? 'ولسوالی تجربه' : '',
+    province: isQuickMode ? 'کابل' : '',
+    phone_number: isQuickMode ? '+93 700 000 000' : '',
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isLoading, setIsLoading] = useState(false);
+
   // Load provinces from master table
   const { data: masterProvinces } = useQuery({
     queryKey: ['master-provinces'],
@@ -79,22 +95,6 @@ export default function SetupProfile() {
       return data ?? [];
     },
   });
-
-  const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
-  const [schoolSearch, setSchoolSearch] = useState('');
-
-  const [formData, setFormData] = useState({
-    full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
-    role: isQuickMode ? 'teacher' : '',
-    school_name: isQuickMode ? 'مکتب توسعه' : '',
-    district: isQuickMode ? 'ولسوالی تجربه' : '',
-    province: isQuickMode ? 'کابل' : '',
-    phone_number: isQuickMode ? '+93 700 000 000' : '',
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isQuickMode && !isLoading) {
