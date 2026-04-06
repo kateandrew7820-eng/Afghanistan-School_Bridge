@@ -56,7 +56,7 @@ export default function DistrictSchools() {
       queryClient.invalidateQueries({ queryKey: ['district-schools'] });
     },
     onError: (error: any) => {
-      toast({ title: 'خطا در افزودن مکتب', description: sanitizeErrorMessage(error?.message), variant: 'destructive' });
+      toast({ title: 'خطا در افزودن مکتب', description: sanitizeError(error?.message), variant: 'destructive' });
     },
   });
 
