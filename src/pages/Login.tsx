@@ -394,10 +394,12 @@ export default function Login() {
                     {t('auth.createAccount')}
                   </Button>
 
-                  <Button type="button" onClick={() => navigate('/demo')} variant="secondary" className="w-full h-10 mt-2">
-                    <Play className="ml-2 h-4 w-4" />
-                    حالت نمایشی
-                  </Button>
+                  {import.meta.env.MODE === 'development' && (
+                    <Button type="button" onClick={() => navigate('/demo')} variant="secondary" className="w-full h-10 mt-2">
+                      <Play className="ml-2 h-4 w-4" />
+                      حالت نمایشی
+                    </Button>
+                  )}
                 </TabsContent>
 
                 {/* ========== SIGN UP TAB ========== */}

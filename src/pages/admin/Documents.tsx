@@ -22,7 +22,7 @@ interface Document {
 }
 
 export default function AdminDocuments() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -59,6 +59,10 @@ export default function AdminDocuments() {
   const handleAddDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !selectedFile) return;
+    if (!session?.access_token) {
+      toast({ title: "خطا", description: "لطفاً دوباره وارد سیستم شوید", variant: "destructive" });
+      return;
+    }
     setIsSubmitting(true);
 
     // Upload file
