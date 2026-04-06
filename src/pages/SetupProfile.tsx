@@ -408,17 +408,33 @@ export default function SetupProfile() {
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولسوالی" error={touched.district ? errors.district : undefined}>
-                <Input id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur} placeholder="نام ولسوالی" disabled={isLoading} aria-invalid={!!errors.district} />
+                <select id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
+                  className={`w-full px-3 py-2 border rounded-md bg-background ${errors.district ? 'border-destructive' : 'border-input'}`}
+                  aria-invalid={!!errors.district}
+                >
+                  <option value="">انتخاب ولسوالی</option>
+                  {(masterDistricts ?? []).map(d => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
+                  ))}
+                </select>
+                {formData.province && !(masterDistricts ?? []).length && (
+                  <p className="text-xs text-muted-foreground mt-1">ولسوالی‌ها بارگذاری می‌شوند...</p>
+                )}
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولایت" error={touched.province ? errors.province : undefined}>
-                <select id="province" name="province" value={formData.province} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
+                <select id="province" name="province" value={formData.province}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setFormData(prev => ({ ...prev, province: e.target.value, district: '' }));
+                  }}
+                  onBlur={handleBlur} disabled={isLoading}
                   className={`w-full px-3 py-2 border rounded-md bg-background ${errors.province ? 'border-destructive' : 'border-input'}`}
                   aria-invalid={!!errors.province}
                 >
                   <option value="">انتخاب ولایت</option>
-                  {PROVINCES.map(province => (
-                    <option key={province} value={province}>{province}</option>
+                  {(masterProvinces ?? []).map(province => (
+                    <option key={province.id} value={province.name}>{province.name}</option>
                   ))}
                 </select>
               </FormFieldWrapper>
