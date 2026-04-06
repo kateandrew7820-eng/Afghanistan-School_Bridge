@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 import { School, Plus, Loader2, Search } from 'lucide-react';
 
 interface SchoolData {
@@ -20,18 +22,51 @@ interface SchoolData {
 }
 
 export default function ManageSchools() {
+  const { session } = useAuth();
   const { toast } = useToast();
   const [schools, setSchools] = useState<SchoolData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState('');
   const [newSchool, setNewSchool] = useState({
     name: '',
     code: '',
     province: '',
     district: '',
     contact_email: ''
+  });
+
+  // Load provinces from master table
+  const { data: masterProvinces } = useQuery({
+    queryKey: ['master-provinces'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('provinces')
+        .select('id, name, code')
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Load districts filtered by selected province
+  const { data: masterDistricts } = useQuery({
+    queryKey: ['master-districts', selectedProvince],
+    queryFn: async () => {
+      if (!selectedProvince) return [];
+      const province = masterProvinces?.find(p => p.name === selectedProvince);
+      if (!province) return [];
+      const { data, error } = await supabase
+        .from('districts')
+        .select('id, name')
+        .eq('province_id', province.id)
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!selectedProvince && !!masterProvinces?.length,
   });
 
   useEffect(() => {
@@ -50,6 +85,10 @@ export default function ManageSchools() {
 
   const handleAddSchool = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!session?.access_token) {
+      toast({ title: "خطا", description: "لطفاً دوباره وارد سیستم شوید", variant: "destructive" });
+      return;
+    }
     setIsSubmitting(true);
 
     const { error } = await supabase.from('schools').insert({
@@ -78,6 +117,7 @@ export default function ManageSchools() {
 
     setIsAddDialogOpen(false);
     setNewSchool({ name: '', code: '', province: '', district: '', contact_email: '' });
+    setSelectedProvince('');
     fetchSchools();
   };
 
@@ -145,21 +185,35 @@ export default function ManageSchools() {
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="province">ولایت</Label>
-                  <Input
+                  <select
                     id="province"
                     value={newSchool.province}
-                    onChange={(e) => setNewSchool({ ...newSchool, province: e.target.value })}
-                    placeholder="کابل"
-                  />
+                    onChange={(e) => {
+                      setNewSchool({ ...newSchool, province: e.target.value, district: '' });
+                      setSelectedProvince(e.target.value);
+                    }}
+                    className="w-full px-3 py-2 border rounded-md bg-background border-input"
+                  >
+                    <option value="">انتخاب ولایت</option>
+                    {(masterProvinces ?? []).map(p => (
+                      <option key={p.id} value={p.name}>{p.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="district">ولسوالی</Label>
-                  <Input
+                  <select
                     id="district"
                     value={newSchool.district}
                     onChange={(e) => setNewSchool({ ...newSchool, district: e.target.value })}
-                    placeholder="اسم ولسوالی شما"
-                  />
+                    className="w-full px-3 py-2 border rounded-md bg-background border-input"
+                    disabled={!selectedProvince}
+                  >
+                    <option value="">انتخاب ولسوالی</option>
+                    {(masterDistricts ?? []).map(d => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
