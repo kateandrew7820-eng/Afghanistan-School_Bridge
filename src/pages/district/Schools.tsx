@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { sanitizeErrorMessage } from '@/lib/sanitizeError';
+import sanitizeError from '@/lib/sanitizeError';
 import { School, Phone, Mail, Plus, Loader2, Search } from 'lucide-react';
 
 export default function DistrictSchools() {
