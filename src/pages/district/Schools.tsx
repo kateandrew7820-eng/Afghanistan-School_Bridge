@@ -15,7 +15,8 @@ import sanitizeError from '@/lib/sanitizeError';
 import { School, Phone, Mail, Plus, Loader2, Search } from 'lucide-react';
 
 export default function DistrictSchools() {
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +41,9 @@ export default function DistrictSchools() {
 
   const addSchoolMutation = useMutation({
     mutationFn: async (school: typeof newSchool) => {
+      if (!session?.access_token) {
+        throw new Error('لطفاً دوباره وارد سیستم شوید');
+      }
       const { error } = await supabase.from('schools').insert({
         name: school.name,
         code: school.code || null,
