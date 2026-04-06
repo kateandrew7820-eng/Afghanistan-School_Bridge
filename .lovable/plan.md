@@ -1,161 +1,134 @@
 
 
-# Production Upgrade Plan — SchoolBridge Afghanistan
+# Production Fix Plan — RLS, Storage, Master Tables, Demo Mode
 
-## Current State Assessment
+## Root Cause Analysis
 
-The codebase has a solid foundation: auth flow with email verification, four-tier dashboards (school/district/province/ministry), RLS policies, real-time subscriptions, and submission CRUD. However, several gaps remain before production readiness.
+**School Creation Error**: The network logs show that the `authorization` header on POST requests to `/schools` contains the **anon key**, not a user JWT. This means either:
+1. The user's session expired or was never properly established
+2. The Supabase client is not attaching the authenticated user's JWT
 
-## Phase 1: Security Fixes (Critical)
+The RLS policies themselves are correct (`has_role(auth.uid(), 'district_admin')`) but `auth.uid()` returns null when using the anon key, so the policy evaluates to false. The fix requires ensuring the client sends authenticated requests AND adding a fallback "ministry_admin can do ALL" policy that covers INSERT (current `is_admin()` ALL policy only checks `admin` role, not `ministry_admin`).
 
-### 1A. Self-Approval Vulnerability
-Users can currently call `supabase.from('profiles').update({ status: 'verified' })` on their own row and bypass admin approval entirely.
+**Storage Upload (center-documents bucket)**: No INSERT/DELETE policies exist on `storage.objects` for the `center-documents` bucket. The `school-reports` bucket also lacks INSERT policies for authenticated users.
 
-**Fix**: Create a migration that drops the current "Users can update own profile" policy and replaces it with one that prevents modifying `status`, `verified_at`, `verified_by_user_id`, and `rejection_reason` columns. Use a SECURITY DEFINER function for admin-only status changes.
-
-### 1B. Edge Function Authentication
-`send-approval-email` has no JWT check and wildcard CORS, allowing anyone to enumerate user emails by UUID.
-
-**Fix**: Add `Authorization` header validation, verify caller is admin via `user_roles`, remove `emailTo` from response, restrict CORS origin.
-
-### 1C. Realtime Channel Authorization
-Any authenticated user can subscribe to any channel and receive row-change events for all schools.
-
-**Fix**: Remove the broad realtime publication. Instead, use client-side filtered channels with RLS-protected queries (the existing approach of invalidating React Query on change is safe since the query itself respects RLS).
-
-### 1D. Error Sanitization
-Raw database errors (table names, constraint names) are leaked to users across 10+ files.
-
-**Fix**: Create `src/lib/sanitizeError.ts` with a code-to-Persian-message map. Replace all `description: error.message` calls.
-
-### 1E. Input Length Constraints
-Profile text fields have no length limits; `handle_new_user()` inserts unbounded metadata.
-
-**Fix**: Migration to add VARCHAR constraints (full_name 255, phone_number 50, district/province/school_name 255). Update trigger to truncate.
-
-### 1F. Leaked Password Protection
-Enable HIBP password check via Cloud auth settings.
-
-### 1G. Storage DELETE Policy
-Add missing DELETE policy on `storage.objects` for `school-reports` bucket scoped to school folder.
-
-## Phase 2: Placeholder Pages Replacement
-
-Multiple routes still render generic `PlaceholderPage` components:
-- `/district/submissions`, `/district/verify`, `/district/schools`
-- `/province/districts`, `/province/analytics`, `/province/submissions`
-- `/ministry/analytics`, `/ministry/provinces`, `/ministry/users`, `/ministry/export`
-
-**Fix**: Build real pages for each:
-
-| Route | Content |
-|-------|---------|
-| `/district/submissions` | Full submission list with filters (type, status, date), pagination, approve/reject actions |
-| `/district/verify` | Pending submissions only, batch approve/reject |
-| `/district/schools` | School management table (name, code, contact, submission count) |
-| `/province/districts` | District list with school counts and submission stats per district |
-| `/province/analytics` | Charts (recharts): submissions over time, approval rates, district comparison |
-| `/province/submissions` | All province submissions with district filter |
-| `/ministry/analytics` | National charts: province comparison, trend lines, KPIs |
-| `/ministry/provinces` | All 34 provinces table with key metrics |
-| `/ministry/users` | User management: list profiles, approve/reject pending accounts, assign roles |
-| `/ministry/export` | Export submissions as CSV/Excel using client-side generation |
-
-## Phase 3: Data Pipeline Hardening
-
-### 3A. Submission Validation
-Currently `SubmitStatistics`, `SubmitReports`, `SubmitForms` don't check if `profile.school_id` exists before insert. If null, the insert fails silently or with a confusing RLS error.
-
-**Fix**: Add guard at top of each submit page — if no `school_id`, show an alert directing user to contact admin. Also ensure `submitted_by: user.id` is always set.
-
-### 3B. Form Data JSONB Validation
-Add a Postgres trigger to validate `form_data` size (<100KB) and required fields before insert.
-
-### 3C. Confirmation Dialog for Approve/Reject
-The `SubmissionList` currently fires approve/reject on single click with no confirmation. Add a confirmation dialog (using existing `SmartConfirmationDialog`) with optional rejection reason input.
-
-## Phase 4: Auth & UX Polish
-
-### 4A. SetupProfile → School Linking
-`SetupProfile` currently saves `school_name` as text but never links to an actual `schools` table record. This means `school_id` stays null, breaking submission inserts.
-
-**Fix**: Add a school lookup/autocomplete in SetupProfile. If school exists in DB, set `school_id`. If not, create the school record or allow admin to link later.
-
-### 4B. User Management Page (Ministry)
-Build `/ministry/users` to allow ministry admins to:
-- View all pending profiles
-- Approve/reject accounts (updating `status`, `verified_at`, `verified_by_user_id`)
-- Assign roles via `user_roles` table
-- This replaces the current manual approval flow
-
-### 4C. Demo Mode Cleanup
-Demo mode sets a fake user object with `id: 'demo-user'`. This can trigger Supabase queries that fail. Ensure all data-fetching hooks check `isDemoMode` and return mock data instead of querying.
-
-## Phase 5: UI Consistency
-
-### 5A. Responsive Audit
-All layouts are already light-themed (no dark classes found). Verify:
-- Mobile sidebar behavior is consistent across all four layouts
-- Province and Ministry layouts match the School/District pattern (h-14 header, w-64 sidebar)
-
-### 5B. Empty States
-Add meaningful empty state illustrations/messages for:
-- No submissions yet (school dashboard)
-- No schools in district
-- No pending verifications
-
-### 5C. Date Localization
-`format(new Date(...), 'd MMM')` outputs English month names. Add `date-fns/locale/fa-IR` or use a custom Dari formatter.
-
-## Phase 6: Performance & Cleanup
-
-### 6A. Remove Unused Files
-- `src/lib/errorSimulation.tsx` and `ErrorSimulationPanel` (dev-only but still bundled)
-- `src/pages/SetupProfileExample.tsx`
-- `src/pages/QuickEnter.tsx`
-- `src/components/WelcomeGuide.tsx`, `SignupProgress.tsx` if unused
-
-### 6B. Bundle Optimization
-Current Vite config uses Terser (slower). Switch to esbuild minification (default, faster). The manual chunks are already good.
-
-### 6C. Query Deduplication
-Province and Ministry dashboards both query `schools` table for breakdowns. Add `staleTime` and shared query keys to avoid redundant fetches.
+**Console Errors**: `DashboardStatCard` receives refs but doesn't use `forwardRef`, causing React warnings.
 
 ---
 
-## Implementation Order
+## Phase 1: Database Migration — Fix RLS & Add Master Tables
 
-1. **Security fixes** (Phase 1) — self-approval vulnerability is critical
-2. **Auth/profile linking** (Phase 4A, 4B) — unblocks real data flow
-3. **Placeholder page replacements** (Phase 2) — biggest user-facing gap
-4. **Data pipeline hardening** (Phase 3) — ensures submissions work end-to-end
-5. **UI polish** (Phase 5) — dates, empty states, responsive
-6. **Cleanup** (Phase 6) — dead code, bundle size
+### 1A. Fix Schools RLS
+- The existing `is_admin()` function only checks for `'admin'` role, not `'ministry_admin'`. The "Admins can manage schools" ALL policy works for `admin` but not `ministry_admin`. Fix by updating `is_admin()` to check both, OR add explicit ministry_admin policies.
+- Verify `get_user_district()` and `get_user_province()` return the correct values for the logged-in user.
+
+### 1B. Add Storage Policies
+- `center-documents` bucket: Add INSERT policy for admin/ministry_admin roles, SELECT for all authenticated users, DELETE for admin/ministry_admin.
+- `school-reports` bucket: Add INSERT policy scoped to school folder (`(storage.foldername(name))[1] = profile.school_id`).
+
+### 1C. Create Master Province & District Tables
+```sql
+CREATE TABLE public.provinces (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL UNIQUE,
+  code text,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE public.districts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  province_id uuid REFERENCES public.provinces(id) ON DELETE CASCADE,
+  code text,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(name, province_id)
+);
+```
+- Seed with Afghanistan's 34 provinces and key districts.
+- Add RLS: SELECT for all authenticated, INSERT/UPDATE for admin/ministry_admin.
+- Update `profiles`, `schools` tables to reference these tables (add `province_id`, `district_id` columns alongside existing text fields for backward compatibility).
+
+### 1D. Fix `is_admin()` Function
+Update to also check `ministry_admin`:
+```sql
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+  SELECT public.has_role(auth.uid(), 'admin')
+      OR public.has_role(auth.uid(), 'ministry_admin')
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+```
+
+---
+
+## Phase 2: Frontend Auth Fix
+
+### 2A. Verify Session Attachment
+The network requests show the anon key being used as the Bearer token. This means `supabase.auth.getSession()` is not returning a valid session. Investigate and fix:
+- In `AuthContext.tsx`: After `loadUserData`, verify `session.access_token` is present and being sent.
+- Add a debug guard in `DistrictSchools.tsx` mutation: check `session` before insert and show login prompt if missing.
+
+### 2B. Guard All Mutation Pages
+Add session check before every `.insert()` / `.update()` / `.upload()` call:
+- `DistrictSchools.tsx` — check session before school insert
+- `ManageSchools.tsx` — check session before school insert
+- `AdminDocuments.tsx` — check session before upload and insert
+- `SubmitReports.tsx` — check session before upload and insert
+- `SubmitStatistics.tsx` — check session before insert
+- `SubmitForms.tsx` — check session before insert
+
+---
+
+## Phase 3: Demo Mode — Internal Only
+
+- Remove `/demo` link from the landing page and login page
+- Keep the `/demo` route but gate it behind a check: only accessible if `import.meta.env.MODE === 'development'` or if the user is already logged in as admin/ministry_admin.
+- Ensure demo mode never calls the real backend — all hooks should check `isDemoMode` and return mock data.
+
+---
+
+## Phase 4: Province/District Selectors
+
+### 4A. Update SetupProfile
+Replace the free-text `province` input with a `<Select>` populated from the `provinces` table. When a province is selected, populate a second `<Select>` with districts from the `districts` table filtered by `province_id`.
+
+### 4B. Update District Schools Page
+Auto-populate province/district from user profile (already done). No changes needed.
+
+### 4C. Update ManageSchools (Ministry)
+Add province/district selects populated from master tables instead of free text inputs.
+
+---
+
+## Phase 5: Fix Console Errors
+
+### 5A. DashboardStatCard
+The component is a function component that receives a ref from Recharts. Wrap it with `React.forwardRef` or remove the ref usage.
+
+---
 
 ## Files to Create/Edit
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Create | `src/lib/sanitizeError.ts` | Centralized error sanitization |
-| Create | `src/pages/district/Submissions.tsx` | Full submissions page |
-| Create | `src/pages/district/VerifyData.tsx` | Pending verification page |
-| Create | `src/pages/district/Schools.tsx` | School management |
-| Create | `src/pages/province/Districts.tsx` | District breakdown |
-| Create | `src/pages/province/Analytics.tsx` | Province analytics charts |
-| Create | `src/pages/province/Submissions.tsx` | Province submissions |
-| Create | `src/pages/ministry/Analytics.tsx` | National analytics |
-| Create | `src/pages/ministry/Provinces.tsx` | Province list |
-| Create | `src/pages/ministry/Users.tsx` | User/account management |
-| Create | `src/pages/ministry/Export.tsx` | Data export |
-| Edit | `src/App.tsx` | Wire new pages to routes |
-| Edit | `src/pages/SetupProfile.tsx` | Add school linking |
-| Edit | `src/components/SubmissionList.tsx` | Add confirmation dialog |
-| Edit | `src/pages/school/SubmitStatistics.tsx` | Add school_id guard |
-| Edit | `src/pages/school/SubmitReports.tsx` | Add school_id guard |
-| Edit | `src/pages/school/SubmitForms.tsx` | Add school_id guard |
-| Edit | `supabase/functions/send-approval-email/index.ts` | Add auth check |
-| Migration | Profiles UPDATE policy | Prevent self-approval |
-| Migration | VARCHAR constraints | Input length limits |
-| Migration | Form data validation trigger | JSONB size limit |
-| Migration | Storage DELETE policy | school-reports bucket |
+| Migration | SQL | Fix `is_admin()`, add storage policies, create provinces/districts tables, seed data |
+| Edit | `src/pages/district/Schools.tsx` | Add session guard before insert |
+| Edit | `src/pages/admin/ManageSchools.tsx` | Add session guard, use master table selects |
+| Edit | `src/pages/admin/Documents.tsx` | Add session guard before upload |
+| Edit | `src/pages/school/SubmitReports.tsx` | Add session guard |
+| Edit | `src/pages/school/SubmitStatistics.tsx` | Add session guard |
+| Edit | `src/pages/school/SubmitForms.tsx` | Add session guard |
+| Edit | `src/pages/SetupProfile.tsx` | Replace text inputs with master table selects |
+| Edit | `src/pages/Demo.tsx` | Gate behind dev mode or admin role |
+| Edit | `src/pages/Index.tsx` | Remove demo link for production |
+| Edit | `src/pages/Login.tsx` | Remove demo link for production |
+| Edit | `src/components/DashboardStatCard.tsx` | Add forwardRef |
+| Edit | `src/contexts/AuthContext.tsx` | Add session validation logging |
+
+## Implementation Order
+
+1. Database migration (fix `is_admin()`, storage policies, master tables)
+2. Frontend session guards (all mutation pages)
+3. Province/district selectors (SetupProfile, ManageSchools)
+4. Demo mode restriction
+5. Console error fixes
 
