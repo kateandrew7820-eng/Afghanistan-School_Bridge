@@ -19,14 +19,17 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
 import SetupProfile from "./pages/SetupProfile";
-import AfghanistanInfoPage from "./pages/AfghanistanInfoPage";
 import AuthCallback from "./pages/AuthCallback";
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AfghanistanInfoPage = lazy(() => import("./pages/AfghanistanInfoPage"));
+const HelpPage = lazy(() => import("./pages/Help"));
+const RoadmapPage = lazy(() => import("./pages/Roadmap"));
 
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
 const PendingVerification = lazy(() => import("./pages/PendingVerification"));
 const TestButtons = lazy(() => import("./pages/TestButtons"));
+const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
 
 // Layouts
 import SchoolLayout from "./components/layouts/SchoolLayout";
@@ -54,6 +57,7 @@ const ProvinceDashboard = lazy(() => import("./pages/province/Dashboard"));
 const ProvinceDistricts = lazy(() => import("./pages/province/Districts"));
 const ProvinceAnalytics = lazy(() => import("./pages/province/Analytics"));
 const ProvinceSubmissions = lazy(() => import("./pages/province/Submissions"));
+const ProvinceSchools = lazy(() => import("./pages/province/Schools"));
 
 // Ministry Pages - Lazy loaded
 const MinistryDashboard = lazy(() => import("./pages/ministry/Dashboard"));
