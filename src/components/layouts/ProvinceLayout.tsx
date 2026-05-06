@@ -21,6 +21,7 @@ export default function ProvinceLayout({ children }: ProvinceLayoutProps) {
   const navItems = [
     { href: '/province', icon: LayoutDashboard, label: t('navigation.dashboard') },
     { href: '/province/districts', icon: MapPin, label: t('province.districtOverview') },
+    { href: '/province/schools', icon: BarChart3, label: 'مکاتب ولایت' },
     { href: '/province/analytics', icon: TrendingUp, label: t('province.analytics') },
     { href: '/province/submissions', icon: BarChart3, label: t('navigation.submissions') },
     { href: '/province/announcements', icon: Bell, label: t('navigation.announcements') },
