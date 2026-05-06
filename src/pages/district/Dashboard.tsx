@@ -41,7 +41,7 @@ export default function DistrictDashboard() {
   const recent = data?.submissions.slice(0, 8) ?? [];
 
   return (
-    <div className="min-h-screen bg-background text-foreground px-4 py-6 space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">داشبورد ولسوالی</h1>

@@ -362,6 +362,8 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
+      <Route path="/help" element={<Suspense fallback={<LoadingFallback />}><HelpPage /></Suspense>} />
+      <Route path="/roadmap" element={<Suspense fallback={<LoadingFallback />}><RoadmapPage /></Suspense>} />
       {/* Catch all */}
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -375,6 +377,7 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <Suspense fallback={null}><CommandPalette /></Suspense>
             <SmartConfirmationDialog />
             
 
