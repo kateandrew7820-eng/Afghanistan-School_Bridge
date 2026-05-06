@@ -289,6 +289,11 @@ function AppRoutes() {
           <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceSubmissions /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
+      <Route path="/province/schools" element={
+        <ProtectedRoute allowedTier="province">
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceSchools /></Suspense></ProvinceLayout>
+        </ProtectedRoute>
+      } />
       <Route path="/province/announcements" element={
         <ProtectedRoute allowedTier="province">
           <ProvinceLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></ProvinceLayout>
