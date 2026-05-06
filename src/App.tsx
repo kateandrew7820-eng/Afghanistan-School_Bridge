@@ -66,8 +66,6 @@ const MinistryProvinces = lazy(() => import("./pages/ministry/Provinces"));
 const MinistryUsers = lazy(() => import("./pages/ministry/Users"));
 const MinistryExport = lazy(() => import("./pages/ministry/Export"));
 
-// Shared
-const PlaceholderPage = lazy(() => import("./components/PlaceholderPage"));
 
 // Legacy Admin Pages (will be used under ministry) - Lazy loaded
 const AdminSubmissions = lazy(() => import("./pages/admin/Submissions"));
