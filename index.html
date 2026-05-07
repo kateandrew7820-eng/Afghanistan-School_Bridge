@@ -3,95 +3,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Performance optimizations -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="theme-color" content="#ffffff" />
-    <meta name="description" content="پورتال دیجیتال داده‌های مکاتب افغانستان – یکپارچه‌سازی و انتقال اطلاعات آموزشی در سراسر کشور">
-    
-    <!-- Preload critical resources for faster initial load -->
-    <link rel="preload" href="/src/main.tsx" as="script" />
-    
-    <!-- Preconnect to external services for faster loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://api.yourdomain.com">
-    
-    <!-- Fonts with better caching - async load -->
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"></noscript>
-    
-    <!-- Open Graph meta tags -->
-    
-    
-    <meta property="og:type" content="website" />
+    <meta name="description" content="پورتال دیجیتال داده‌های مکاتب افغانستان – یکپارچه‌سازی و انتقال اطلاعات آموزشی در سراسر کشور" />
 
-    <!-- Twitter Card -->
+    <!-- Preload critical app entry -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+
+    <!-- Fonts: only Vazirmatn (UI) + Montserrat (headings). Async, non-blocking. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap"
+      />
+    </noscript>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="پل آموزش افغانستان" />
+    <meta property="og:description" content="پورتال دیجیتال داده‌های مکاتب افغانستان" />
     <meta name="twitter:card" content="summary_large_image" />
-    
-    <!-- Author -->
+    <meta name="twitter:title" content="پل آموزش افغانستان" />
+    <meta name="twitter:description" content="پورتال دیجیتال داده‌های مکاتب افغانستان" />
     <meta name="author" content="SchoolBridge Afghanistan" />
-    
-    <!-- Favicon with caching -->
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    
-    <!-- Web App Manifest for PWA -->
-    <link rel="manifest" href="/manifest.json">
-    
+
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+
     <title>پل آموزش افغانستان</title>
 
     <style>
-      /* RTL and Persian Font Support */
-      * {
-        margin: 0;
-        padding: 0;
-      }
-
-      html {
-        direction: rtl;
-        font-family: 'Vazirmatn', 'Roboto', sans-serif;
-      }
-
-      html.ltr {
-        direction: ltr;
-        text-align: left;
-      }
-
-      html.rtl {
-        direction: rtl;
-        text-align: right;
-      }
-
-      body {
-        direction: rtl;
-        text-align: right;
-      }
-
-      body.ltr {
-        direction: ltr;
-        text-align: left;
-      }
-
-      /* Fix for inputs and textareas */
-      input, textarea, select {
-        direction: inherit;
-        text-align: inherit;
+      * { margin: 0; padding: 0; }
+      html { direction: rtl; font-family: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      html.ltr { direction: ltr; text-align: left; }
+      html.rtl { direction: rtl; text-align: right; }
+      body { direction: rtl; text-align: right; background: #ffffff; color: #0f172a; }
+      body.ltr { direction: ltr; text-align: left; }
+      input, textarea, select { direction: inherit; text-align: inherit; }
+      /* Skeleton for first paint (avoid blank screen / improves LCP) */
+      #root:empty::before {
+        content: '';
+        display: block;
+        min-height: 100vh;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       }
     </style>
-    <meta property="og:title" content="پل آموزش افغانستان">
-  <meta name="twitter:title" content="پل آموزش افغانستان">
-  <meta property="og:description" content="پورتال دیجیتال داده‌های مکاتب افغانستان – یکپارچه‌سازی و انتقال اطلاعات آموزشی در سراسر کشور">
-  <meta name="twitter:description" content="پورتال دیجیتال داده‌های مکاتب افغانستان – یکپارچه‌سازی و انتقال اطلاعات آموزشی در سراسر کشور">
-  <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6f55199f-8055-44ef-aa58-0318a543707c?Expires=1774181924&amp;GoogleAccessId=go-api-on-aws%40gpt-engineer-390607.iam.gserviceaccount.com&amp;Signature=sllpvjvLETasimgEC%2BJKsDnBNGgsAjUs7%2BSeUwI2TL%2BBpCP7lgghtagnvaE6HADxyafpOVlO8NECSbr8z9F50iQZGxOD2Ru1AHcSsNWS67MtKK%2BBoHgekU6y1BMYgCAFpctwT7AoCKZbQ3ZfbsPQEpVFFWaBPDqcq6XOKlIlrnA7MofzFWOvrTTxSFy2Qz7RsLWCskQ8JSF8EcFOZchjFxcyIGBOAVmuunvC4PSUy%2FkSe83jKEvfmzCahwuW2RDPO3j7jsJVajpBZiqBW6MQxLilzzjLljDbQ%2Fvb3qGYT0%2F%2BPTbiz734z6s5W7Fq2zvDWloYC4D0GgjYCNtLaDSptA%3D%3D">
-</head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/6f55199f-8055-44ef-aa58-0318a543707c?Expires=1774181924&amp;GoogleAccessId=go-api-on-aws%40gpt-engineer-390607.iam.gserviceaccount.com&amp;Signature=sllpvjvLETasimgEC%2BJKsDnBNGgsAjUs7%2BSeUwI2TL%2BBpCP7lgghtagnvaE6HADxyafpOVlO8NECSbr8z9F50iQZGxOD2Ru1AHcSsNWS67MtKK%2BBoHgekU6y1BMYgCAFpctwT7AoCKZbQ3ZfbsPQEpVFFWaBPDqcq6XOKlIlrnA7MofzFWOvrTTxSFy2Qz7RsLWCskQ8JSF8EcFOZchjFxcyIGBOAVmuunvC4PSUy%2FkSe83jKEvfmzCahwuW2RDPO3j7jsJVajpBZiqBW6MQxLilzzjLljDbQ%2Fvb3qGYT0%2F%2BPTbiz734z6s5W7Fq2zvDWloYC4D0GgjYCNtLaDSptA%3D%3D">
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
