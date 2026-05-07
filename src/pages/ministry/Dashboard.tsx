@@ -108,6 +108,15 @@ export default function MinistryDashboard() {
         </Card>
       )}
 
+      {/* National NESP Targets */}
+      <NationalTargetsCard
+        liveValues={{
+          total_students: stats.students,
+          new_schools_target: stats.schools,
+        }}
+      />
+
+
       {/* Submissions with Actions */}
       {!isDemoMode && (
         <SubmissionList
