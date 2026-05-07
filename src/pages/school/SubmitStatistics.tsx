@@ -110,6 +110,7 @@ export default function SubmitStatistics() {
         );
         if (error) throw error;
         setSubmitted(true);
+        clearDraft();
         showSuccess('اطلاعات شما با موفقیت ارسال شد', 'موفقیت');
       }
     } catch (err) {
@@ -129,9 +130,10 @@ export default function SubmitStatistics() {
               <CheckCircle className="h-12 w-12 text-primary mx-auto" />
               <h2 className="text-xl font-semibold">اطلاعات با موفقیت ارسال شد!</h2>
               <p className="text-muted-foreground">اطلاعات شما به مرکز ارسال شده است.</p>
-              <Button onClick={() => { 
-                setSubmitted(false); 
-                setFormData({ academic_year: new Date().getFullYear().toString(), total_students: '', male_students: '', female_students: '', total_teachers: '', attendance_rate: '', notes: '' });
+              <Button onClick={() => {
+                setSubmitted(false);
+                setFormData(initialForm);
+                clearDraft();
                 setErrors({});
                 setTouched({});
               }}>
@@ -153,6 +155,18 @@ export default function SubmitStatistics() {
         </h1>
         <p className="text-muted-foreground">اطلاعات دانش‌آموز و حضور و غیاب مکتب خود را وارد کنید</p>
       </div>
+
+      {hadDraft && !submitted && (
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertCircle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800 flex items-center justify-between gap-2">
+            <span>پیش‌نویس قبلی شما بازیابی شد.</span>
+            <Button size="sm" variant="ghost" onClick={() => { setFormData(initialForm); clearDraft(); }}>
+              پاک کردن
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isDemoMode && (
         <Alert className="border-blue-200 bg-blue-50">
