@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,7 +63,7 @@ export default function AdminDeadlines() {
     setIsSubmitting(false);
 
     if (error) {
-      toast({ title: "Failedd", description: error.message, variant: "destructive" });
+      toast({ title: "Failedd", description: sanitizeError(error), variant: "destructive" });
       return;
     }
 
@@ -76,7 +77,7 @@ export default function AdminDeadlines() {
     const { error } = await supabase.from('deadlines').delete().eq('id', id);
     
     if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
+      toast({ title: "Failed", description: sanitizeError(error), variant: "destructive" });
       return;
     }
     

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { Button } from '@/components/ui/button';
@@ -122,7 +123,7 @@ export default function Login() {
     submitGuardRef.current = false;
 
     if (error) {
-      toast({ title: t('auth.signInFailed'), description: error.message, variant: "destructive" });
+      toast({ title: t('auth.signInFailed'), description: sanitizeError(error), variant: "destructive" });
       return;
     }
 
@@ -163,7 +164,7 @@ export default function Login() {
     submitGuardRef.current = false;
 
     if (error) {
-      toast({ title: "ثبت‌نام ناموفق", description: error.message, variant: "destructive" });
+      toast({ title: "ثبت‌نام ناموفق", description: sanitizeError(error), variant: "destructive" });
       return;
     }
 
@@ -369,7 +370,7 @@ export default function Login() {
                             redirectTo: `${window.location.origin}/reset-password`,
                           });
                           if (error) {
-                            toast({ title: 'خطا', description: error.message, variant: 'destructive' });
+                            toast({ title: 'خطا', description: sanitizeError(error), variant: 'destructive' });
                           } else {
                             toast({ title: 'لینک بازنشانی ارسال شد', description: 'ایمیل خود را بررسی کنید' });
                           }

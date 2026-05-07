@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { useProfileCompletion } from '@/hooks/useProfileCompletion';
@@ -105,7 +106,7 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
       const completionData = { ...identity, ...answers };
       const { error } = await saveAnswers(completionData);
       if (error) {
-        toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+        toast({ title: t('common.error'), description: sanitizeError(error), variant: 'destructive' });
         setIsLoading(false);
         return;
       }
@@ -117,7 +118,7 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
         setAnswers({});
       }, 3000);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'خطایی رخ داد';
+      const errorMsg = sanitizeError(err);
       toast({ title: t('common.error'), description: errorMsg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
@@ -129,14 +130,14 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
     try {
       const { error } = await skipForNow();
       if (error) {
-        toast({ title: t('common.error'), description: error.message, variant: 'destructive' });
+        toast({ title: t('common.error'), description: sanitizeError(error), variant: 'destructive' });
         setIsLoading(false);
         return;
       }
       onClose?.();
       navigate('/afghanistan-info');
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'خطایی رخ داد';
+      const errorMsg = sanitizeError(err);
       toast({ title: t('common.error'), description: errorMsg, variant: 'destructive' });
     } finally {
       setIsLoading(false);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -78,7 +79,7 @@ export function VerificationPanel({
 
       setPendingUsers((data || []) as unknown as PendingUser[]);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'خطا در بارگذاری کاربران';
+      const message = sanitizeError(err);
       setError(message);
     } finally {
       setLoading(false);
@@ -144,7 +145,7 @@ export function VerificationPanel({
 
       setPendingUsers(prev => prev.filter(u => u.user_id !== userId));
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'خطا در تایید کاربر';
+      const message = sanitizeError(err);
       toast({ title: 'خطا', description: message, variant: 'destructive' });
     } finally {
       setProcessingId(null);
@@ -180,7 +181,7 @@ export function VerificationPanel({
       setRejectionReasons(prev => { const { [userId]: _, ...rest } = prev; return rest; });
       setRejectionMode(prev => { const { [userId]: _, ...rest } = prev; return rest; });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'خطا در رد کردن درخواست';
+      const message = sanitizeError(err);
       toast({ title: 'خطا', description: message, variant: 'destructive' });
     } finally {
       setProcessingId(null);

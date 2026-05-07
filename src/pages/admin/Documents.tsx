@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -96,7 +97,7 @@ export default function AdminDocuments() {
     setIsSubmitting(false);
 
     if (error) {
-      toast({ title: "ناموفق", description: error.message, variant: "destructive" });
+      toast({ title: "ناموفق", description: sanitizeError(error), variant: "destructive" });
       return;
     }
 
@@ -112,7 +113,7 @@ export default function AdminDocuments() {
     const { error } = await supabase.from('center_documents').delete().eq('id', id);
     
     if (error) {
-      toast({ title: "حذف ناموفق", description: error.message, variant: "destructive" });
+      toast({ title: "حذف ناموفق", description: sanitizeError(error), variant: "destructive" });
       return;
     }
     
