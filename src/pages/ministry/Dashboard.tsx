@@ -12,6 +12,7 @@ import { Map, School, Users, BarChart3, TrendingUp, CheckCircle2 } from 'lucide-
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { NationalTargetsCard } from '@/components/NationalTargetsCard';
 
 export default function MinistryDashboard() {
   const { isDemoMode } = useAuth();
@@ -106,6 +107,15 @@ export default function MinistryDashboard() {
           </CardContent>
         </Card>
       )}
+
+      {/* National NESP Targets */}
+      <NationalTargetsCard
+        liveValues={{
+          total_students: stats.students,
+          new_schools_target: stats.schools,
+        }}
+      />
+
 
       {/* Submissions with Actions */}
       {!isDemoMode && (

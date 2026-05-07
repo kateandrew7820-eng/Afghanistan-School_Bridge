@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeError } from '@/lib/sanitizeError';
 
 type SubmissionTable = 'statistics_submissions' | 'report_submissions' | 'form_submissions';
 
@@ -29,7 +30,7 @@ export function useSubmissionActions() {
         .eq('id', id);
 
       if (error) {
-        toast({ title: 'خطا', description: error.message, variant: 'destructive' });
+        toast({ title: 'خطا', description: sanitizeError(error), variant: 'destructive' });
         return false;
       }
 

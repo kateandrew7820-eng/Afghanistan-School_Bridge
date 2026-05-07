@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, KeyRound, Layers, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, BookOpen, KeyRound, Layers, ShieldCheck, Sparkles, FileText, Download } from 'lucide-react';
+
+const NESP_PDF = '/docs/National-Education-Strategic-Plan-for-Afghanistan.pdf';
 
 export default function Help() {
+  const [showPdf, setShowPdf] = useState(false);
+
   return (
     <div className="min-h-screen bg-background py-10 px-4" dir="rtl">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -19,6 +24,40 @@ export default function Help() {
             <p><b>ولسوالی:</b> ثبت مکاتب جدید، بررسی و تأیید/رد ارسال‌های مکاتب.</p>
             <p><b>ولایت:</b> تأیید نهایی مکاتب، تحلیل ولسوالی‌ها، تأیید ارسال‌ها.</p>
             <p><b>وزارت:</b> نظارت ملی، خروجی‌گیری، مدیریت کاربران و نقش‌ها.</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              اسناد ملی — پلان ستراتیژی معارف (NESP)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-7 text-muted-foreground">
+              سند رسمی وزارت معارف؛ شامل اهداف ملی برای ثبت‌نام، معلمان، زیربناء، سواد و کیفیت آموزش.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => setShowPdf(s => !s)}>
+                {showPdf ? 'بستن سند' : 'مشاهده سند'}
+              </Button>
+              <a href={NESP_PDF} download>
+                <Button size="sm" variant="outline">
+                  <Download className="h-4 w-4 ml-1" />دانلود PDF
+                </Button>
+              </a>
+            </div>
+            {showPdf && (
+              <div className="border rounded-lg overflow-hidden mt-3" style={{ height: '70vh' }}>
+                <iframe
+                  src={NESP_PDF}
+                  title="National Education Strategic Plan for Afghanistan"
+                  className="w-full h-full"
+                  loading="lazy"
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -9,7 +9,7 @@
  * - API responses: Cache with network fallback (works offline)
  */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v3';
 const CACHE_STATIC = `${CACHE_VERSION}-static`;
 const CACHE_DYNAMIC = `${CACHE_VERSION}-dynamic`;
 const CACHE_API = `${CACHE_VERSION}-api`;
