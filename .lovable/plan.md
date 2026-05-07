@@ -1,115 +1,112 @@
-# Production Upgrade Roadmap — SchoolBridge Afghanistan
 
-A focused, phased plan that turns the current codebase into a polished production platform: zero placeholder buttons, faster perceived navigation, persistent short-term memory, and consistent UX inspired by Linear, Notion, and Vercel dashboards.
+# Production Upgrade — NESP Integration, Performance, Hardening
 
----
-
-## Phase 1 — Bug & Consistency Fixes
-
-1. **Profile field consistency**: `profile?.school_name` is read in `school/Dashboard.tsx` but the relation `profile.schools.name` is also used in the layout. Normalize: always read `profile.schools?.name ?? profile.school_name`.
-2. **District dashboard double padding**: `DistrictLayout` already wraps `<main>` in `p-4 lg:p-6`, but `DistrictDashboard` also adds `px-4 py-6`. Remove the inner padding (matches School/Province/Ministry).
-3. **Province admin sees Schools list**: `ProvinceLayout` is missing a "Schools (review/confirm)" link even though province admins have RLS to update schools. Add a `/province/schools` route + page (reuse list pattern from district) so province confirmation actually works.
-4. **District/Province "Announcements/Documents/Deadlines" reuse School pages** — these currently show no admin-edit affordance even when role allows it. Pass a `readOnly` prop and unify to a single component.
-5. **`PlaceholderPage` removal**: file unused but kept. Delete it and its lazy import in `App.tsx`.
-6. **`AfghanistanInfoPage`** loads eagerly. Switch to `lazy()` like the rest.
-7. **`is_admin()` self-grant edge case**: The `Admins can manage profiles` ALL policy still lets an admin set their own `role` column directly. Add a trigger that blocks non-ministry users from changing their own `role`.
-8. **`profiles.role` is text but `user_roles.role` is enum** — they drift. Add a trigger that on `user_roles` INSERT/UPDATE syncs `profiles.role` text to keep the dashboard tier consistent.
-9. **Submission `province/district` text mismatches** with master tables (e.g. "Kabul" vs "کابل"). Add a normalization step in the trigger `populate_submission_location` to also fill `province_id`/`district_id` if the school has them.
-10. **Empty-state polish** across every list page (no skeleton flash for empty data, friendly message + primary CTA).
+PDF saved at `public/docs/National-Education-Strategic-Plan-for-Afghanistan.pdf` (1.3 MB) and downloadable from the in-app **Help / Resources** page.
 
 ---
 
-## Phase 2 — Real Functionality (no fake buttons)
+## 1. NESP Statistics Integration
 
-| Page | Current | Upgrade |
-|---|---|---|
-| `province/Districts.tsx` | Placeholder list | Show real districts (master table) with submission counts + drill-down to `/province/submissions?district=…` |
-| `province/Submissions.tsx` | Basic list | Add filters (status, type, district), bulk approve/reject, and CSV export |
-| `province/Analytics.tsx` | Stat cards | Add real charts (Recharts) — submissions over time, by district, attendance trend |
-| `ministry/Provinces.tsx` | Placeholder | Real province grid with totals (schools, submissions, pending) and drill-down |
-| `ministry/Analytics.tsx` | Cards | National charts: provincial heat ranking, submission velocity, attendance avg |
-| `ministry/Users.tsx` | List | Inline status change (verify/reject), role assignment (writes to `user_roles`), search/filter |
-| `ministry/Export.tsx` | CSV only | Add date range, status filter, **XLSX export** (via `xlsx` lib), and a "stats snapshot" XLSX with per-school rollups |
-| `district/Schools.tsx` | Add school | Edit/deactivate, search, status badge (pending/approved by province) |
-| `school/Documents.tsx` | List only | Add download tracking + filter by category |
-| `Announcements/Deadlines` admin | Cards | Add edit + delete + publish-toggle with optimistic UI |
+The PDF is the *National Education Strategic Plan for Afghanistan* (Ministry of Education). It is **strategic/historical reference data**, not live operational data — so we wire it in three places without polluting real submissions:
 
-All "fake" navigations get removed; every menu item routes to a working screen.
+**a) New `nesp_reference` master table** (read-only, ministry-managed)
+```
+id | metric_key | metric_label_fa | value_numeric | value_text | year | category | source_page
+```
+Seeded with key NESP figures from the PDF:
+- Children enrolled (baseline 5.4M, 35% girls; target 7.7M, 60% girls / 75% boys)
+- Teachers grown 7×; only 22% meet Grade-14 minimum; 28% female (target 40%)
+- ~25% schools have usable buildings (target 90%)
+- ~11M illiterate adults (target <8M)
+- 4,900 new schools + 4,800 outreach classes target
+- Provincial GER spread (Helmand 61% → Baghlan high; Kabul 64% → Uruzgan low)
 
----
+**b) Ministry/Province dashboard "National Targets" widget** — shows current platform totals next to NESP targets with a progress bar (e.g. *teachers registered: 12,430 / target 200,000*). Pulls from `nesp_reference` + live aggregates.
 
-## Phase 3 — Speed & Short-term Memory
+**c) `/help` page → "اسناد ملی" tab** — embedded PDF viewer (lazy `<iframe>` only when tab is opened), with a "دانلود" button.
 
-1. **React Query as the data backbone**: migrate `useSubmissions` hand-rolled fetcher to `useQuery` with `staleTime: 30s` and `keepPreviousData`. This gives instant back-navigation (the cached page renders before refetch).
-2. **Persistent query cache**: add `@tanstack/query-sync-storage-persister` writing to `sessionStorage` so navigating between tiers/pages feels instant within a session.
-3. **Route-level prefetch on hover**: small hook `usePrefetchRoute(href)` that warms the React Query cache for the destination page when a sidebar link is hovered/touched.
-4. **Recent items memory**: localStorage-backed "Recently viewed" (last 5 schools / submissions) shown on each dashboard.
-5. **Form draft memory**: SubmitStatistics / SubmitReports / SubmitForms autosave to localStorage every 1s; restored on revisit with a "Restore draft?" banner.
-6. **Filter memory**: list pages remember last filter (status, type, search) per route in `sessionStorage`.
-7. **Skeleton → suspense boundaries**: replace ad-hoc `loading &&` checks with a single `<ListSkeleton rows={n}/>` component for visual consistency.
-8. **Bundle**: split Recharts into its own chunk (already lazy via charts page); enable `manualChunks` in `vite.config.ts` for `react`, `recharts`, `@radix-ui`.
+**No fake numbers in real submission tables** — NESP figures live in their own table and are clearly labeled "هدف ملی NESP".
 
 ---
 
-## Phase 4 — UX inspired by Linear / Notion / Vercel
+## 2. Performance Fixes (Lighthouse 76 → 95+)
 
-1. **Command palette (`⌘K` / `Ctrl+K`)** — uses `cmdk`, lists routes the user has access to, recent items, and quick actions ("Approve last submission", "New school"). This is the single biggest usability lift.
-2. **Global search bar** in the top header (schools, submissions, users) that opens the palette pre-filled.
-3. **Breadcrumbs** on every inner page (component already exists — wire it up).
-4. **Toast → inline status pattern** for approve/reject (Linear-style "Approved · Undo" for 5s) using the existing `useSubmissionActions` optimistic update.
-5. **Keyboard shortcuts**: `g d` (dashboard), `g s` (submissions), `j/k` to move through list rows, `e` to approve, `r` to reject.
-6. **Notification center**: bell icon in header with realtime feed (pending submissions for admins, status changes for schools) using `supabase.channel` already enabled.
-7. **Empty states with illustrations + CTA** (lucide icons, friendly Dari copy).
-8. **Theming refresh**: tighten spacing scale, unify card radii, soften shadows, add subtle hover transitions (already in some cards — propagate).
-9. **RTL polish**: audit all `mr-*/ml-*` for proper RTL flipping; convert to `me-*/ms-*` (Tailwind logical properties).
-10. **Onboarding tour**: first-login 3-step coachmark for each role using a tiny custom popover (no heavy dep).
+| Issue | Fix |
+|---|---|
+| **Render-blocking fonts (-810 ms)** | Move Google Fonts `<link>` from blocking to `rel="preload" as="style"` + `onload` swap; drop `Roboto` (only Vazirmatn + Montserrat actually used). Self-host Vazirmatn `woff2` subset (Arabic + Latin) in `/public/fonts` for instant FCP. |
+| **Render-blocking CSS (-302 ms)** | Inline critical above-the-fold CSS in `index.html` (already partial); ensure Tailwind `index.css` ships only used utilities (already JIT). |
+| **Unused JS (-95 KiB)** | Tree-shake: remove unused `@radix-ui` exports from `vendor-ui` chunk; split `vendor-supabase` so auth-only routes don't pull realtime/storage; lazy-load `xlsx` (only ministry export). |
+| **Network dependency chain** | Add `<link rel="modulepreload">` for the main app chunk; remove the chained Google Fonts CSS by self-hosting. |
+| **Cache lifetimes (-97 KiB)** | Update `public/.htaccess` (or add `_headers`) to set `Cache-Control: public, max-age=31536000, immutable` for `/assets/*` and `/fonts/*`. Service worker already caches — extend its `CACHE_VERSION` strategy to include fonts and hashed assets with stale-while-revalidate. |
+| **LCP element render delay (2.7 s)** | Landing page hero text is the LCP — preload its font, remove the lazy boundary around the hero, and inline the hero markup in `index.html` skeleton so first paint = LCP. |
+| **Bundle splitting** | Split `react-router-dom` into its own chunk; lazy import `cmdk` (CommandPalette already lazy — confirm); verify `recharts` chunk only loads on analytics pages. |
 
----
-
-## Phase 5 — Production Hardening
-
-1. **Auth UX**: replace dev "quick login" panel with environment gate (`MODE === 'development'` only); already partial — make strict.
-2. **Error boundary per route** (not only global) so a broken page doesn't blank the whole app.
-3. **Sentry-style logger stub** (`src/lib/logger.ts`) ready for later wiring.
-4. **`security--run_security_scan`** before release; address any remaining RLS warnings.
-5. **PWA polish**: service-worker already present — add offline cache for submitted-form drafts and translation files.
-6. **i18n completeness**: scan for hard-coded Dari strings inside components (we found many), move to `fa.json`.
-7. **Accessibility pass**: focus rings on all interactive elements, `aria-live` on toasts, color-contrast check.
-8. **Tests**: add Vitest smoke tests for `useSubmissions`, `useSubmissionActions`, and a render test per dashboard.
+Expected gains: FCP 3.8 s → ~1.5 s, LCP 4.1 s → ~2.0 s, total JS −95 KiB.
 
 ---
 
-## Phase 6 — Documentation & Roadmap Surfaces
+## 3. Production Hardening (Bug & UX Pass)
 
-1. In-app `Help` page (`/help`) per role with short videos / GIFs / FAQ.
-2. README.md: production setup, role matrix, RLS overview, CSV/XLSX export format.
-3. Public roadmap page (`/roadmap`) — read from a `roadmap.json` so non-devs can update.
+**Error handling**
+- Wrap each route group (`SchoolLayout`, `DistrictLayout`, etc.) in its own `<ErrorBoundary>` with a localized retry card so one broken page never blanks the app.
+- `useSubmissionActions` already toasts raw `error.message` — replace with `sanitizeError()` (consistency with the security pass).
+- Add a global Supabase error interceptor that auto-redirects on `401` (session expired) instead of silent failures.
+
+**Form & data integrity**
+- Wire `useDraft` into `SubmitStatistics`, `SubmitReports`, `SubmitForms` (auto-save every 1 s, "بازیابی پیش‌نویس؟" banner).
+- Add a 100 KB client-side guard in `SubmitForms` to match the DB constraint and show a friendly Dari error before the server rejects.
+- Province/district selectors everywhere must use `provinces` + `districts` master tables (cascading) — audit and fix any remaining free-text inputs.
+
+**Navigation & memory**
+- Migrate `useSubmissions` to React Query with `staleTime: 30 s` + `keepPreviousData` so back-navigation is instant.
+- Add `usePrefetchRoute` on sidebar link hover.
+- Sticky filter memory (`sessionStorage`) on every list page.
+
+**UX polish**
+- Wire the existing `Breadcrumb` component into every inner page.
+- Add `EmptyState` with friendly Dari copy + primary CTA on every list (currently inconsistent).
+- Optimistic approve/reject with "بازگردانی" undo toast (5 s window).
+- Standardize `<ListSkeleton rows={n}/>` for loading states.
+
+**Real functionality (kill remaining placeholders)**
+- `province/Districts.tsx`: real district list from master table with submission counts → drill-down.
+- `ministry/Provinces.tsx`: real province grid (schools, submissions, pending, NESP target progress).
+- `ministry/Users.tsx`: inline verify/reject + role assignment writing to `user_roles`.
+- `district/Schools.tsx`: edit / deactivate / search / status badge.
 
 ---
 
-## Technical Implementation Notes
+## 4. Files & Migrations
 
-- New deps: `cmdk`, `xlsx`, `@tanstack/query-sync-storage-persister`, `@tanstack/react-query-persist-client`.
-- New files (planned):
-  - `src/components/CommandPalette.tsx`
-  - `src/components/NotificationCenter.tsx`
-  - `src/components/ListSkeleton.tsx`
-  - `src/components/EmptyState.tsx`
-  - `src/hooks/useDraft.ts`, `useRecentItems.ts`, `usePrefetchRoute.ts`, `useKeyboardShortcuts.ts`
-  - `src/lib/logger.ts`, `src/lib/exportXlsx.ts`
-  - `src/pages/province/Schools.tsx`, `src/pages/Help.tsx`, `src/pages/Roadmap.tsx`
-- Migrations:
-  - Trigger: block self-role change on `profiles`.
-  - Trigger: sync `user_roles` → `profiles.role`.
-  - Update `populate_submission_location` to also fill `*_id`.
+**New files**
+- `supabase/migrations/<ts>_nesp_reference.sql` — table + RLS (read for authenticated, write for `is_admin()`) + seed inserts from PDF.
+- `src/components/NationalTargetsCard.tsx` — NESP progress widget.
+- `src/components/ListSkeleton.tsx`, route-level `RouteErrorBoundary.tsx`.
+- `src/hooks/usePrefetchRoute.ts`.
+- `public/fonts/Vazirmatn-*.woff2` (self-hosted subset).
+- `public/_headers` (cache control for Lovable hosting).
 
-## Implementation Order (one phase per iteration)
+**Edited**
+- `index.html` — preload fonts, remove Roboto, inline critical CSS, modulepreload main chunk.
+- `vite.config.ts` — refine `manualChunks` (split router, supabase-auth vs supabase-realtime, lazy xlsx).
+- `public/service-worker.js` — bump cache version, add font + asset SWR strategy.
+- `src/App.tsx` — per-layout ErrorBoundary, prefetch hooks.
+- `src/pages/Help.tsx` — NESP PDF tab.
+- `src/pages/ministry/Dashboard.tsx`, `province/Dashboard.tsx` — NationalTargetsCard.
+- `src/pages/ministry/Provinces.tsx`, `ministry/Users.tsx`, `province/Districts.tsx`, `district/Schools.tsx` — real functionality.
+- `src/pages/school/Submit*.tsx` — wire `useDraft` + 100 KB guard.
+- `src/hooks/useSubmissions.ts` → React Query.
+- `src/hooks/useSubmissionActions.ts` — `sanitizeError`, optimistic update + undo.
 
-1. Phase 1 — bug fixes & consistency (small, fast).
-2. Phase 2 — real functionality on every page.
-3. Phase 3 — caching, drafts, prefetch, query persistence.
-4. Phase 4 — command palette + notifications + keyboard UX.
-5. Phase 5 — hardening, tests, security scan.
-6. Phase 6 — help + roadmap surfaces.
+---
 
-After your approval I'll start with Phase 1 + 2 in the first build pass (they have the most user-visible impact), then move into Phase 3–4.
+## Implementation Order
+
+1. **Performance pass** (fonts, cache, chunks, service worker) — biggest visible win.
+2. **NESP table + seed migration + Help page tab + NationalTargetsCard**.
+3. **Error boundaries + sanitizeError + 401 interceptor**.
+4. **React Query migration + draft autosave + filter memory**.
+5. **Real functionality on remaining placeholder pages**.
+6. **Final polish**: breadcrumbs, EmptyStates, ListSkeleton, optimistic undo.
+
+After all six steps the platform should hit Lighthouse mobile ≥90, have zero placeholder buttons, and surface NESP national targets directly to ministry/province users.
