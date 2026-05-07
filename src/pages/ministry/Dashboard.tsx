@@ -12,6 +12,7 @@ import { Map, School, Users, BarChart3, TrendingUp, CheckCircle2 } from 'lucide-
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { NationalTargetsCard } from '@/components/NationalTargetsCard';
 
 export default function MinistryDashboard() {
   const { isDemoMode } = useAuth();
