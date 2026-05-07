@@ -14,6 +14,7 @@ import { validateNumberRange, validateRequired } from '@/lib/validation';
 // Mock submission removed - using real submissions
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { sanitizeError } from '@/lib/sanitizeError';
+import { useDraft } from '@/hooks/useDraft';
 
 export default function SubmitStatistics() {
   const { user, profile, isDemoMode } = useAuth();
@@ -24,7 +25,7 @@ export default function SubmitStatistics() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
+  const initialForm = {
     academic_year: new Date().getFullYear().toString(),
     total_students: '',
     male_students: '',
@@ -32,7 +33,8 @@ export default function SubmitStatistics() {
     total_teachers: '',
     attendance_rate: '',
     notes: ''
-  });
+  };
+  const [formData, setFormData, clearDraft, hadDraft] = useDraft('school-statistics', initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
