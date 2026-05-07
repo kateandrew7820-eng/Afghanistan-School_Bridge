@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { canApprove, getVerificationQueueFilter } from '@/lib/verificationHierarchy';
@@ -108,7 +109,7 @@ export default function AdminSubmissions() {
     } catch (error) {
       toast({
         title: 'خطا',
-        description: error instanceof Error ? error.message : 'خطایی پیش آمد',
+        description: sanitizeError(error),
         variant: 'destructive'
       });
     } finally {

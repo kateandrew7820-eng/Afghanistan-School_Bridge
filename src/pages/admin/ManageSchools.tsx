@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -104,7 +105,7 @@ export default function ManageSchools() {
     if (error) {
       toast({
         title: "افزودن مکتب ناموفق",
-        description: error.message,
+        description: sanitizeError(error),
         variant: "destructive"
       });
       return;

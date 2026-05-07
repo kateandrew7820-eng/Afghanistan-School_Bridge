@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,7 +107,7 @@ export default function SubmitReports() {
       }
     } catch (err) {
       console.error('Error submitting report:', err);
-      const errorMsg = err instanceof Error ? err.message : 'خطایی نامعلوم رخ داد';
+      const errorMsg = sanitizeError(err);
       showErrorMessage(errorMsg, 'خطا در ارسال');
     } finally {
       setIsSubmitting(false);
