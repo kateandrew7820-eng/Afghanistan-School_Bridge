@@ -189,6 +189,51 @@ export type Database = {
           },
         ]
       }
+      nesp_reference: {
+        Row: {
+          baseline_value: number | null
+          category: string
+          created_at: string
+          id: string
+          metric_key: string
+          metric_label_fa: string
+          notes_fa: string | null
+          source_page: number | null
+          target_value: number | null
+          target_year: number | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          baseline_value?: number | null
+          category: string
+          created_at?: string
+          id?: string
+          metric_key: string
+          metric_label_fa: string
+          notes_fa?: string | null
+          source_page?: number | null
+          target_value?: number | null
+          target_year?: number | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          baseline_value?: number | null
+          category?: string
+          created_at?: string
+          id?: string
+          metric_key?: string
+          metric_label_fa?: string
+          notes_fa?: string | null
+          source_page?: number | null
+          target_value?: number | null
+          target_year?: number | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
