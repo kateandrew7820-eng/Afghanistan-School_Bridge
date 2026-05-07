@@ -377,12 +377,11 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <Suspense fallback={null}><CommandPalette /></Suspense>
             <SmartConfirmationDialog />
-            
 
             <AuthProvider>
               <BrowserRouter>
+                <Suspense fallback={null}><CommandPalette /></Suspense>
                 <AppRoutes />
               </BrowserRouter>
             </AuthProvider>
