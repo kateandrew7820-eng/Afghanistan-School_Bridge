@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -168,6 +168,7 @@ export function useSubmissions(opts: UseSubmissionsOptions = {}) {
     enabled: opts.enabled !== false,
     staleTime: 30_000, // 30s cache
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
 
   // ---------- realtime subscription ----------

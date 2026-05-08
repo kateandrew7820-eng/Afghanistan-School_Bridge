@@ -4,11 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeError } from '@/lib/sanitizeError';
-import { Users, CheckCircle2, XCircle, Clock, Shield } from 'lucide-react';
+import { Users, CheckCircle2, XCircle, Clock, Shield, Search } from 'lucide-react';
 
 const ROLE_LABELS: Record<string, string> = {
   student: 'شاگرد',
@@ -29,6 +30,7 @@ export default function MinistryUsers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
@@ -44,8 +46,13 @@ export default function MinistryUsers() {
   });
 
   const filtered = (profiles ?? []).filter(p => {
-    if (statusFilter === 'all') return true;
-    return p.status === statusFilter;
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const hay = `${p.full_name ?? ''} ${p.school_name ?? ''} ${p.district ?? ''} ${p.province ?? ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
   });
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
@@ -75,9 +82,13 @@ export default function MinistryUsers() {
         <p className="text-muted-foreground">تمام حساب‌های کاربری سیستم</p>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="جستجوی نام، مکتب، ولسوالی یا ولایت..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pr-10" />
+        </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="فیلتر وضعیت" />
           </SelectTrigger>
           <SelectContent>
@@ -87,7 +98,7 @@ export default function MinistryUsers() {
             <SelectItem value="rejected">رد شده</SelectItem>
           </SelectContent>
         </Select>
-        <Badge variant="secondary">{filtered.length} کاربر</Badge>
+        <Badge variant="secondary" className="self-center">{filtered.length} کاربر</Badge>
       </div>
 
       {isLoading ? (
