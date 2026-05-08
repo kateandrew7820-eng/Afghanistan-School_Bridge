@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import NavigationBackButton from '@/components/NavigationBackButton';
@@ -104,7 +105,7 @@ export default function MinistryLayout({ children }: MinistryLayoutProps) {
 
       <main className="lg:mr-64 pt-14 min-h-screen" role="main">
         <div className="p-4 lg:p-6">
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </main>
     </div>

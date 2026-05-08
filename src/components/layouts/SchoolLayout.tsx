@@ -1,4 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import NavigationBackButton from '@/components/NavigationBackButton';
 import { useAuth } from '@/contexts/AuthContext';
@@ -141,7 +142,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
             </Button>
           </div>
         )}
-        <div className="p-3 sm:p-4 lg:p-6">{children}</div>
+        <div className="p-3 sm:p-4 lg:p-6"><ErrorBoundary>{children}</ErrorBoundary></div>
       </main>
 
       <ProfileCompletionModal isOpen={showProfileModal} onClose={handleProfileModalClose} />
