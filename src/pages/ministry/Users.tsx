@@ -4,11 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeError } from '@/lib/sanitizeError';
-import { Users, CheckCircle2, XCircle, Clock, Shield } from 'lucide-react';
+import { Users, CheckCircle2, XCircle, Clock, Shield, Search } from 'lucide-react';
 
 const ROLE_LABELS: Record<string, string> = {
   student: 'شاگرد',
@@ -29,6 +30,7 @@ export default function MinistryUsers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
@@ -44,8 +46,13 @@ export default function MinistryUsers() {
   });
 
   const filtered = (profiles ?? []).filter(p => {
-    if (statusFilter === 'all') return true;
-    return p.status === statusFilter;
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const hay = `${p.full_name ?? ''} ${p.school_name ?? ''} ${p.district ?? ''} ${p.province ?? ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
   });
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
