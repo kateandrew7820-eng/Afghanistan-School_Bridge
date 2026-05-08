@@ -15,11 +15,11 @@
 
 // ⚠️ TEMPORARY TEST MODE FLAG
 // Set to false to restore normal hierarchical approval
-export const TEMPORARY_TEST_MODE = true;
+export const TEMPORARY_TEST_MODE = false;
 
-// Global confirmer email for test mode
-// This person approves ALL new users regardless of role
-export const GLOBAL_CONFIRMER_EMAIL = 'masoudsalik2024@gmail.com';
+// Global confirmer email removed for production.
+// Approval flow now uses the hierarchical chain in verificationHierarchy.ts
+export const GLOBAL_CONFIRMER_EMAIL = '';
 
 // Pending status expiry in hours
 export const PENDING_EXPIRY_HOURS = 24;
