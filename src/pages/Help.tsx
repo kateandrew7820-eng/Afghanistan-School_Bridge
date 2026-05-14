@@ -1,8 +1,41 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen, KeyRound, Layers, ShieldCheck, Sparkles, FileText, Download } from 'lucide-react';
+
+const FAQ_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "نقش مکتب در سیستم چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "مکتب (معلم/مدیر) مسئول ارسال آمار، گزارش‌ها و فورم‌ها به سیستم است." }
+    },
+    {
+      "@type": "Question",
+      "name": "نقش ولسوالی چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "ولسوالی مسئول ثبت مکاتب جدید و بررسی، تأیید یا رد ارسال‌های مکاتب است." }
+    },
+    {
+      "@type": "Question",
+      "name": "نقش ولایت چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "ولایت تأیید نهایی مکاتب، تحلیل ولسوالی‌ها و تأیید ارسال‌ها را انجام می‌دهد." }
+    },
+    {
+      "@type": "Question",
+      "name": "نقش وزارت معارف چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "وزارت مسئول نظارت ملی، خروجی‌گیری و مدیریت کاربران و نقش‌ها است." }
+    },
+    {
+      "@type": "Question",
+      "name": "امنیت داده‌ها چگونه تأمین می‌شود؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "تمامی داده‌ها با Row-Level Security محافظت می‌شوند. کاربران فقط داده‌های مربوط به ولسوالی/ولایت خود را می‌بینند." }
+    }
+  ]
+};
 
 const NESP_PDF = '/docs/National-Education-Strategic-Plan-for-Afghanistan.pdf';
 
@@ -11,6 +44,15 @@ export default function Help() {
 
   return (
     <div className="min-h-screen bg-background py-10 px-4" dir="rtl">
+      <Helmet>
+        <title>راهنما | پل آموزش افغانستان</title>
+        <meta name="description" content="راهنمای استفاده از پورتال داده‌های مکاتب افغانستان: نقش‌ها، گردش کار، میانبرها، امنیت و پلان ستراتیژی معارف." />
+        <link rel="canonical" href="https://schoolbridge-afg.lovable.app/help" />
+        <meta property="og:title" content="راهنما | پل آموزش افغانستان" />
+        <meta property="og:description" content="راهنمای استفاده از پورتال داده‌های مکاتب افغانستان." />
+        <meta property="og:url" content="https://schoolbridge-afg.lovable.app/help" />
+        <script type="application/ld+json">{JSON.stringify(FAQ_JSONLD)}</script>
+      </Helmet>
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="h-6 w-6" />راهنما</h1>
