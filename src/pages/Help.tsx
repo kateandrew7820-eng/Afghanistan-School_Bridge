@@ -44,6 +44,15 @@ export default function Help() {
 
   return (
     <div className="min-h-screen bg-background py-10 px-4" dir="rtl">
+      <Helmet>
+        <title>راهنما | پل آموزش افغانستان</title>
+        <meta name="description" content="راهنمای استفاده از پورتال داده‌های مکاتب افغانستان: نقش‌ها، گردش کار، میانبرها، امنیت و پلان ستراتیژی معارف." />
+        <link rel="canonical" href="https://schoolbridge-afg.lovable.app/help" />
+        <meta property="og:title" content="راهنما | پل آموزش افغانستان" />
+        <meta property="og:description" content="راهنمای استفاده از پورتال داده‌های مکاتب افغانستان." />
+        <meta property="og:url" content="https://schoolbridge-afg.lovable.app/help" />
+        <script type="application/ld+json">{JSON.stringify(FAQ_JSONLD)}</script>
+      </Helmet>
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="h-6 w-6" />راهنما</h1>
