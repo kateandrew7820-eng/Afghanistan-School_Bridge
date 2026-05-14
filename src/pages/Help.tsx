@@ -1,8 +1,41 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BookOpen, KeyRound, Layers, ShieldCheck, Sparkles, FileText, Download } from 'lucide-react';
+
+const FAQ_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "نقش مکتب در سیستم چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "مکتب (معلم/مدیر) مسئول ارسال آمار، گزارش‌ها و فورم‌ها به سیستم است." }
+    },
+    {
+      "@type": "Question",
+      "name": "نقش ولسوالی چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "ولسوالی مسئول ثبت مکاتب جدید و بررسی، تأیید یا رد ارسال‌های مکاتب است." }
+    },
+    {
+      "@type": "Question",
+      "name": "نقش ولایت چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "ولایت تأیید نهایی مکاتب، تحلیل ولسوالی‌ها و تأیید ارسال‌ها را انجام می‌دهد." }
+    },
+    {
+      "@type": "Question",
+      "name": "نقش وزارت معارف چیست؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "وزارت مسئول نظارت ملی، خروجی‌گیری و مدیریت کاربران و نقش‌ها است." }
+    },
+    {
+      "@type": "Question",
+      "name": "امنیت داده‌ها چگونه تأمین می‌شود؟",
+      "acceptedAnswer": { "@type": "Answer", "text": "تمامی داده‌ها با Row-Level Security محافظت می‌شوند. کاربران فقط داده‌های مربوط به ولسوالی/ولایت خود را می‌بینند." }
+    }
+  ]
+};
 
 const NESP_PDF = '/docs/National-Education-Strategic-Plan-for-Afghanistan.pdf';
 

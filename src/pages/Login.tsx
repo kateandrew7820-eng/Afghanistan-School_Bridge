@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { School, Building2, Loader2, AlertCircle, Zap, CheckCircle2, Eye, EyeOff, ArrowLeft, Lock, Mail, User, Play, ShieldCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 // ============================================================================
 // PASSWORD STRENGTH
@@ -185,6 +186,14 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10" dir="rtl">
+      <Helmet>
+        <title>ورود | پل آموزش افغانستان</title>
+        <meta name="description" content="ورود یا ایجاد حساب در پورتال داده‌های مکاتب افغانستان برای نقش‌های مکتب، ولسوالی، ولایت و وزارت معارف." />
+        <link rel="canonical" href="https://schoolbridge-afg.lovable.app/login" />
+        <meta property="og:title" content="ورود | پل آموزش افغانستان" />
+        <meta property="og:description" content="ورود یا ایجاد حساب در پورتال داده‌های مکاتب افغانستان." />
+        <meta property="og:url" content="https://schoolbridge-afg.lovable.app/login" />
+      </Helmet>
       {/* Background decoration */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl" />
