@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -95,6 +96,14 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+      <Helmet>
+        <title>پل آموزش افغانستان — پورتال داده‌های مکاتب</title>
+        <meta name="description" content="پورتال دیجیتال داده‌های مکاتب افغانستان؛ یکپارچه‌سازی آمار، گزارش‌ها و فورم‌ها از مکتب تا وزارت معارف." />
+        <link rel="canonical" href="https://schoolbridge-afg.lovable.app/" />
+        <meta property="og:title" content="پل آموزش افغانستان — پورتال داده‌های مکاتب" />
+        <meta property="og:description" content="پورتال دیجیتال داده‌های مکاتب افغانستان؛ یکپارچه‌سازی آمار، گزارش‌ها و فورم‌ها از مکتب تا وزارت معارف." />
+        <meta property="og:url" content="https://schoolbridge-afg.lovable.app/" />
+      </Helmet>
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-background/80 via-card/70 to-background/80 backdrop-blur-xl">
