@@ -1,0 +1,16 @@
+# SchoolBridge Afghanistan (پل آموزش افغانستان)
+
+> Digital data portal for Afghanistan's schools — connecting teachers, principals, district, province, and ministry tiers to digitize and submit education statistics, reports, and forms to the central Ministry of Education.
+
+The platform replaces paper-based data transfer with a hierarchical, role-based system. Schools submit statistics; districts and provinces verify and approve; the ministry oversees the national rollup. UI is in Dari (Persian) with full RTL support.
+
+## Pages
+
+- [Home](/): Overview of the portal, mission, and national education statistics.
+- [Login](/login): Sign in or create an account for school, district, province, or ministry roles.
+- [Afghanistan Info](/afghanistan-info): Background on Afghanistan's education system and the portal's national context.
+- [Demo](/demo): Interactive demo of the portal's hierarchical workflow.
+
+## Optional
+
+- [Reset Password](/reset-password): Account password reset flow.
