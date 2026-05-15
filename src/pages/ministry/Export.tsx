@@ -52,7 +52,7 @@ export default function MinistryExport() {
     } finally { setExporting(false); }
   };
 
-  const exportXlsx = () => {
+  const exportXlsx = async () => {
     setExporting(true);
     try {
       const grouped = {
@@ -71,7 +71,7 @@ export default function MinistryExport() {
           شناسه: s.id, ولایت: s.province ?? '', ولسوالی: s.district ?? '', تاریخ: s.created_at,
         })),
       };
-      exportToXlsx(`SchoolBridge-${new Date().toISOString().slice(0, 10)}.xlsx`, grouped);
+      await exportToXlsx(`SchoolBridge-${new Date().toISOString().slice(0, 10)}.xlsx`, grouped);
       toast({ title: 'موفقیت', description: 'فایل Excel دانلود شد' });
     } finally { setExporting(false); }
   };
