@@ -52,7 +52,7 @@ export default function MinistryExport() {
     } finally { setExporting(false); }
   };
 
-  const exportXlsx = () => {
+  const exportXlsx = async () => {
     setExporting(true);
     try {
       const grouped = {
