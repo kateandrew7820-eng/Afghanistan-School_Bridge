@@ -54,7 +54,7 @@ export default function Roadmap() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }
