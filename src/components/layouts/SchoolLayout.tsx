@@ -20,7 +20,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
   const { profile } = useAuth();
   const location = useLocation();
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [cmdOpen, setCmdOpen] = useState(false);
+  const [, setCmdOpen] = useState(false);
   const { isCompleted, loading } = useProfileCompletion();
 
   useEffect(() => {
