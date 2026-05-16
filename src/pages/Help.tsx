@@ -126,7 +126,7 @@ export default function Help() {
             <p>• به‌روزرسانی لحظه‌ای ارسال‌ها.</p>
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }
