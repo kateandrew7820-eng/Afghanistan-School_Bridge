@@ -12,5 +12,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /test-buttons
 
 Sitemap: https://schoolbridge-afg.lovable.app/sitemap.xml

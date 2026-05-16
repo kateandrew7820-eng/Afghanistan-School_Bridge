@@ -4,4 +4,10 @@
   <url><loc>https://schoolbridge-afg.lovable.app/login</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://schoolbridge-afg.lovable.app/afghanistan-info</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://schoolbridge-afg.lovable.app/demo</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://schoolbridge-afg.lovable.app/help</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://schoolbridge-afg.lovable.app/roadmap</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://schoolbridge-afg.lovable.app/reset-password</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://schoolbridge-afg.lovable.app/setup-profile</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://schoolbridge-afg.lovable.app/pending-verification</loc><changefreq>yearly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://schoolbridge-afg.lovable.app/auth/callback</loc><changefreq>yearly</changefreq><priority>0.1</priority></url>
 </urlset>
