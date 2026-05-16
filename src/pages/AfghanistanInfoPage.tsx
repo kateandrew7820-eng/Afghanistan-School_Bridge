@@ -87,6 +87,14 @@ export default function AfghanistanInfoPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+      <Helmet>
+        <title>درباره معارف افغانستان | پل آموزش</title>
+        <meta name="description" content="آمار ملی معارف افغانستان: ۳۴ ولایت، ۴۲۱ ولسوالی، بیش از ۱۸٬۰۰۰ مکتب، ۱۱.۷ میلیون شاگرد و ۲۲۰٬۰۰۰ معلم در یک نگاه." />
+        <link rel="canonical" href="https://schoolbridge-afg.lovable.app/afghanistan-info" />
+        <meta property="og:title" content="درباره معارف افغانستان | پل آموزش" />
+        <meta property="og:description" content="آمار ملی معارف افغانستان: ولایت‌ها، ولسوالی‌ها، مکاتب، شاگردان و معلمان در یک نگاه." />
+        <meta property="og:url" content="https://schoolbridge-afg.lovable.app/afghanistan-info" />
+      </Helmet>
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
