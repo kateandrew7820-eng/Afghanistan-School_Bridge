@@ -71,7 +71,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         onClose={() => { setShowProfileModal(false); localStorage.removeItem('setupProfileCompleted'); }}
       />
       <Suspense fallback={null}>
-        {cmdOpen && <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />}
+        <CommandPalette />
       </Suspense>
     </>
   );
