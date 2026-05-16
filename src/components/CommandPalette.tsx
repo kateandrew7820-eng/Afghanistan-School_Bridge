@@ -54,8 +54,13 @@ export function CommandPalette() {
         setOpen(o => !o);
       }
     };
+    const onOpenEvent = () => setOpen(true);
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    window.addEventListener('open-command-palette', onOpenEvent);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('open-command-palette', onOpenEvent);
+    };
   }, []);
 
   const visible = ITEMS.filter(i => i.tier === 'all' || i.tier === roleTier);
