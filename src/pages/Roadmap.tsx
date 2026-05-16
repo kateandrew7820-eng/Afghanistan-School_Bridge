@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle2, Circle, Loader2 } from 'lucide-react';
 
@@ -23,7 +24,15 @@ const icon = (s: string) => s === 'done' ? <CheckCircle2 className="h-4 w-4 text
 export default function Roadmap() {
   return (
     <div className="min-h-screen bg-background py-10 px-4" dir="rtl">
-      <div className="max-w-3xl mx-auto space-y-6">
+      <Helmet>
+        <title>نقشه راه محصول | پل آموزش افغانستان</title>
+        <meta name="description" content="نقشه راه پورتال داده‌های مکاتب افغانستان: ویژگی‌های منتشر شده، در حال انجام و برنامه‌ریزی‌شده مانند PWA آفلاین و پشتیبانی پشتو." />
+        <link rel="canonical" href="https://schoolbridge-afg.lovable.app/roadmap" />
+        <meta property="og:title" content="نقشه راه محصول | پل آموزش افغانستان" />
+        <meta property="og:description" content="ویژگی‌های منتشر شده، در حال انجام و برنامه‌ریزی‌شده پورتال داده‌های مکاتب افغانستان." />
+        <meta property="og:url" content="https://schoolbridge-afg.lovable.app/roadmap" />
+      </Helmet>
+      <main className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">نقشه راه</h1>
           <Link to="/"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 ml-1" />بازگشت</Button></Link>
@@ -45,7 +54,7 @@ export default function Roadmap() {
             ))}
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }
