@@ -53,7 +53,7 @@ export default function Help() {
         <meta property="og:url" content="https://schoolbridge-afg.lovable.app/help" />
         <script type="application/ld+json">{JSON.stringify(FAQ_JSONLD)}</script>
       </Helmet>
-      <div className="max-w-3xl mx-auto space-y-6">
+      <main className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="h-6 w-6" />راهنما</h1>
           <Link to="/"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 ml-1" />بازگشت</Button></Link>
