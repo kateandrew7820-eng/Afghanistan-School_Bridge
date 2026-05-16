@@ -62,7 +62,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         }}
         scopeChip={<ScopeChip levels={[profile?.province, profile?.district]} />}
         groups={groups}
-        onOpenCommand={() => setCmdOpen(true)}
+        onOpenCommand={openCommand}
       >
         {children}
       </RoleLayout>
