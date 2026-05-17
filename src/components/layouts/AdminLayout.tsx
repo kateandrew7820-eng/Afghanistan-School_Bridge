@@ -1,11 +1,10 @@
-import { ReactNode, lazy, Suspense } from 'react';
+import { ReactNode } from 'react';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import RoleLayout, { NavGroup } from './RoleLayout';
 import {
   LayoutDashboard, BarChart3, Bell, FileUp, Calendar, School, Shield,
 } from 'lucide-react';
 
-const CommandPalette = lazy(() => import('@/components/CommandPalette').then(m => ({ default: m.CommandPalette })));
 
 interface Props { children: ReactNode; }
 
@@ -43,7 +42,6 @@ export default function AdminLayout({ children }: Props) {
       >
         {children}
       </RoleLayout>
-      <Suspense fallback={null}><CommandPalette /></Suspense>
     </>
   );
 }
