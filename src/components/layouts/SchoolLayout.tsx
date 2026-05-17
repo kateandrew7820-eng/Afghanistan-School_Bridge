@@ -70,9 +70,6 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         isOpen={showProfileModal}
         onClose={() => { setShowProfileModal(false); localStorage.removeItem('setupProfileCompleted'); }}
       />
-      <Suspense fallback={null}>
-        <CommandPalette />
-      </Suspense>
     </>
   );
 }
