@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, lazy, Suspense } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
@@ -11,7 +11,7 @@ import {
   Bell, FileDown, Calendar, School,
 } from 'lucide-react';
 
-const CommandPalette = lazy(() => import('@/components/CommandPalette').then(m => ({ default: m.CommandPalette })));
+
 
 interface SchoolLayoutProps { children: ReactNode; }
 
@@ -70,9 +70,6 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         isOpen={showProfileModal}
         onClose={() => { setShowProfileModal(false); localStorage.removeItem('setupProfileCompleted'); }}
       />
-      <Suspense fallback={null}>
-        <CommandPalette />
-      </Suspense>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { ReactNode, lazy, Suspense } from 'react';
+import { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import RoleLayout, { NavGroup } from './RoleLayout';
@@ -8,7 +8,6 @@ import {
   School, CheckSquare, MapPin,
 } from 'lucide-react';
 
-const CommandPalette = lazy(() => import('@/components/CommandPalette').then(m => ({ default: m.CommandPalette })));
 
 interface Props { children: ReactNode; }
 
@@ -58,7 +57,6 @@ export default function DistrictLayout({ children }: Props) {
       >
         {children}
       </RoleLayout>
-      <Suspense fallback={null}><CommandPalette /></Suspense>
     </>
   );
 }
