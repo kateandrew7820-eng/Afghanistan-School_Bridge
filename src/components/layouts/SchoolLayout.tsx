@@ -11,7 +11,7 @@ import {
   Bell, FileDown, Calendar, School,
 } from 'lucide-react';
 
-const CommandPalette = lazy(() => import('@/components/CommandPalette').then(m => ({ default: m.CommandPalette })));
+
 
 interface SchoolLayoutProps { children: ReactNode; }
 
