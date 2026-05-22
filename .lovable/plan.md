@@ -1,148 +1,134 @@
+# Platform Development Plan — Full Execution
 
-# Professional Modernization Plan
+Goal: take the Afghanistan Schools Data Portal from "functional but basic" to a polished, ministry-grade product. Five phases, each independently shippable. Decisions already made:
 
-Goal: take the portal from "functional but basic" to a polished, native-feeling ministry-grade product. Work is grouped into 5 phases so you can ship value incrementally and stop at any phase.
+- Execute all 5 phases sequentially.
+- Submission UX: merge the 3 school submit pages into a single `/school/submit` workspace with tabs and a shared draft pane.
+- Approval workflow: full chained approval **school → district → province → ministry** (every stage required), with "request changes" sending it back.
+- Add `@tanstack/react-table` for the shared DataTable.
 
 ---
 
-## Phase 1 — Information Architecture & Navigation (the "where things live" pass)
+## Phase 1 — Information Architecture & Shell
 
-Today every role has a flat sidebar of 6–8 links with no grouping, no context, and dashboards that mostly re-list links. We restructure the IA so each role has a real workspace.
+Foundation. No business-logic changes, only layout and routing structure.
 
-**New layout shell (all 5 roles)**
-- Persistent right-side rail split into 3 sections: **کار من** (action items), **داده‌ها** (browsing), **مدیریت** (admin/settings).
-- Top bar gets: command palette (⌘K, already exists — promote it), global search, notifications bell, profile menu with role badge, and a context switcher for ministry/province users (province → district drill).
-- Replace the static page-title in the header with a real breadcrumb (`Breadcrumb.tsx` already exists, not wired everywhere).
-- Add a compact "current scope" chip (e.g. `ولایت کابل ← ولسوالی بگرام`) so multi-tier users always know what data they're looking at.
-
-**Role-specific IA**
-- **School**: collapse 3 separate "Submit*" pages into one `/school/submit` workspace with a left tab rail (Statistics / Reports / Forms) and a shared draft pane. The current 3-pages model forces re-navigation and loses context.
-- **District**: merge `Submissions` + `VerifyData` into a single **Verification Inbox** with filters (status, type, school, date). Today `VerifyData` is 43 lines and duplicates Submissions logic.
-- **Province**: dedicated **Districts → Schools** drill view with a map-style breadcrumb scope.
-- **Ministry**: add a **National Overview** as the dashboard (KPIs + NESP progress + heatmap) and move the link grid to a secondary `/ministry/tools` page.
-- **Admin**: split `Submissions.tsx` (currently 400+ lines, three tabs, inline dialogs) into route-based tabs with shared `<VerificationInbox>` component reused by district/province/ministry.
-
-**Routing & guards**
-- Centralize role-guarded routes in a `RouteGuard` component (currently inline per-route).
-- Add `/inbox` and `/profile` as global routes available to every role.
+- Promote `RoleLayout` to a true 3-section grouped sidebar across all 5 roles: **کار من / داده‌ها / مدیریت**. Already partially done — finish School, District, Province, Ministry, Admin.
+- Top bar: real `Breadcrumb` wired everywhere, scope chip (e.g. `ولایت کابل ← ولسوالی بگرام`) for multi-tier users, notifications bell (placeholder count), profile menu with role badge, ⌘K command palette trigger already wired.
+- Add global routes `/inbox` and `/profile` available to every role.
+- Centralize role-guarded routing in a single `<RouteGuard role="…">` wrapper instead of inline checks per-route in `App.tsx`.
+- IA changes per role:
+  - **School**: replace `/school/statistics`, `/school/reports`, `/school/forms` with a single `/school/submit` workspace using a tab rail (statistics | reports | forms) and a shared draft pane. Old URLs redirect to the new workspace with the correct tab pre-selected.
+  - **District**: merge `Submissions` + `VerifyData` into `/district/inbox` (the shared Verification Inbox).
+  - **Province**: dedicated **Districts → Schools** drill page with breadcrumb scope.
+  - **Ministry**: `Dashboard` becomes the National Overview (KPIs + NESP progress + heatmap). Existing tool links move to `/ministry/tools`.
+  - **Admin**: split the 400-line `admin/Submissions.tsx` into route-based tabs reusing the shared `<VerificationInbox>`.
 
 ---
 
 ## Phase 2 — Workspaces & Data-First Dashboards
 
-Dashboards today are stat cards + a recent list + an "open more" link. We make them actually useful.
+Make dashboards actually useful instead of stat-card + link-grid pages.
 
-**Dashboard pattern (apply to all 5 roles)**
-- Hero band: 4 KPI cards with **trend deltas** (vs last month, sparkline) — not just static numbers.
-- "Action required" panel: pending items the user can act on, with **inline approve/reject** (no navigation).
-- Activity timeline (last 10 events: submissions, approvals, comments).
-- Role-specific insight widget:
-  - School → submission completeness ring + next deadline countdown
-  - District → schools-without-submission list + on-time rate
-  - Province → district leaderboard + provincial completion %
-  - Ministry → national heatmap (provinces colored by completion) + NESP progress
-- Empty states use `EmptyState.tsx` consistently with primary CTA.
-
-**Verification Inbox (shared component)**
-- Master/detail layout: left = filterable list, right = full submission detail with history, attachments, comments.
-- Bulk actions (select many → approve/reject with one reason).
-- Keyboard shortcuts: `j/k` navigate, `a` approve, `r` reject, `/` focus search.
-- Status timeline ("submitted → district approved → province approved → ministry") visualized as a horizontal stepper.
-- Optimistic updates with 5-second undo toast (already planned in `.lovable/plan.md`).
-
-**Data tables**
-- Replace ad-hoc card grids on list pages (`Schools.tsx`, `Provinces.tsx`, `Users.tsx`) with a real `<DataTable>` built on `@tanstack/react-table`: sortable columns, column visibility, server-side pagination, sticky header, density toggle, CSV export, RTL-aware.
-- Persistent filters via URL search params (shareable links + back-button restores state).
+- Dashboard pattern applied to all 5 roles:
+  - Hero band: 4 `<KpiCard>` with trend delta vs last month and a recharts sparkline (lazy-loaded).
+  - "Action required" panel: pending items with inline approve/reject (no navigation).
+  - Activity timeline (last 10 events).
+  - Role-specific insight widget:
+    - School → submission completeness ring + next deadline countdown.
+    - District → schools-without-submission list + on-time rate.
+    - Province → district leaderboard + provincial completion %.
+    - Ministry → national heatmap by province + NESP progress.
+- **Verification Inbox** (one shared component, reused by District / Province / Ministry / Admin):
+  - Master/detail layout. Filters: status, type, school, date — persisted in URL search params.
+  - Bulk select → bulk approve/reject with a single reason.
+  - Keyboard shortcuts: `j/k` navigate, `a` approve, `r` reject, `/` focus search.
+  - Multi-stage status visualized with the existing `<Stepper>`.
+  - Optimistic updates with 5-second undo toast.
+- **DataTable** (`@tanstack/react-table`) replaces ad-hoc card grids on `Schools`, `Provinces`, `Users`: sortable, column visibility, density toggle, sticky header, CSV export, RTL-aware, server-paginated.
 
 ---
 
-## Phase 3 — Submission & Verification Workflow (the core product)
+## Phase 3 — Submission & Multi-Stage Verification Workflow
 
-Current submit pages are basic forms; verification is a yes/no toggle. Make this a real workflow.
+Core product value. Requires DB additions.
 
-**Submission UX**
-- Multi-step wizard with progress (`SignupProgress` exists, generalize it): Type → Period → Fill → Review → Submit.
-- Auto-save drafts every 1s using `useDraft` (already exists, not wired into the submit pages — `.lovable/plan.md` flagged this).
-- Field-level inline validation with Dari error messages right-aligned.
-- File uploads with chunked upload, drag-drop, preview thumbnails, retry on failure (`FileUploadProgress.tsx` exists, integrate).
-- A "compare to previous submission" diff view before final submit.
-- After submit: confirmation screen with submission ID, expected review time, and "track status" link.
+**Submission workspace** (`/school/submit`):
+- 5-step wizard: Type → Period → Fill → Review → Submit. Reuse `SignupProgress` styling.
+- Auto-save drafts every 1s via the existing `useDraft` hook.
+- Field-level inline Dari validation right-aligned per the form standard.
+- File uploads via `FileUploadProgress` (drag-drop, retries, thumbnails).
+- "Compare to previous submission" diff before final submit.
+- Confirmation screen with submission ID, expected review time, and "track status" link.
 
-**Verification workflow**
-- Multi-stage approval matrix matching the 5-tier model: school → district → province → ministry. Each stage records actor + timestamp + comment, all visible in the detail timeline.
-- Reviewer can request changes (sends back to school with comments instead of binary reject).
-- Comment threads on each submission (internal-only or visible to submitter).
-- Audit log table per submission (immutable history of every state change).
+**Chained approval workflow** (school → district → province → ministry):
+- Each stage records actor + timestamp + comment, all visible in a detail timeline.
+- Any stage can "request changes" → submission goes back to school with reviewer comments instead of binary reject.
+- Comment threads per submission (internal-only OR visible to submitter).
+- Immutable audit log per submission.
+
+**DB additions (one migration)**:
+- New enum `review_stage` with values: `submitted`, `district_approved`, `province_approved`, `ministry_approved`, `changes_requested`, `rejected`.
+- `current_stage` column on `statistics_submissions`, `report_submissions`, `form_submissions` (replaces the basic `status` string for workflow, keep `status` for backward compat as a derived field via trigger).
+- `submission_events` table: `submission_id`, `submission_type` (stats/report/form), `actor_id`, `action`, `comment`, `created_at`. Append-only, RLS aligned with existing geographic policies.
+- `submission_comments` table: threaded, RLS via `is_admin()` + `get_user_district()` / `get_user_province()` / `get_user_school_id()`.
+- Stage-transition RLS: e.g. district admin can move `submitted → district_approved` only for own district; province admin only when `current_stage = district_approved`; ministry only when `current_stage = province_approved`.
 
 ---
 
-## Phase 4 — Design System Polish (the "native, premium" feel)
+## Phase 4 — Design System Polish
 
-Project memory says light theme, Roboto/Montserrat, RTL, low-end Android. Within those constraints we still upgrade fidelity significantly.
+Within existing constraints (light theme, Roboto/Montserrat, no heavy transitions).
 
-**Tokens & components**
-- Audit `index.css` to ensure every surface uses semantic tokens: `--surface-1`, `--surface-2`, `--border-subtle`, `--text-muted`, `--state-success/warning/danger/info` + `-bg` variants. Find/replace any leftover hardcoded `bg-gray-50`, `text-yellow-800` etc. (grep shows ~15 spots in `admin/Submissions.tsx`).
-- Define a single elevation scale (xs/sm/md) and apply consistently — current cards mix `shadow-sm`, `shadow-md`, and no shadow.
-- Unify radii: `rounded-lg` for inputs/buttons, `rounded-xl` for cards, `rounded-2xl` for hero surfaces. Currently mixed.
-- Type scale: heading sizes (`text-2xl` everywhere now) → use a documented scale `text-display / text-h1 / text-h2 / text-body / text-small`.
-
-**Components to upgrade**
-- `Badge` variants for each status (`pending`, `approved`, `rejected`, `under_review`, `changes_requested`) with icon + Dari label baked in. One source of truth in `statusConfig.ts`.
-- New `<KpiCard>` with optional trend, sparkline (recharts, lazy), and click target.
-- New `<Timeline>` for activity/audit.
-- New `<DetailDrawer>` (slide-in right panel) so list→detail doesn't force navigation.
-- New `<Stepper>` for multi-stage status visualization.
-- `Toast` redesign: action toasts (with undo button), grouped by type, max 3 visible.
-
-**Micro-interactions (respecting the no-heavy-transitions rule)**
-- Subtle 150ms ease-out for state changes only (hover, focus, status change). No ripples, no parallax.
-- Skeleton loaders match the real layout (`ListSkeleton` planned in `.lovable/plan.md`).
-- Focus rings: 2px primary, visible, accessible.
-
-**RTL polish**
-- Audit every `ml-`/`mr-` and replace with logical `ms-`/`me-` (Tailwind logical utilities) for true RTL/LTR support — future Pashto/English readiness.
-- Icon mirroring for directional icons (arrows, chevrons) handled in one helper.
+- Token audit in `index.css` and `tailwind.config.ts`: ensure semantic tokens for every surface (`--surface-1/2`, `--border-subtle`, `--text-muted`, `--state-success/warning/danger/info` + `-bg`). Find/replace remaining hardcoded colors (~15 spots in `admin/Submissions.tsx`).
+- Single elevation scale (xs/sm/md) and unified radii (`rounded-lg` inputs/buttons, `rounded-xl` cards, `rounded-2xl` hero).
+- Documented type scale: `text-display / text-h1 / text-h2 / text-body / text-small`.
+- Component upgrades:
+  - `Badge` variants per status with icon + Dari label baked in (single source of truth in `statusConfig.ts`).
+  - `<KpiCard>` with trend + sparkline.
+  - `<Timeline>` (activity/audit).
+  - `<DetailDrawer>` slide-in right panel.
+  - `<Stepper>` for stage visualization (already exists, generalize).
+  - `Toast` redesign with undo button, grouped by type, max 3 visible.
+- RTL polish: replace every `ml-`/`mr-` with logical `ms-`/`me-`. One helper for directional icon mirroring.
+- Micro-interactions: 150ms ease-out for hover/focus/status only. No ripples, no parallax. Skeleton loaders match real layout.
 
 ---
 
 ## Phase 5 — Performance, Quality, Observability
 
-- Wire all of `.lovable/plan.md` Phase 2 performance fixes (fonts, chunks, cache headers) — already documented, just execute.
-- Migrate remaining `useState + useEffect` data fetches to React Query (`useSubmissions` already partially done) for cache + back-nav instant restore.
+- Execute the already-documented perf fixes (fonts, chunks, cache headers).
+- Migrate remaining `useState + useEffect` data fetches to React Query.
 - Per-route `ErrorBoundary` with friendly Dari retry card.
 - Global 401 interceptor → redirect to login with "session expired" toast.
 - Lighthouse target: mobile ≥ 90 across all 5 role dashboards.
-- Add an in-app feedback widget (small button in top bar) writing to a `feedback` table.
+- In-app feedback widget (top-bar button) writing to a `feedback` table.
 
 ---
 
 ## Suggested Order of Implementation
 
 ```text
-1. Phase 1 (IA + layout shell + breadcrumbs + role guards)        ~ foundation
-2. Phase 4 partial (tokens, KpiCard, Badge, Stepper, DetailDrawer)  ~ unlock UI
-3. Phase 2 (dashboards + Verification Inbox + DataTable)           ~ visible win
-4. Phase 3 (submission wizard + multi-stage workflow + audit log)  ~ core value
-5. Phase 4 remaining (RTL audit, micro-interactions, toasts)       ~ polish
-6. Phase 5 (perf + React Query + error handling + Lighthouse)      ~ ship-ready
+1. Phase 1 — IA, shell, RouteGuard, /school/submit redirects     ~ foundation
+2. Phase 4 partial — tokens, KpiCard, Badge, Stepper, Drawer      ~ unlocks UI
+3. Phase 2 — dashboards + Verification Inbox + DataTable          ~ visible win
+4. Phase 3 — submission wizard + chained workflow + audit log     ~ core value
+5. Phase 4 remaining — RTL audit, micro-interactions, toasts      ~ polish
+6. Phase 5 — perf + React Query + error handling + Lighthouse     ~ ship-ready
 ```
-
-Each phase is independently shippable. Phase 1+2 alone already make the product feel like a different app.
 
 ---
 
 ## Technical Notes
 
-- New deps: `@tanstack/react-table` (DataTable). Recharts already present (sparklines).
-- DB additions for Phase 3: `submission_events` (audit log: submission_id, actor_id, action, comment, created_at), `submission_comments` (threaded), and a `review_stage` enum column on each submissions table. Provide via one migration with RLS aligned to the existing `is_admin()` + geographic policies.
-- No new external services. Lovable Cloud only.
+- New deps: `@tanstack/react-table`. Recharts already present (sparklines).
+- DB: one migration in Phase 3 adds `review_stage` enum, `current_stage` columns, `submission_events`, `submission_comments`, plus stage-transition RLS aligned with `is_admin()`, `has_role()`, `get_user_district()`, `get_user_province()`, `get_user_school_id()`.
 - Reuse existing: `useDraft`, `useFileUpload`, `useRecentItems`, `CommandPalette`, `Breadcrumb`, `EmptyState`, `ErrorBoundary`, `sanitizeError`, `verificationHierarchy`.
-- Out of scope (per project memory): "coming soon" features, dark mode, role storage on profiles table.
+- All UI remains Dari + RTL. DB statuses stay English (`submitted`, `district_approved`, …).
+- Out of scope per project memory: "coming soon" features, dark mode, role storage on profiles.
 
 ---
 
-## Open Questions (answer before I start building)
+## Starting Point
 
-1. **Scope to start with**: do you want me to execute all 5 phases sequentially, or ship Phase 1+2 first and review before continuing?
-2. **Submission wizard**: keep current 3 separate submit pages but upgrade each, or fully merge into the unified `/school/submit` workspace I described?
-3. **Multi-stage approval**: should approval truly require all 4 stages (school→district→province→ministry), or is it currently just "district OR province OR ministry approves"? This changes the DB design in Phase 3.
+Begin with Phase 1: finalize `RoleLayout` adoption (already done for Admin/School), wire breadcrumbs and scope chip everywhere, add `<RouteGuard>`, then create the `/school/submit` workspace shell with the 3 tabs (no content changes yet — just routing + redirects from the 3 old URLs).
