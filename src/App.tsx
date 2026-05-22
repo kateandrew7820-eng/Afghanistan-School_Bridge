@@ -39,17 +39,14 @@ import MinistryLayout from "./components/layouts/MinistryLayout";
 
 // School Pages - Lazy loaded for code splitting
 const SchoolDashboard = lazy(() => import("./pages/school/Dashboard"));
-const SubmitStatistics = lazy(() => import("./pages/school/SubmitStatistics"));
-const SubmitReports = lazy(() => import("./pages/school/SubmitReports"));
-const SubmitForms = lazy(() => import("./pages/school/SubmitForms"));
+const SchoolSubmit = lazy(() => import("./pages/school/Submit"));
 const SchoolAnnouncements = lazy(() => import("./pages/school/Announcements"));
 const SchoolDocuments = lazy(() => import("./pages/school/Documents"));
 const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
 
 // District Pages - Lazy loaded
 const DistrictDashboard = lazy(() => import("./pages/district/Dashboard"));
-const DistrictSubmissions = lazy(() => import("./pages/district/Submissions"));
-const DistrictVerifyData = lazy(() => import("./pages/district/VerifyData"));
+const DistrictInbox = lazy(() => import("./pages/district/Inbox"));
 const DistrictSchools = lazy(() => import("./pages/district/Schools"));
 
 // Province Pages - Lazy loaded
@@ -200,21 +197,15 @@ function AppRoutes() {
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolDashboard /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
-      <Route path="/school/statistics" element={
+      {/* Unified submission workspace + legacy redirects */}
+      <Route path="/school/submit" element={
         <ProtectedRoute allowedTier="school">
-          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubmitStatistics /></Suspense></SchoolLayout>
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolSubmit /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
-      <Route path="/school/reports" element={
-        <ProtectedRoute allowedTier="school">
-          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubmitReports /></Suspense></SchoolLayout>
-        </ProtectedRoute>
-      } />
-      <Route path="/school/forms" element={
-        <ProtectedRoute allowedTier="school">
-          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubmitForms /></Suspense></SchoolLayout>
-        </ProtectedRoute>
-      } />
+      <Route path="/school/statistics" element={<Navigate to="/school/submit?tab=statistics" replace />} />
+      <Route path="/school/reports" element={<Navigate to="/school/submit?tab=reports" replace />} />
+      <Route path="/school/forms" element={<Navigate to="/school/submit?tab=forms" replace />} />
       <Route path="/school/announcements" element={
         <ProtectedRoute allowedTier="school">
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolAnnouncements /></Suspense></SchoolLayout>
@@ -237,16 +228,14 @@ function AppRoutes() {
           <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictDashboard /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/district/submissions" element={
+      {/* Unified verification inbox + legacy redirects */}
+      <Route path="/district/inbox" element={
         <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictSubmissions /></Suspense></DistrictLayout>
+          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictInbox /></Suspense></DistrictLayout>
         </ProtectedRoute>
       } />
-      <Route path="/district/verify" element={
-        <ProtectedRoute allowedTier="district">
-          <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictVerifyData /></Suspense></DistrictLayout>
-        </ProtectedRoute>
-      } />
+      <Route path="/district/submissions" element={<Navigate to="/district/inbox" replace />} />
+      <Route path="/district/verify" element={<Navigate to="/district/inbox?status=pending" replace />} />
       <Route path="/district/schools" element={
         <ProtectedRoute allowedTier="district">
           <DistrictLayout><Suspense fallback={<LoadingFallback />}><DistrictSchools /></Suspense></DistrictLayout>
