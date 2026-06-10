@@ -53,19 +53,19 @@ const DistrictSchools = lazy(() => import("./pages/district/Schools"));
 const ProvinceDashboard = lazy(() => import("./pages/province/Dashboard"));
 const ProvinceDistricts = lazy(() => import("./pages/province/Districts"));
 const ProvinceAnalytics = lazy(() => import("./pages/province/Analytics"));
-const ProvinceSubmissions = lazy(() => import("./pages/province/Submissions"));
+const ProvinceInbox = lazy(() => import("./pages/province/Inbox"));
 const ProvinceSchools = lazy(() => import("./pages/province/Schools"));
 
 // Ministry Pages - Lazy loaded
 const MinistryDashboard = lazy(() => import("./pages/ministry/Dashboard"));
 const MinistryAnalytics = lazy(() => import("./pages/ministry/Analytics"));
 const MinistryProvinces = lazy(() => import("./pages/ministry/Provinces"));
+const MinistryInbox = lazy(() => import("./pages/ministry/Inbox"));
 const MinistryUsers = lazy(() => import("./pages/ministry/Users"));
 const MinistryExport = lazy(() => import("./pages/ministry/Export"));
 
 
 // Legacy Admin Pages (will be used under ministry) - Lazy loaded
-const AdminSubmissions = lazy(() => import("./pages/admin/Submissions"));
 const AdminAnnouncements = lazy(() => import("./pages/admin/Announcements"));
 const AdminDocuments = lazy(() => import("./pages/admin/Documents"));
 const AdminDeadlines = lazy(() => import("./pages/admin/Deadlines"));
@@ -273,11 +273,13 @@ function AppRoutes() {
           <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceAnalytics /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
-      <Route path="/province/submissions" element={
+      {/* Unified verification inbox + legacy redirect */}
+      <Route path="/province/inbox" element={
         <ProtectedRoute allowedTier="province">
-          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceSubmissions /></Suspense></ProvinceLayout>
+          <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceInbox /></Suspense></ProvinceLayout>
         </ProtectedRoute>
       } />
+      <Route path="/province/submissions" element={<Navigate to="/province/inbox" replace />} />
       <Route path="/province/schools" element={
         <ProtectedRoute allowedTier="province">
           <ProvinceLayout><Suspense fallback={<LoadingFallback />}><ProvinceSchools /></Suspense></ProvinceLayout>
@@ -315,11 +317,12 @@ function AppRoutes() {
           <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryProvinces /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
-      <Route path="/ministry/submissions" element={
+      <Route path="/ministry/inbox" element={
         <ProtectedRoute allowedTier="ministry">
-          <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminSubmissions /></Suspense></MinistryLayout>
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryInbox /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
+      <Route path="/ministry/submissions" element={<Navigate to="/ministry/inbox" replace />} />
       <Route path="/ministry/announcements" element={
         <ProtectedRoute allowedTier="ministry">
           <MinistryLayout><Suspense fallback={<LoadingFallback />}><AdminAnnouncements /></Suspense></MinistryLayout>
