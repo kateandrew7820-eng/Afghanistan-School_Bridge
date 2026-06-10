@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import RoleLayout, { NavGroup } from './RoleLayout';
 import {
-  LayoutDashboard, BarChart3, Bell, FileDown, Calendar,
+  LayoutDashboard, Inbox, Bell, FileDown, Calendar,
   School, Map, Users, TrendingUp, Download, Building2,
 } from 'lucide-react';
 
@@ -19,7 +19,7 @@ export default function MinistryLayout({ children }: Props) {
       label: 'کار من',
       items: [
         { href: '/ministry', icon: LayoutDashboard, label: t('navigation.dashboard') },
-        { href: '/ministry/submissions', icon: BarChart3, label: t('navigation.submissions') },
+        { href: '/ministry/inbox', icon: Inbox, label: 'صندوق تأیید' },
       ],
     },
     {

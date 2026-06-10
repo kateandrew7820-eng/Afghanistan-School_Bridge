@@ -66,7 +66,6 @@ const MinistryExport = lazy(() => import("./pages/ministry/Export"));
 
 
 // Legacy Admin Pages (will be used under ministry) - Lazy loaded
-const AdminSubmissions = lazy(() => import("./pages/admin/Submissions"));
 const AdminAnnouncements = lazy(() => import("./pages/admin/Announcements"));
 const AdminDocuments = lazy(() => import("./pages/admin/Documents"));
 const AdminDeadlines = lazy(() => import("./pages/admin/Deadlines"));
