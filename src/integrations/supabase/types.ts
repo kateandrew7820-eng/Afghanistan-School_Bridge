@@ -145,6 +145,7 @@ export type Database = {
       form_submissions: {
         Row: {
           created_at: string
+          current_stage: Database["public"]["Enums"]["review_stage"]
           district: string | null
           form_data: Json
           form_type: string
@@ -157,6 +158,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_stage?: Database["public"]["Enums"]["review_stage"]
           district?: string | null
           form_data?: Json
           form_type: string
@@ -169,6 +171,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_stage?: Database["public"]["Enums"]["review_stage"]
           district?: string | null
           form_data?: Json
           form_type?: string
@@ -340,6 +343,7 @@ export type Database = {
       report_submissions: {
         Row: {
           created_at: string
+          current_stage: Database["public"]["Enums"]["review_stage"]
           description: string | null
           district: string | null
           file_name: string
@@ -353,6 +357,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_stage?: Database["public"]["Enums"]["review_stage"]
           description?: string | null
           district?: string | null
           file_name: string
@@ -366,6 +371,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_stage?: Database["public"]["Enums"]["review_stage"]
           description?: string | null
           district?: string | null
           file_name?: string
@@ -452,6 +458,7 @@ export type Database = {
           academic_year: string
           attendance_rate: number | null
           created_at: string
+          current_stage: Database["public"]["Enums"]["review_stage"]
           district: string | null
           female_students: number | null
           id: string
@@ -469,6 +476,7 @@ export type Database = {
           academic_year: string
           attendance_rate?: number | null
           created_at?: string
+          current_stage?: Database["public"]["Enums"]["review_stage"]
           district?: string | null
           female_students?: number | null
           id?: string
@@ -486,6 +494,7 @@ export type Database = {
           academic_year?: string
           attendance_rate?: number | null
           created_at?: string
+          current_stage?: Database["public"]["Enums"]["review_stage"]
           district?: string | null
           female_students?: number | null
           id?: string
@@ -508,6 +517,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      submission_comments: {
+        Row: {
+          author_user_id: string
+          body: string
+          created_at: string
+          id: string
+          submission_id: string
+          submission_table: string
+          updated_at: string
+        }
+        Insert: {
+          author_user_id: string
+          body: string
+          created_at?: string
+          id?: string
+          submission_id: string
+          submission_table: string
+          updated_at?: string
+        }
+        Update: {
+          author_user_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          submission_id?: string
+          submission_table?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      submission_events: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          from_stage: Database["public"]["Enums"]["review_stage"] | null
+          id: string
+          note: string | null
+          submission_id: string
+          submission_table: string
+          to_stage: Database["public"]["Enums"]["review_stage"] | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          from_stage?: Database["public"]["Enums"]["review_stage"] | null
+          id?: string
+          note?: string | null
+          submission_id: string
+          submission_table: string
+          to_stage?: Database["public"]["Enums"]["review_stage"] | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          from_stage?: Database["public"]["Enums"]["review_stage"] | null
+          id?: string
+          note?: string | null
+          submission_id?: string
+          submission_table?: string
+          to_stage?: Database["public"]["Enums"]["review_stage"] | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -561,6 +636,12 @@ export type Database = {
         | "district_admin"
         | "province_admin"
         | "ministry_admin"
+      review_stage:
+        | "school"
+        | "district"
+        | "province"
+        | "ministry"
+        | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -697,6 +778,7 @@ export const Constants = {
         "province_admin",
         "ministry_admin",
       ],
+      review_stage: ["school", "district", "province", "ministry", "completed"],
     },
   },
 } as const
