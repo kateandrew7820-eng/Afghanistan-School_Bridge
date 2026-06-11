@@ -9,10 +9,13 @@ import { supabase } from '@/integrations/supabase/client';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
 export type SubmissionType = 'statistics' | 'report' | 'form';
 
+export type ReviewStage = 'school' | 'district' | 'province' | 'ministry' | 'completed';
+
 export interface Submission {
   id: string;
   type: SubmissionType;
   status: SubmissionStatus;
+  current_stage: ReviewStage;
   created_at: string;
   school_id: string;
   province: string | null;
@@ -75,17 +78,17 @@ async function fetchSubmissions(opts: UseSubmissionsOptions): Promise<Submission
   const { count: schoolCount } = await schoolsQuery;
 
   // ---------- stats submissions (has student/teacher numbers) ----------
-  let statsQ = supabase.from('statistics_submissions').select('id, status, created_at, school_id, province, district, total_students, total_teachers');
+  let statsQ = supabase.from('statistics_submissions').select('id, status, current_stage, created_at, school_id, province, district, total_students, total_teachers');
   if (province) statsQ = statsQ.eq('province', province);
   if (district) statsQ = statsQ.eq('district', district);
   if (school_id) statsQ = statsQ.eq('school_id', school_id);
 
-  let reportsQ = supabase.from('report_submissions').select('id, status, created_at, school_id, province, district');
+  let reportsQ = supabase.from('report_submissions').select('id, status, current_stage, created_at, school_id, province, district');
   if (province) reportsQ = reportsQ.eq('province', province);
   if (district) reportsQ = reportsQ.eq('district', district);
   if (school_id) reportsQ = reportsQ.eq('school_id', school_id);
 
-  let formsQ = supabase.from('form_submissions').select('id, status, created_at, school_id, province, district');
+  let formsQ = supabase.from('form_submissions').select('id, status, current_stage, created_at, school_id, province, district');
   if (province) formsQ = formsQ.eq('province', province);
   if (district) formsQ = formsQ.eq('district', district);
   if (school_id) formsQ = formsQ.eq('school_id', school_id);
@@ -102,28 +105,31 @@ async function fetchSubmissions(opts: UseSubmissionsOptions): Promise<Submission
 
   // ---------- normalize into unified list ----------
   const submissions: Submission[] = [
-    ...statsData.map((s) => ({
+    ...statsData.map((s: any) => ({
       id: s.id,
       type: 'statistics' as const,
       status: normalizeStatus(s.status),
+      current_stage: (s.current_stage ?? 'district') as ReviewStage,
       created_at: s.created_at,
       school_id: s.school_id,
       province: s.province,
       district: s.district,
     })),
-    ...reportsData.map((r) => ({
+    ...reportsData.map((r: any) => ({
       id: r.id,
       type: 'report' as const,
       status: normalizeStatus(r.status),
+      current_stage: (r.current_stage ?? 'district') as ReviewStage,
       created_at: r.created_at,
       school_id: r.school_id,
       province: r.province,
       district: r.district,
     })),
-    ...formsData.map((f) => ({
+    ...formsData.map((f: any) => ({
       id: f.id,
       type: 'form' as const,
       status: normalizeStatus(f.status),
+      current_stage: (f.current_stage ?? 'district') as ReviewStage,
       created_at: f.created_at,
       school_id: f.school_id,
       province: f.province,
