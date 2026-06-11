@@ -24,7 +24,7 @@ interface SubmissionListProps {
   emptyMessage?: string;
   showActions?: boolean;
   onApprove?: (id: string, type: string) => void;
-  onReject?: (id: string, type: string) => void;
+  onReject?: (id: string, type: string, reason?: string) => void;
   actionLoading?: boolean;
 }
 
@@ -52,7 +52,7 @@ export function SubmissionList({
     if (confirmAction.action === 'approve') {
       onApprove?.(confirmAction.id, tableMap[confirmAction.type]);
     } else {
-      onReject?.(confirmAction.id, tableMap[confirmAction.type]);
+      onReject?.(confirmAction.id, tableMap[confirmAction.type], rejectReason || undefined);
     }
     setConfirmAction(null);
     setRejectReason('');

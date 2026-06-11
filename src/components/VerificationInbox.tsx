@@ -30,7 +30,7 @@ interface Props {
  */
 export function VerificationInbox({ title, subtitle, icon, scope, canAct = true }: Props) {
   const { data, loading } = useSubmissions(scope);
-  const { approve, reject, isUpdating } = useSubmissionActions();
+  const { approve, reject, isUpdating, actorStage } = useSubmissionActions();
 
   const [params, setParams] = useSearchParams();
   const status = params.get('status') ?? 'pending';
@@ -49,6 +49,8 @@ export function VerificationInbox({ title, subtitle, icon, scope, canAct = true 
     const needle = q.trim().toLowerCase();
     return list.filter((s: any) => {
       if (status !== 'all' && s.status !== status) return false;
+      // Only show pending items at THIS role's stage so the approval chain works.
+      if (status === 'pending' && actorStage && s.current_stage !== actorStage) return false;
       if (type !== 'all' && s.type !== type) return false;
       if (needle) {
         const hay = `${s.title ?? ''} ${s.school_name ?? ''}`.toLowerCase();
@@ -56,7 +58,7 @@ export function VerificationInbox({ title, subtitle, icon, scope, canAct = true 
       }
       return true;
     });
-  }, [data, status, type, q]);
+  }, [data, status, type, q, actorStage]);
 
   return (
     <div className="space-y-6">
