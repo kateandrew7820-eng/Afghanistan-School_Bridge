@@ -1,49 +1,47 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ColumnDef } from '@tanstack/react-table';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import sanitizeError from '@/lib/sanitizeError';
-import { School, Phone, Mail, Plus, Loader2, Search } from 'lucide-react';
+import { DataTable } from '@/components/DataTable';
+import { School, Plus, Loader2 } from 'lucide-react';
+
+type SchoolRow = {
+  id: string;
+  name: string;
+  code: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  is_active: boolean;
+};
 
 export default function DistrictSchools() {
   const { profile, session } = useAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newSchool, setNewSchool] = useState({
-    name: '', code: '', contact_email: '', contact_phone: ''
-  });
+  const [newSchool, setNewSchool] = useState({ name: '', code: '', contact_email: '', contact_phone: '' });
 
   const { data: schools, isLoading } = useQuery({
     queryKey: ['district-schools', profile?.district],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('schools')
-        .select('*')
-        .eq('district', profile?.district ?? '')
-        .order('name');
+      const { data, error } = await supabase.from('schools').select('*').eq('district', profile?.district ?? '').order('name');
       if (error) throw error;
-      return data;
+      return data as SchoolRow[];
     },
     enabled: !!profile?.district,
   });
 
   const addSchoolMutation = useMutation({
     mutationFn: async (school: typeof newSchool) => {
-      if (!session?.access_token) {
-        throw new Error('لطفاً دوباره وارد سیستم شوید');
-      }
+      if (!session?.access_token) throw new Error('لطفاً دوباره وارد سیستم شوید');
       const { error } = await supabase.from('schools').insert({
         name: school.name,
         code: school.code || null,
@@ -65,10 +63,21 @@ export default function DistrictSchools() {
     },
   });
 
-  const filteredSchools = (schools ?? []).filter(s =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.code?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const columns = useMemo<ColumnDef<SchoolRow>[]>(() => [
+    { accessorKey: 'name', header: 'نام مکتب', cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+    { accessorKey: 'code', header: 'کد', cell: ({ row }) => row.original.code ?? '—' },
+    { accessorKey: 'contact_phone', header: 'تماس', cell: ({ row }) => <span dir="ltr">{row.original.contact_phone ?? '—'}</span> },
+    { accessorKey: 'contact_email', header: 'ایمیل', cell: ({ row }) => row.original.contact_email ?? '—' },
+    {
+      accessorKey: 'is_active',
+      header: 'وضعیت',
+      cell: ({ row }) => (
+        <Badge variant={row.original.is_active ? 'default' : 'secondary'} className="text-xs">
+          {row.original.is_active ? 'فعال' : 'غیرفعال'}
+        </Badge>
+      ),
+    },
+  ], []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,21 +107,21 @@ export default function DistrictSchools() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">نام مکتب *</Label>
-                <Input id="name" value={newSchool.name} onChange={e => setNewSchool({ ...newSchool, name: e.target.value })} placeholder="لیسه ذکور..." required />
+                <Input id="name" value={newSchool.name} onChange={e => setNewSchool({ ...newSchool, name: e.target.value })} required />
               </div>
               <div className="grid gap-4 grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="code">کد مکتب</Label>
-                  <Input id="code" value={newSchool.code} onChange={e => setNewSchool({ ...newSchool, code: e.target.value })} placeholder="DAY-001" />
+                  <Input id="code" value={newSchool.code} onChange={e => setNewSchool({ ...newSchool, code: e.target.value })} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone">شماره تماس</Label>
-                  <Input id="phone" value={newSchool.contact_phone} onChange={e => setNewSchool({ ...newSchool, contact_phone: e.target.value })} placeholder="0700000000" />
+                  <Input id="phone" value={newSchool.contact_phone} onChange={e => setNewSchool({ ...newSchool, contact_phone: e.target.value })} />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">ایمیل تماس</Label>
-                <Input id="email" type="email" value={newSchool.contact_email} onChange={e => setNewSchool({ ...newSchool, contact_email: e.target.value })} placeholder="school@example.com" />
+                <Input id="email" type="email" value={newSchool.contact_email} onChange={e => setNewSchool({ ...newSchool, contact_email: e.target.value })} />
               </div>
               <Button type="submit" className="w-full" disabled={addSchoolMutation.isPending}>
                 {addSchoolMutation.isPending ? <><Loader2 className="ml-2 h-4 w-4 animate-spin" />درحال افزودن...</> : 'افزودن مکتب'}
@@ -122,51 +131,14 @@ export default function DistrictSchools() {
         </Dialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="جستجوی مکاتب..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-      </div>
-
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
-        </div>
-      ) : !filteredSchools.length ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <School className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">
-              {searchQuery ? 'مکتبی با این جستجو یافت نشد' : 'هیچ مکتبی در این ولسوالی ثبت نشده است'}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredSchools.map(school => (
-            <Card key={school.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span>{school.name}</span>
-                  <div className="flex items-center gap-1.5">
-                    {school.code && <Badge variant="outline" className="text-xs">{school.code}</Badge>}
-                    <Badge variant={school.is_active ? 'default' : 'secondary'} className="text-xs">
-                      {school.is_active ? 'فعال' : 'غیرفعال'}
-                    </Badge>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1 text-xs text-muted-foreground">
-                {school.contact_phone && (
-                  <div className="flex items-center gap-1.5"><Phone className="h-3 w-3" /><span dir="ltr">{school.contact_phone}</span></div>
-                )}
-                {school.contact_email && (
-                  <div className="flex items-center gap-1.5"><Mail className="h-3 w-3" /><span>{school.contact_email}</span></div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={schools ?? []}
+        loading={isLoading}
+        searchPlaceholder="جستجوی مکاتب..."
+        searchableKeys={['name', 'code']}
+        exportFilename="schools"
+      />
     </div>
   );
 }

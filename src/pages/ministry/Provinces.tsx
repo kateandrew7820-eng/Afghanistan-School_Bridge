@@ -1,9 +1,10 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { ColumnDef } from '@tanstack/react-table';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Map, School } from 'lucide-react';
+import { DataTable } from '@/components/DataTable';
+import { Map } from 'lucide-react';
 
 interface ProvinceInfo {
   name: string;
@@ -15,12 +16,8 @@ export default function MinistryProvinces() {
   const { data: provinces, isLoading } = useQuery({
     queryKey: ['ministry-provinces'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('schools')
-        .select('province, district')
-        .eq('is_active', true);
+      const { data, error } = await supabase.from('schools').select('province, district').eq('is_active', true);
       if (error) throw error;
-
       const map: Record<string, { schools: number; districts: Set<string> }> = {};
       for (const row of data ?? []) {
         if (!row.province) continue;
@@ -28,16 +25,34 @@ export default function MinistryProvinces() {
         map[row.province].schools++;
         if (row.district) map[row.province].districts.add(row.district);
       }
-
       return Object.entries(map)
-        .map(([name, info]): ProvinceInfo => ({
-          name,
-          schoolCount: info.schools,
-          districtCount: info.districts.size,
-        }))
+        .map(([name, info]): ProvinceInfo => ({ name, schoolCount: info.schools, districtCount: info.districts.size }))
         .sort((a, b) => b.schoolCount - a.schoolCount);
     },
   });
+
+  const columns = useMemo<ColumnDef<ProvinceInfo>[]>(() => [
+    {
+      accessorKey: 'name',
+      header: 'ولایت',
+      cell: ({ row }) => (
+        <span className="flex items-center gap-2">
+          <Map className="h-4 w-4 text-muted-foreground" />
+          <span className="font-medium">{row.original.name}</span>
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'districtCount',
+      header: 'ولسوالی‌ها',
+      cell: ({ row }) => <Badge variant="outline">{row.original.districtCount}</Badge>,
+    },
+    {
+      accessorKey: 'schoolCount',
+      header: 'مکاتب',
+      cell: ({ row }) => <Badge variant="outline">{row.original.schoolCount}</Badge>,
+    },
+  ], []);
 
   return (
     <div className="space-y-6">
@@ -49,32 +64,15 @@ export default function MinistryProvinces() {
         <p className="text-muted-foreground">نمای کلی تمام ولایات افغانستان</p>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
-        </div>
-      ) : !provinces?.length ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Map className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">هیچ داده‌ای ثبت نشده است</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {provinces.map(p => (
-            <Card key={p.name} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">{p.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="flex gap-3 text-xs text-muted-foreground">
-                <Badge variant="outline">{p.districtCount} ولسوالی</Badge>
-                <Badge variant="outline">{p.schoolCount} مکتب</Badge>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={provinces ?? []}
+        loading={isLoading}
+        searchPlaceholder="جستجوی ولایت..."
+        searchableKeys={['name']}
+        exportFilename="provinces"
+        pageSize={15}
+      />
     </div>
   );
 }

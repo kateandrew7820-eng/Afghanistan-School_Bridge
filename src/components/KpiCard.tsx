@@ -1,9 +1,11 @@
-import { ReactNode } from 'react';
+import { ReactNode, lazy, Suspense } from 'react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const Sparkline = lazy(() => import('./Sparkline').then(m => ({ default: m.Sparkline })));
 
 interface KpiCardProps {
   label: string;
@@ -15,6 +17,7 @@ interface KpiCardProps {
   loading?: boolean;
   to?: string;
   action?: ReactNode;
+  sparkline?: number[];
 }
 
 const TONES: Record<NonNullable<KpiCardProps['tone']>, { iconBg: string; iconFg: string }> = {
@@ -26,11 +29,15 @@ const TONES: Record<NonNullable<KpiCardProps['tone']>, { iconBg: string; iconFg:
 };
 
 export function KpiCard({
-  label, value, icon: Icon, tone = 'default', trend, hint, loading, to, action,
+  label, value, icon: Icon, tone = 'default', trend, hint, loading, to, action, sparkline,
 }: KpiCardProps) {
   const t = TONES[tone];
   const TrendIcon = !trend ? null : trend.value > 0 ? TrendingUp : trend.value < 0 ? TrendingDown : Minus;
   const trendTone = !trend ? '' : trend.value > 0 ? 'text-success' : trend.value < 0 ? 'text-destructive' : 'text-muted-foreground';
+  const sparkColor = tone === 'success' ? 'hsl(var(--success))'
+    : tone === 'warning' ? 'hsl(var(--warning))'
+    : tone === 'danger' ? 'hsl(var(--destructive))'
+    : 'hsl(var(--primary))';
 
   const inner = (
     <Card className={cn(
@@ -62,6 +69,13 @@ export function KpiCard({
           </div>
         )}
       </div>
+      {sparkline && sparkline.length > 1 && !loading && (
+        <div className="mt-2">
+          <Suspense fallback={<div className="h-8" />}>
+            <Sparkline data={sparkline} color={sparkColor} />
+          </Suspense>
+        </div>
+      )}
       {(hint || action) && (
         <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
           {hint && <p className="text-[11px] text-muted-foreground truncate">{hint}</p>}
