@@ -60,6 +60,37 @@ export default function MinistryDashboard() {
   const teacherRatio = stats.teachers > 0 ? Math.round(stats.students / stats.teachers) : 0;
   const recent = data?.submissions.slice(0, 8) ?? [];
 
+  // 14-day submission sparkline
+  const submissionTrend = useMemo(() => {
+    const days = 14;
+    const buckets = new Array(days).fill(0);
+    const now = Date.now();
+    const dayMs = 86400000;
+    for (const s of data?.submissions ?? []) {
+      const idx = days - 1 - Math.floor((now - +new Date(s.created_at)) / dayMs);
+      if (idx >= 0 && idx < days) buckets[idx]++;
+    }
+    return buckets;
+  }, [data]);
+
+  const approvedTrend = useMemo(() => {
+    const days = 14;
+    const buckets = new Array(days).fill(0);
+    const now = Date.now();
+    const dayMs = 86400000;
+    for (const s of data?.submissions ?? []) {
+      if (s.status !== 'approved') continue;
+      const idx = days - 1 - Math.floor((now - +new Date(s.created_at)) / dayMs);
+      if (idx >= 0 && idx < days) buckets[idx]++;
+    }
+    return buckets;
+  }, [data]);
+
+  const half = Math.floor(submissionTrend.length / 2);
+  const recentSum = submissionTrend.slice(half).reduce((a, b) => a + b, 0);
+  const prevSum = submissionTrend.slice(0, half).reduce((a, b) => a + b, 0);
+  const submissionDelta = prevSum > 0 ? Math.round(((recentSum - prevSum) / prevSum) * 100) : 0;
+
   return (
     <div className="min-h-screen bg-background text-foreground px-4 py-6 space-y-8">
       {/* Header */}
@@ -78,17 +109,40 @@ export default function MinistryDashboard() {
 
       {/* KPI Grid */}
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <DashboardStatCard title="ولایات" value={stats.provinces} icon={<Map className="w-4 h-4" />} loading={loading && !isDemoMode} />
-        <DashboardStatCard title="مکاتب" value={stats.schools} icon={<School className="w-4 h-4" />} loading={loading && !isDemoMode} />
-        <DashboardStatCard title="شاگردان" value={Math.round(stats.students / 1000)} suffix="K" icon={<Users className="w-4 h-4" />} loading={loading && !isDemoMode} />
-        <DashboardStatCard title="معلمان" value={Math.round(stats.teachers / 1000)} suffix="K" icon={<BarChart3 className="w-4 h-4" />} loading={loading && !isDemoMode} />
+        <KpiCard label="ولایات" value={stats.provinces} icon={Map} loading={loading && !isDemoMode} />
+        <KpiCard label="مکاتب" value={stats.schools} icon={School} tone="info" loading={loading && !isDemoMode} />
+        <KpiCard label="شاگردان" value={`${Math.round(stats.students / 1000)}K`} icon={Users} tone="success" loading={loading && !isDemoMode} />
+        <KpiCard label="معلمان" value={`${Math.round(stats.teachers / 1000)}K`} icon={BarChart3} loading={loading && !isDemoMode} />
       </div>
 
-      {/* Second Row */}
+      {/* Second Row with sparklines */}
       <div className="grid gap-3 md:grid-cols-3">
-        <DashboardStatCard title="مجموع ارسال‌ها" value={stats.total} icon={<BarChart3 className="w-4 h-4" />} loading={loading && !isDemoMode} />
-        <DashboardStatCard title="تأیید شده" value={stats.approved} icon={<TrendingUp className="w-4 h-4" />} loading={loading && !isDemoMode} subtitle={`${completionRate}% تکمیل`} />
-        <DashboardStatCard title="نسبت معلم" value={teacherRatio} icon={<Users className="w-4 h-4" />} loading={loading && !isDemoMode} subtitle="شاگرد به ازای هر معلم" />
+        <KpiCard
+          label="مجموع ارسال‌ها (۱۴ روز اخیر)"
+          value={stats.total}
+          icon={BarChart3}
+          loading={loading && !isDemoMode}
+          sparkline={submissionTrend}
+          trend={{ value: submissionDelta }}
+          hint="روند هفتگی"
+        />
+        <KpiCard
+          label="تأیید شده"
+          value={stats.approved}
+          icon={TrendingUp}
+          tone="success"
+          loading={loading && !isDemoMode}
+          sparkline={approvedTrend}
+          hint={`${completionRate}% نرخ تکمیل`}
+        />
+        <KpiCard
+          label="نسبت معلم/شاگرد"
+          value={teacherRatio}
+          icon={Users}
+          tone="info"
+          loading={loading && !isDemoMode}
+          hint="شاگرد به ازای هر معلم"
+        />
       </div>
 
       {/* Province Breakdown */}
