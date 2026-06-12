@@ -1,9 +1,11 @@
-import { ReactNode } from 'react';
+import { ReactNode, lazy, Suspense } from 'react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const Sparkline = lazy(() => import('./Sparkline').then(m => ({ default: m.Sparkline })));
 
 interface KpiCardProps {
   label: string;
@@ -15,6 +17,7 @@ interface KpiCardProps {
   loading?: boolean;
   to?: string;
   action?: ReactNode;
+  sparkline?: number[];
 }
 
 const TONES: Record<NonNullable<KpiCardProps['tone']>, { iconBg: string; iconFg: string }> = {
