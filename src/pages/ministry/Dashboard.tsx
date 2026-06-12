@@ -4,6 +4,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import { useSubmissions } from '@/hooks/useSubmissions';
 import { useSubmissionActions } from '@/hooks/useSubmissionActions';
 import { DashboardStatCard } from '@/components/DashboardStatCard';
+import { KpiCard } from '@/components/KpiCard';
 import { SubmissionList } from '@/components/SubmissionList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
