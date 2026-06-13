@@ -204,8 +204,8 @@ export function VerificationPanel({
 
   if (error) {
     return (
-      <Card className="border-red-200">
-        <CardHeader><CardTitle className="text-red-600">خطا</CardTitle></CardHeader>
+      <Card className="border-destructive/20">
+        <CardHeader><CardTitle className="text-destructive">خطا</CardTitle></CardHeader>
         <CardContent>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -238,7 +238,7 @@ export function VerificationPanel({
         <CardDescription>
           {pendingUsers.length} کاربر در انتظار تأیید
           {TEMPORARY_TEST_MODE && (
-            <Badge variant="outline" className="mr-2 text-amber-600 border-amber-300">🧪 حالت آزمایشی</Badge>
+            <Badge variant="outline" className="mr-2 text-warning border-warning/20">🧪 حالت آزمایشی</Badge>
           )}
         </CardDescription>
       </CardHeader>
@@ -247,7 +247,7 @@ export function VerificationPanel({
           const isExpired = isPendingExpired(pendingUser.created_at);
           
           return (
-            <div key={pendingUser.id} className={`border rounded-lg p-4 space-y-3 ${isExpired ? 'border-red-200 bg-red-50/50' : ''}`}>
+            <div key={pendingUser.id} className={`border rounded-lg p-4 space-y-3 ${isExpired ? 'border-destructive/20 bg-destructive/10/50' : ''}`}>
               {/* User Info */}
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -291,7 +291,7 @@ export function VerificationPanel({
 
               {/* Rejection Mode */}
               {rejectionMode[pendingUser.user_id] && (
-                <div className="bg-red-50 border border-red-200 rounded p-3 space-y-2">
+                <div className="bg-destructive/10 border border-destructive/20 rounded p-3 space-y-2">
                   <Label htmlFor={`reason-${pendingUser.id}`} className="text-sm">دلیل رد (الزامی)</Label>
                   <textarea
                     id={`reason-${pendingUser.id}`}

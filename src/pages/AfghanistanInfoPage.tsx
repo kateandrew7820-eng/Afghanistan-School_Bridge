@@ -18,36 +18,36 @@ export default function AfghanistanInfoPage() {
       icon: Building2,
       label: t('afghanistan.stats.totalSchools'),
       value: '18000+',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-primary',
+      bg: 'bg-primary/10',
     },
     {
       icon: Users,
       label: t('afghanistan.stats.totalStudents'),
       value: '+11.7 میلیون',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      color: 'text-success',
+      bg: 'bg-success/10',
     },
     {
       icon: BookOpen,
       label: t('afghanistan.stats.totalTeachers'),
       value: '220,000',
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      color: 'text-accent',
+      bg: 'bg-accent/10',
     },
     {
       icon: MapPin,
       label: t('afghanistan.stats.totalProvinces'),
       value: '34',
-      color: 'text-orange-600',
-      bg: 'bg-orange-50',
+      color: 'text-warning',
+      bg: 'bg-warning/10',
     },
     {
       icon: BarChart3,
       label: t('afghanistan.stats.totalDistricts'),
       value: '421',
-      color: 'text-pink-600',
-      bg: 'bg-pink-50',
+      color: 'text-accent',
+      bg: 'bg-accent/10',
     },
   ];
 
@@ -162,9 +162,9 @@ export default function AfghanistanInfoPage() {
 
         {/* Approval Status */}
         <div className="max-w-2xl mx-auto mb-12">
-          <Alert className="border-amber-200 bg-amber-50">
-            <Clock className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-900">
+          <Alert className="border-warning/20 bg-warning/10">
+            <Clock className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-warning">
               <strong>وضعیت حساب شما:</strong> {t('profileCompletion.awaitingApproval')}
             </AlertDescription>
           </Alert>

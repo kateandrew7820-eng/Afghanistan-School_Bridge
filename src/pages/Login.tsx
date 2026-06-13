@@ -26,9 +26,9 @@ function getPasswordStrength(password: string): { score: number; label: string; 
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
   if (score <= 1) return { score, label: 'ضعیف', color: 'bg-destructive' };
-  if (score <= 2) return { score, label: 'متوسط', color: 'bg-amber-500' };
-  if (score <= 3) return { score, label: 'خوب', color: 'bg-blue-500' };
-  return { score, label: 'قوی', color: 'bg-green-500' };
+  if (score <= 2) return { score, label: 'متوسط', color: 'bg-warning' };
+  if (score <= 3) return { score, label: 'خوب', color: 'bg-primary' };
+  return { score, label: 'قوی', color: 'bg-success' };
 }
 
 // ============================================================================
@@ -244,18 +244,18 @@ export default function Login() {
 
               {/* Dev Quick Enter - Dev Only */}
               {import.meta.env.MODE === 'development' && (
-                <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-300">
+                <div className="mb-6 p-4 rounded-xl bg-warning/10 border border-warning/20">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="text-xl">⚡</span>
-                      <h3 className="font-bold text-amber-900">ورود سریع توسعه‌دهنده</h3>
+                      <h3 className="font-bold text-warning">ورود سریع توسعه‌دهنده</h3>
                     </div>
                     <Button
                       onClick={() => {
                         setDevQuickMode();
                         setTimeout(() => navigate('/setup-profile?quickMode=true'), 100);
                       }}
-                      className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-primary-foreground font-semibold"
+                      className="w-full bg-gradient-to-r from-warning to-warning hover:from-warning hover:to-warning text-primary-foreground font-semibold"
                     >
                       <Zap className="ml-2 h-4 w-4" />
                       ورود سریع
@@ -572,7 +572,7 @@ export default function Login() {
                         )}
                         {/* Real-time match indicator */}
                         {signUpConfirmPassword && !signUpErrors.confirmPassword && signUpPassword === signUpConfirmPassword && (
-                          <p className="text-xs text-green-600 flex items-center gap-1">
+                          <p className="text-xs text-success flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             رمز عبور مطابقت دارد
                           </p>

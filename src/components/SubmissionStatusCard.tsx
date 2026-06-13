@@ -38,11 +38,11 @@ export const SubmissionStatusCard: React.FC<SubmissionStatusCardProps> = ({
   const getStatusIcon = (s: string) => {
     switch (s) {
       case 'approved':
-        return <CheckCircle2 className="h-5 w-5 text-green-600" />;
+        return <CheckCircle2 className="h-5 w-5 text-success" />;
       case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-600" />;
+        return <XCircle className="h-5 w-5 text-destructive" />;
       case 'pending':
-        return <Clock className="h-5 w-5 text-yellow-600" />;
+        return <Clock className="h-5 w-5 text-warning" />;
       default:
         return <AlertCircle className="h-5 w-5" />;
     }
@@ -51,13 +51,13 @@ export const SubmissionStatusCard: React.FC<SubmissionStatusCardProps> = ({
   const getStatusBadgeVariant = (s: string) => {
     switch (s) {
       case 'approved':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success/10 text-success';
       case 'rejected':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-warning/10 text-warning';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -120,9 +120,9 @@ export const SubmissionStatusCard: React.FC<SubmissionStatusCardProps> = ({
 
         {/* Rejection Reason */}
         {status === 'rejected' && rejectionReason && (
-          <div className="p-3 rounded-lg bg-red-50 border border-red-200">
-            <p className="text-xs font-medium text-red-900 mb-1">دلیل رد:</p>
-            <p className="text-sm text-red-800">{rejectionReason}</p>
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+            <p className="text-xs font-medium text-destructive mb-1">دلیل رد:</p>
+            <p className="text-sm text-destructive">{rejectionReason}</p>
           </div>
         )}
 
@@ -148,7 +148,7 @@ export const SubmissionStatusCard: React.FC<SubmissionStatusCardProps> = ({
                     size="sm"
                     onClick={onApprove}
                     disabled={isLoading}
-                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    className="flex-1 bg-success hover:bg-success"
                   >
                     {isLoading ? 'در حال...' : 'تایید'}
                   </Button>

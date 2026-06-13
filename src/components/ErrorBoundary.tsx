@@ -84,38 +84,38 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const errorMessage = this.state.error?.message || 'خطای نامشخص رخ داده است';
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 p-4">
-          <Card className="w-full max-w-md border-red-200">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-destructive to-warning p-4">
+          <Card className="w-full max-w-md border-destructive/20">
             <CardContent className="pt-6 space-y-4">
               {/* Error Icon */}
               <div className="flex justify-center">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-destructive" />
                 </div>
               </div>
 
               {/* Error Title */}
               <div className="text-center">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-muted-foreground">
                   متأسفانه خطایی رخ داد
                 </h2>
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   ما به مشکل کاری روبرو شده‌ایم. لطفاً دوباره تلاش کنید یا صفحه اول را بازدید کنید.
                 </p>
               </div>
 
               {/* Error Details (Dev Only) */}
               {isDev && this.state.error && (
-                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                <div className="bg-muted rounded-lg p-3 border border-border">
                   <details className="cursor-pointer">
-                    <summary className="font-mono text-xs text-gray-600 font-semibold">
+                    <summary className="font-mono text-xs text-muted-foreground font-semibold">
                       جزئیات خطا (تنها برای توسعه‌دهندگان)
                     </summary>
-                    <pre className="mt-2 text-xs text-red-600 overflow-auto max-h-40 whitespace-pre-wrap">
+                    <pre className="mt-2 text-xs text-destructive overflow-auto max-h-40 whitespace-pre-wrap">
                       {errorMessage}
                     </pre>
                     {this.state.errorInfo && (
-                      <pre className="mt-2 text-xs text-gray-600 overflow-auto max-h-40 whitespace-pre-wrap">
+                      <pre className="mt-2 text-xs text-muted-foreground overflow-auto max-h-40 whitespace-pre-wrap">
                         {this.state.errorInfo.componentStack}
                       </pre>
                     )}
@@ -125,8 +125,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
               {/* Error Count Warning */}
               {this.state.errorCount > 3 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-xs text-amber-700">
+                <div className="bg-warning/10 border border-warning/20 rounded-lg p-3">
+                  <p className="text-xs text-warning">
                     خطاهای متعدد رخ داده است. اگر مشکل ادامه دارد، صفحه را بارگذاری کنید.
                   </p>
                 </div>

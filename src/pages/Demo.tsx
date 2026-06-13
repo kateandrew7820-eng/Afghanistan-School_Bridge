@@ -10,11 +10,11 @@ import {
 } from "lucide-react";
 
 const DEMO_ROLES = [
-  { id: "teacher", label: "معلم", icon: User, tier: "school", color: "from-blue-400 to-blue-600" },
-  { id: "principal", label: "مدیریت مکتب", icon: Users, tier: "school", color: "from-indigo-400 to-indigo-600" },
-  { id: "district_admin", label: "ریاست ولسوالی", icon: Building2, tier: "district", color: "from-green-400 to-green-600" },
-  { id: "province_admin", label: "ریاست ولایت", icon: TrendingUp, tier: "province", color: "from-purple-400 to-purple-600" },
-  { id: "ministry_admin", label: "وزارت معارف", icon: Crown, tier: "ministry", color: "from-yellow-400 to-orange-500" },
+  { id: "teacher", label: "معلم", icon: User, tier: "school", color: "from-primary to-primary" },
+  { id: "principal", label: "مدیریت مکتب", icon: Users, tier: "school", color: "from-accent to-accent" },
+  { id: "district_admin", label: "ریاست ولسوالی", icon: Building2, tier: "district", color: "from-success to-success" },
+  { id: "province_admin", label: "ریاست ولایت", icon: TrendingUp, tier: "province", color: "from-accent to-accent" },
+  { id: "ministry_admin", label: "وزارت معارف", icon: Crown, tier: "ministry", color: "from-warning to-warning" },
 ];
 
 export default function Demo() {

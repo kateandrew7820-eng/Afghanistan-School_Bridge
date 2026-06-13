@@ -152,8 +152,8 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
               'relative rounded-lg border-2 border-dashed transition-all py-8 px-4',
               dragActive
                 ? 'border-primary bg-primary/5'
-                : 'border-neutral-300 bg-neutral-50 hover:border-primary hover:bg-primary/5',
-              error && 'border-red-300 bg-red-50'
+                : 'border-border bg-muted hover:border-primary hover:bg-primary/5',
+              error && 'border-destructive/20 bg-destructive/10'
             )}
           >
             <input
@@ -186,25 +186,25 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
-              <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+              <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0" />
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
         </>
       ) : (
         /* Selected File Display */
         <div className="space-y-4">
-          <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+          <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-blue-900 truncate">{file.name}</p>
-                <p className="text-xs text-blue-700 mt-1">{formatFileSize(file.size)}</p>
+                <p className="text-sm font-medium text-primary truncate">{file.name}</p>
+                <p className="text-xs text-primary mt-1">{formatFileSize(file.size)}</p>
               </div>
               {!uploadComplete && !uploading && (
                 <button
                   onClick={handleRemove}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-primary hover:text-primary"
                   aria-label="حذف فایل"
                 >
                   <X className="h-4 w-4" />
@@ -216,14 +216,14 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
             {(uploading || uploadComplete) && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-blue-900">
+                  <p className="text-xs font-medium text-primary">
                     {uploadComplete ? 'آپلود مکمل' : 'در حال آپلود...'}
                   </p>
-                  <p className="text-xs text-blue-700">{Math.round(progress)}%</p>
+                  <p className="text-xs text-primary">{Math.round(progress)}%</p>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -233,8 +233,8 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
             {/* Upload Complete */}
             {uploadComplete && (
               <div className="flex items-center gap-2 mt-3">
-                <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
-                <p className="text-xs text-green-700">فایل با موفقیت آپلود شد</p>
+                <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
+                <p className="text-xs text-success">فایل با موفقیت آپلود شد</p>
               </div>
             )}
           </div>

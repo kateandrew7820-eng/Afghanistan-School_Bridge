@@ -135,7 +135,7 @@ export default function AdminDashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.pendingSubmissions}</div>
+            <div className="text-2xl font-bold text-warning">{stats.pendingSubmissions}</div>
             <p className="text-xs text-muted-foreground">درحال بررسی</p>
           </CardContent>
         </Card>
@@ -251,10 +251,10 @@ export default function AdminDashboard() {
 
       {/* User Verification Queue - Only show if admin has approval responsibilities */}
       {verificationQueueRole && (
-        <Card className="border-blue-200 bg-blue-50/50">
+        <Card className="border-primary/20 bg-primary/10/50">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-blue-600" />
+              <AlertCircle className="h-5 w-5 text-primary" />
               <div>
                 <CardTitle>User Verification Queue</CardTitle>
                 <CardDescription>

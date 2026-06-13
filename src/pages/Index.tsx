@@ -43,36 +43,36 @@ export default function Index() {
       icon: Building2,
       label: t('afghanistan.stats.totalSchools'),
       value: '+18000',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-primary',
+      bg: 'bg-primary/10',
     },
     {
       icon: Users,
       label: t('afghanistan.stats.totalStudents'),
       value: '+11.7M',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      color: 'text-success',
+      bg: 'bg-success/10',
     },
     {
       icon: BookOpen,
       label: t('afghanistan.stats.totalTeachers'),
       value: '+220,000',
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      color: 'text-accent',
+      bg: 'bg-accent/10',
     },
     {
       icon: MapPin,
       label: t('afghanistan.stats.totalProvinces'),
       value: '34',
-      color: 'text-orange-600',
-      bg: 'bg-orange-50',
+      color: 'text-warning',
+      bg: 'bg-warning/10',
     },
     {
       icon: BarChart3,
       label: t('afghanistan.stats.totalDistricts'),
       value: '421',
-      color: 'text-pink-600',
-      bg: 'bg-pink-50',
+      color: 'text-accent',
+      bg: 'bg-accent/10',
     },
   ];
 
@@ -110,7 +110,7 @@ export default function Index() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               {t('afghanistan.title')}
             </h1>
 
@@ -136,7 +136,7 @@ export default function Index() {
         <div className="max-w-3xl mx-auto text-center mb-14 space-y-6">
 
           {/* Icon Badge */}
-          <div className="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-br from-primary/15 to-blue-500/10 shadow-sm">
+          <div className="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-br from-primary/15 to-primary/10 shadow-sm">
             <Heart className="w-7 h-7 text-primary animate-pulse" />
           </div>
 
@@ -202,9 +202,9 @@ export default function Index() {
 
         {/* Status */}
         <div className="max-w-2xl mx-auto mb-10">
-          <Alert className="bg-amber-50 border-amber-200">
-            <Clock className="w-4 h-4 text-amber-600" />
-            <AlertDescription className="text-amber-900">
+          <Alert className="bg-warning/10 border-warning/20">
+            <Clock className="w-4 h-4 text-warning" />
+            <AlertDescription className="text-warning">
               <strong>وضعیت حساب:</strong> {t('profileCompletion.awaitingApproval')}
             </AlertDescription>
           </Alert>

@@ -54,7 +54,7 @@ export default function ResetPassword() {
         <CardContent>
           {success ? (
             <div className="text-center space-y-4 py-6">
-              <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
+              <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
               <p className="font-bold">رمز عبور با موفقیت تغییر کرد!</p>
               <p className="text-sm text-muted-foreground">در حال انتقال...</p>
             </div>

@@ -268,9 +268,9 @@ export default function SetupProfile() {
                 </div>
               </div>
 
-              <Alert className="border-blue-200 bg-blue-50 mt-4">
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-800 text-sm">
+              <Alert className="border-primary/20 bg-primary/10 mt-4">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-primary text-sm">
                   این حساب برای تجربه سیستم است. تمام داده‌ها فوری تأیید می‌شود.
                 </AlertDescription>
               </Alert>
@@ -308,12 +308,12 @@ export default function SetupProfile() {
 
         {/* 🚧 TEMPORARY TEST MODE banner */}
         {TEMPORARY_TEST_MODE && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
             <div className="flex gap-3">
               <div className="flex-shrink-0"><span className="text-xl">🧪</span></div>
               <div>
-                <h3 className="font-medium text-amber-900">حالت آزمایشی فعال</h3>
-                <p className="text-sm text-amber-800 mt-1">
+                <h3 className="font-medium text-warning">حالت آزمایشی فعال</h3>
+                <p className="text-sm text-warning mt-1">
                   در حالت آزمایشی، تأیید حساب توسط مسئول اصلی سیستم انجام می‌شود.
                 </p>
               </div>
@@ -350,9 +350,9 @@ export default function SetupProfile() {
 
               {/* Show who will approve based on selected role */}
               {formData.role && (
-                <Alert className="border-blue-200 bg-blue-50">
-                  <Clock className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800 text-sm">
+                <Alert className="border-primary/20 bg-primary/10">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <AlertDescription className="text-primary text-sm">
                     بعد از ارسال، حساب شما منتظر تأیید <strong>{getApproverLabel(formData.role)}</strong> خواهد بود.
                   </AlertDescription>
                 </Alert>

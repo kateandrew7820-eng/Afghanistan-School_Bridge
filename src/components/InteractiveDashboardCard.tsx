@@ -134,10 +134,10 @@ export function SmartStatusCard({
   onChange,
 }: SmartStatusCardProps) {
   const statusColors = {
-    success: 'text-green-600 bg-green-50 border-green-200',
-    warning: 'text-amber-600 bg-amber-50 border-amber-200',
-    error: 'text-red-600 bg-red-50 border-red-200',
-    info: 'text-blue-600 bg-blue-50 border-blue-200',
+    success: 'text-success bg-success/10 border-success/20',
+    warning: 'text-warning bg-warning/10 border-warning/20',
+    error: 'text-destructive bg-destructive/10 border-destructive/20',
+    info: 'text-primary bg-primary/10 border-primary/20',
   };
 
   return (

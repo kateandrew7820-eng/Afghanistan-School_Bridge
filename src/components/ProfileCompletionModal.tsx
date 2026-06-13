@@ -150,17 +150,17 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
         <DialogContent className="max-w-md">
           <div className="text-center space-y-6 py-8">
             <div className="flex justify-center">
-              <div className="p-4 rounded-full bg-green-600/20">
-                <CheckCircle2 className="w-16 h-16 text-green-600" />
+              <div className="p-4 rounded-full bg-success/20">
+                <CheckCircle2 className="w-16 h-16 text-success" />
               </div>
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">{t('profileCompletion.profileSaved')}</h2>
               <p className="text-muted-foreground">{t('profileCompletion.awaitingApproval')}</p>
             </div>
-            <Alert className="border-blue-200 bg-blue-50">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800 text-sm">
+            <Alert className="border-primary/20 bg-primary/10">
+              <AlertCircle className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-primary text-sm">
                 {t('profileCompletion.cannotAccess')}
               </AlertDescription>
             </Alert>

@@ -36,7 +36,7 @@ export default function SignupProgress({ steps, currentStep, errorMessage }: Sig
                     w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm
                     transition-all duration-300
                     ${isError ? 'bg-destructive/20 text-destructive border-2 border-destructive' : ''}
-                    ${isComplete ? 'bg-green-600/20 text-green-600 border-2 border-green-600' : ''}
+                    ${isComplete ? 'bg-success/20 text-success border-2 border-success' : ''}
                     ${isCurrentStep && !isError && !isComplete ? 'bg-primary/20 text-primary border-2 border-primary animate-pulse' : ''}
                     ${!isCurrentStep && !isComplete && !isError ? 'bg-muted text-muted-foreground border-2 border-muted-foreground/50' : ''}
                   `}
@@ -55,7 +55,7 @@ export default function SignupProgress({ steps, currentStep, errorMessage }: Sig
                     className={`
                       w-0.5 my-2 h-8
                       transition-all duration-300
-                      ${isComplete ? 'bg-green-600' : 'bg-muted-foreground/30'}
+                      ${isComplete ? 'bg-success' : 'bg-muted-foreground/30'}
                     `}
                   />
                 )}
@@ -67,7 +67,7 @@ export default function SignupProgress({ steps, currentStep, errorMessage }: Sig
                   className={`
                     font-semibold text-sm transition-colors duration-300
                     ${isError ? 'text-destructive' : ''}
-                    ${isComplete ? 'text-green-600' : ''}
+                    ${isComplete ? 'text-success' : ''}
                     ${isCurrentStep && !isError && !isComplete ? 'text-primary' : ''}
                     ${!isCurrentStep && !isComplete && !isError ? 'text-muted-foreground' : ''}
                   `}
@@ -93,9 +93,9 @@ export default function SignupProgress({ steps, currentStep, errorMessage }: Sig
 
       {/* Completion Message */}
       {currentStep > steps.length && (
-        <div className="p-3 rounded-lg bg-green-600/10 border border-green-600/30 flex gap-2 animate-fade-in">
-          <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-green-600 font-medium">
+        <div className="p-3 rounded-lg bg-success/10 border border-success/30 flex gap-2 animate-fade-in">
+          <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-success font-medium">
             ✓ All done! Redirecting to your profile...
           </div>
         </div>

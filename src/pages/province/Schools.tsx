@@ -88,7 +88,7 @@ export default function ProvinceSchools() {
                       <XCircle className="h-3.5 w-3.5 ml-1" />غیرفعال‌سازی
                     </Button>
                   ) : (
-                    <Button size="sm" variant="outline" className="text-green-600 border-green-200"
+                    <Button size="sm" variant="outline" className="text-success border-success/20"
                       onClick={() => toggle.mutate({ id: s.id, active: true })}>
                       <CheckCircle2 className="h-3.5 w-3.5 ml-1" />تأیید
                     </Button>
