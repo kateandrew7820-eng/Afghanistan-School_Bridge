@@ -96,26 +96,26 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
               {/* Error Title */}
               <div className="text-center">
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-xl font-bold text-muted-foreground">
                   متأسفانه خطایی رخ داد
                 </h2>
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   ما به مشکل کاری روبرو شده‌ایم. لطفاً دوباره تلاش کنید یا صفحه اول را بازدید کنید.
                 </p>
               </div>
 
               {/* Error Details (Dev Only) */}
               {isDev && this.state.error && (
-                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                <div className="bg-muted rounded-lg p-3 border border-border">
                   <details className="cursor-pointer">
-                    <summary className="font-mono text-xs text-gray-600 font-semibold">
+                    <summary className="font-mono text-xs text-muted-foreground font-semibold">
                       جزئیات خطا (تنها برای توسعه‌دهندگان)
                     </summary>
                     <pre className="mt-2 text-xs text-destructive overflow-auto max-h-40 whitespace-pre-wrap">
                       {errorMessage}
                     </pre>
                     {this.state.errorInfo && (
-                      <pre className="mt-2 text-xs text-gray-600 overflow-auto max-h-40 whitespace-pre-wrap">
+                      <pre className="mt-2 text-xs text-muted-foreground overflow-auto max-h-40 whitespace-pre-wrap">
                         {this.state.errorInfo.componentStack}
                       </pre>
                     )}
@@ -125,8 +125,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
               {/* Error Count Warning */}
               {this.state.errorCount > 3 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-xs text-amber-700">
+                <div className="bg-warning/10 border border-warning/20 rounded-lg p-3">
+                  <p className="text-xs text-warning">
                     خطاهای متعدد رخ داده است. اگر مشکل ادامه دارد، صفحه را بارگذاری کنید.
                   </p>
                 </div>

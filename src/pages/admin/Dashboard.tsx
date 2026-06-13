@@ -135,7 +135,7 @@ export default function AdminDashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.pendingSubmissions}</div>
+            <div className="text-2xl font-bold text-warning">{stats.pendingSubmissions}</div>
             <p className="text-xs text-muted-foreground">درحال بررسی</p>
           </CardContent>
         </Card>

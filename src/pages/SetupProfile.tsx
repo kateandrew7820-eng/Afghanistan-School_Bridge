@@ -308,12 +308,12 @@ export default function SetupProfile() {
 
         {/* 🚧 TEMPORARY TEST MODE banner */}
         {TEMPORARY_TEST_MODE && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-4">
             <div className="flex gap-3">
               <div className="flex-shrink-0"><span className="text-xl">🧪</span></div>
               <div>
-                <h3 className="font-medium text-amber-900">حالت آزمایشی فعال</h3>
-                <p className="text-sm text-amber-800 mt-1">
+                <h3 className="font-medium text-warning">حالت آزمایشی فعال</h3>
+                <p className="text-sm text-warning mt-1">
                   در حالت آزمایشی، تأیید حساب توسط مسئول اصلی سیستم انجام می‌شود.
                 </p>
               </div>

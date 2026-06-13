@@ -57,22 +57,22 @@ export default function Index() {
       icon: BookOpen,
       label: t('afghanistan.stats.totalTeachers'),
       value: '+220,000',
-      color: 'text-purple-600',
-      bg: 'bg-purple-50',
+      color: 'text-accent',
+      bg: 'bg-accent/10',
     },
     {
       icon: MapPin,
       label: t('afghanistan.stats.totalProvinces'),
       value: '34',
-      color: 'text-orange-600',
-      bg: 'bg-orange-50',
+      color: 'text-warning',
+      bg: 'bg-warning/10',
     },
     {
       icon: BarChart3,
       label: t('afghanistan.stats.totalDistricts'),
       value: '421',
-      color: 'text-pink-600',
-      bg: 'bg-pink-50',
+      color: 'text-accent',
+      bg: 'bg-accent/10',
     },
   ];
 
@@ -202,9 +202,9 @@ export default function Index() {
 
         {/* Status */}
         <div className="max-w-2xl mx-auto mb-10">
-          <Alert className="bg-amber-50 border-amber-200">
-            <Clock className="w-4 h-4 text-amber-600" />
-            <AlertDescription className="text-amber-900">
+          <Alert className="bg-warning/10 border-warning/20">
+            <Clock className="w-4 h-4 text-warning" />
+            <AlertDescription className="text-warning">
               <strong>وضعیت حساب:</strong> {t('profileCompletion.awaitingApproval')}
             </AlertDescription>
           </Alert>

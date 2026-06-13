@@ -135,7 +135,7 @@ export function SmartStatusCard({
 }: SmartStatusCardProps) {
   const statusColors = {
     success: 'text-success bg-success/10 border-success/20',
-    warning: 'text-amber-600 bg-amber-50 border-amber-200',
+    warning: 'text-warning bg-warning/10 border-warning/20',
     error: 'text-destructive bg-destructive/10 border-destructive/20',
     info: 'text-primary bg-primary/10 border-primary/20',
   };

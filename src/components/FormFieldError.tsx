@@ -160,7 +160,7 @@ export const FormFieldWrapper: React.FC<FormFieldWrapperProps> = ({
   return (
     <div className={cn('space-y-1', className)}>
       {label && (
-        <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+        <label className="block text-sm font-medium text-muted-foreground dark:text-muted-foreground">
           {label}
           {required && <span className="text-destructive dark:text-destructive ml-1">*</span>}
         </label>
@@ -179,7 +179,7 @@ export const FormFieldWrapper: React.FC<FormFieldWrapperProps> = ({
       )}
 
       {hint && !hasError && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
           {hint}
         </p>
       )}
@@ -195,8 +195,8 @@ export const FormFieldSkeleton: React.FC<{ count?: number }> = ({ count = 1 }) =
     <>
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="space-y-2 mb-4">
-          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-          <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+          <div className="h-4 w-24 bg-muted dark:bg-muted rounded animate-pulse" />
+          <div className="h-10 bg-muted dark:bg-muted rounded animate-pulse" />
         </div>
       ))}
     </>

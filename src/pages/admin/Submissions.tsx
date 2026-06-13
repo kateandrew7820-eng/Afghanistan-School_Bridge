@@ -152,7 +152,7 @@ export default function AdminSubmissions() {
       case 'rejected':
         return 'bg-destructive/10 text-destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -209,7 +209,7 @@ export default function AdminSubmissions() {
       <CardContent className="space-y-3">
         {/* Submission Details */}
         {type === 'statistics' && (
-          <div className="text-sm space-y-1 bg-gray-50 p-2 rounded">
+          <div className="text-sm space-y-1 bg-muted p-2 rounded">
             <p><span className="font-medium">سال:</span> {submission.academic_year}</p>
             <p><span className="font-medium">کل دانش‌آموزان:</span> {submission.total_students}</p>
             <p><span className="font-medium">معلمان:</span> {submission.total_teachers}</p>
@@ -217,14 +217,14 @@ export default function AdminSubmissions() {
           </div>
         )}
         {type === 'report' && (
-          <div className="text-sm space-y-1 bg-gray-50 p-2 rounded">
+          <div className="text-sm space-y-1 bg-muted p-2 rounded">
             <p className="font-medium">{submission.title}</p>
             {submission.description && <p className="text-muted-foreground">{submission.description}</p>}
             <p className="text-xs text-muted-foreground">📄 {submission.file_name}</p>
           </div>
         )}
         {type === 'form' && (
-          <div className="text-sm space-y-1 bg-gray-50 p-2 rounded">
+          <div className="text-sm space-y-1 bg-muted p-2 rounded">
             <p><span className="font-medium">نوع:</span> {submission.form_type}</p>
             {submission.form_data?.title && <p className="font-medium">{submission.form_data.title}</p>}
           </div>

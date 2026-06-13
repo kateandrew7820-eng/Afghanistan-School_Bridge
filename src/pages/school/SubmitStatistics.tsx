@@ -169,9 +169,9 @@ export default function SubmitStatistics() {
       <Stepper steps={STEPS as any} currentIndex={step} />
 
       {hadDraft && step === 0 && (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800 flex items-center justify-between gap-2">
+        <Alert className="border-warning/20 bg-warning/10">
+          <AlertCircle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-warning flex items-center justify-between gap-2">
             <span>پیش‌نویس قبلی شما بازیابی شد.</span>
             <Button size="sm" variant="ghost" onClick={() => { setFormData(initialForm); clearDraft(); }}>
               پاک کردن
