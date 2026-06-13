@@ -45,7 +45,7 @@ export function SmartFormField({
           className={cn(
             'transition-all duration-200',
             hasError && 'border-destructive focus-visible:ring-destructive',
-            isValid && 'border-success focus-visible:ring-green-500',
+            isValid && 'border-success focus-visible:ring-success',
             className
           )}
           {...props}
@@ -126,7 +126,7 @@ export function SmartTextarea({
             'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
             'transition-all duration-200',
             hasError && 'border-destructive focus-visible:ring-destructive',
-            isValid && 'border-success focus-visible:ring-green-500',
+            isValid && 'border-success focus-visible:ring-success',
             className
           )}
           aria-invalid={hasError ? "true" : undefined}
