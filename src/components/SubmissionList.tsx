@@ -91,7 +91,7 @@ export function SubmissionList({
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          className="h-7 w-7 p-0 text-success hover:text-success hover:bg-success/10"
                           disabled={actionLoading}
                           onClick={() => setConfirmAction({ id: s.id, type: s.type, action: 'approve' })}
                         >
