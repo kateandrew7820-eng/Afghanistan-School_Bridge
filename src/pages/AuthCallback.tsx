@@ -128,7 +128,7 @@ export default function AuthCallback() {
 
         {status === "success" && (
           <>
-            <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto" />
+            <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
             <h1 className="text-xl font-bold text-foreground">ایمیل تأیید شد! ✅</h1>
             <p className="text-muted-foreground text-sm">در حال انتقال به سیستم...</p>
           </>

@@ -41,8 +41,8 @@ export const FormFieldError: React.FC<SmartFormErrorProps> = ({
       className={cn(
         'flex items-center gap-2 text-sm transition-all duration-200',
         success
-          ? 'text-green-600 dark:text-green-400'
-          : 'text-red-600 dark:text-red-400',
+          ? 'text-success dark:text-success'
+          : 'text-destructive dark:text-destructive',
         style === 'summary' && 'mb-2',
         className
       )}
@@ -85,22 +85,22 @@ export const FormErrorSummary: React.FC<ErrorSummaryProps> = ({
   return (
     <div
       className={cn(
-        'rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950',
+        'rounded-lg border border-destructive/20 bg-destructive/10 p-4 dark:border-destructive dark:bg-destructive',
         className
       )}
       role="alert"
       aria-live="polite"
     >
       <div className="flex items-start gap-3">
-        <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400 mt-0.5" />
+        <AlertCircle className="h-5 w-5 flex-shrink-0 text-destructive dark:text-destructive mt-0.5" />
         <div className="flex-1">
-          <h3 className="font-semibold text-red-900 dark:text-red-100 mb-2">
+          <h3 className="font-semibold text-destructive dark:text-destructive mb-2">
             {errorCount} خطا در فورم
           </h3>
-          <ul className="space-y-1 text-sm text-red-800 dark:text-red-200">
+          <ul className="space-y-1 text-sm text-destructive dark:text-destructive">
             {Object.entries(errors).map(([fieldName, error]) => (
               <li key={fieldName} className="flex items-start gap-2">
-                <span className="text-red-600 dark:text-red-400 font-medium">•</span>
+                <span className="text-destructive dark:text-destructive font-medium">•</span>
                 <div>
                   <span className="font-medium capitalize">{fieldName}: </span>
                   <span>{error}</span>
@@ -112,7 +112,7 @@ export const FormErrorSummary: React.FC<ErrorSummaryProps> = ({
         {onDismiss && (
           <button
             onClick={onDismiss}
-            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            className="text-destructive hover:text-destructive dark:text-destructive dark:hover:text-destructive"
             aria-label="بستن"
           >
             ×
@@ -162,7 +162,7 @@ export const FormFieldWrapper: React.FC<FormFieldWrapperProps> = ({
       {label && (
         <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">
           {label}
-          {required && <span className="text-red-600 dark:text-red-400 ml-1">*</span>}
+          {required && <span className="text-destructive dark:text-destructive ml-1">*</span>}
         </label>
       )}
 

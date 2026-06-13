@@ -84,13 +84,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const errorMessage = this.state.error?.message || 'خطای نامشخص رخ داده است';
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 p-4">
-          <Card className="w-full max-w-md border-red-200">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-destructive to-orange-50 p-4">
+          <Card className="w-full max-w-md border-destructive/20">
             <CardContent className="pt-6 space-y-4">
               {/* Error Icon */}
               <div className="flex justify-center">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-destructive" />
                 </div>
               </div>
 
@@ -111,7 +111,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                     <summary className="font-mono text-xs text-gray-600 font-semibold">
                       جزئیات خطا (تنها برای توسعه‌دهندگان)
                     </summary>
-                    <pre className="mt-2 text-xs text-red-600 overflow-auto max-h-40 whitespace-pre-wrap">
+                    <pre className="mt-2 text-xs text-destructive overflow-auto max-h-40 whitespace-pre-wrap">
                       {errorMessage}
                     </pre>
                     {this.state.errorInfo && (

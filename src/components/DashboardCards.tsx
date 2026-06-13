@@ -18,8 +18,8 @@ const colorMap = {
   secondary: 'from-secondary/10 to-secondary/5 border-secondary/30',
   accent: 'from-accent/10 to-accent/5 border-accent/30',
   destructive: 'from-destructive/10 to-destructive/5 border-destructive/30',
-  success: 'from-green-500/10 to-green-500/5 border-green-500/30',
-  warning: 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/30',
+  success: 'from-success/10 to-success/5 border-success/30',
+  warning: 'from-warning/10 to-warning/5 border-warning/30',
 };
 
 const iconColorMap = {
@@ -27,8 +27,8 @@ const iconColorMap = {
   secondary: 'text-secondary',
   accent: 'text-accent',
   destructive: 'text-destructive',
-  success: 'text-green-600 dark:text-green-400',
-  warning: 'text-yellow-600 dark:text-yellow-400',
+  success: 'text-success dark:text-success',
+  warning: 'text-warning dark:text-warning',
 };
 
 /**
@@ -63,7 +63,7 @@ export function StatCard({
             <p className="text-xs text-muted-foreground">{description}</p>
           )}
           {trend !== undefined && (
-            <div className={cn('text-xs font-semibold', trend > 0 ? 'text-green-600' : 'text-red-600')}>
+            <div className={cn('text-xs font-semibold', trend > 0 ? 'text-success' : 'text-destructive')}>
               {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}% from last month
             </div>
           )}
@@ -157,10 +157,10 @@ export interface InfoCardProps {
 }
 
 const statusColorMap = {
-  pending: 'border-l-4 border-l-yellow-500 bg-yellow-500/5',
-  approved: 'border-l-4 border-l-green-500 bg-green-500/5',
-  rejected: 'border-l-4 border-l-red-500 bg-red-500/5',
-  neutral: 'border-l-4 border-l-blue-500 bg-blue-500/5',
+  pending: 'border-l-4 border-l-warning bg-warning/5',
+  approved: 'border-l-4 border-l-success bg-success/5',
+  rejected: 'border-l-4 border-l-destructive bg-destructive/5',
+  neutral: 'border-l-4 border-l-primary bg-primary/5',
 };
 
 /**

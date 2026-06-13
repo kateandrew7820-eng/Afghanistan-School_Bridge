@@ -60,8 +60,8 @@ export default function TestButtons() {
           variant="outline"
         >
           {s === "loading" && <Loader2 className="mr-2 animate-spin" />}
-          {s === "success" && <CheckCircle2 className="mr-2 text-green-600" />}
-          {s === "error" && <AlertTriangle className="mr-2 text-red-600" />}
+          {s === "success" && <CheckCircle2 className="mr-2 text-success" />}
+          {s === "error" && <AlertTriangle className="mr-2 text-destructive" />}
           {s === "idle" && <Play className="mr-2" />}
           {label}
         </Button>
@@ -70,7 +70,7 @@ export default function TestButtons() {
         {msg[id] && (
           <div className="h-1 bg-muted rounded overflow-hidden">
             <div className={`h-full ${
-              s === "success" ? "bg-green-500" : "bg-red-500"
+              s === "success" ? "bg-success" : "bg-destructive"
             } w-full animate-pulse`} />
           </div>
         )}
@@ -123,14 +123,14 @@ export default function TestButtons() {
           <div className="flex gap-2 flex-wrap">
             <Badge variant="outline">مقام: {role || "-"}</Badge>
             <Badge variant="outline">سطح: {roleTier || "-"}</Badge>
-            {isDemoMode && <Badge className="bg-blue-500">Demo</Badge>}
+            {isDemoMode && <Badge className="bg-primary">Demo</Badge>}
           </div>
         </div>
 
         {/* Sections */}
 
         {(roleTier === "school" || !roleTier) && (
-          <Section title="🏫 مکتب" color="from-blue-400 to-blue-600">
+          <Section title="🏫 مکتب" color="from-primary to-primary">
             <Action id="s1" label="ارسال آمار" path="/school/submit-statistics" />
             <Action id="s2" label="ارسال گزارش" path="/school/submit-reports" />
             <Action id="s3" label="فورم‌ها" path="/school/submit-forms" />
@@ -140,7 +140,7 @@ export default function TestButtons() {
         )}
 
         {(roleTier === "district" || !roleTier) && (
-          <Section title="🏢 ولسوالی" color="from-green-400 to-green-600">
+          <Section title="🏢 ولسوالی" color="from-success to-success">
             <Action id="d1" label="ارسال‌ها" path="/district/submissions" />
             <Action id="d2" label="تایید" path="/district/verify" />
             <Action id="d3" label="مکاتب" path="/district/schools" />
@@ -156,7 +156,7 @@ export default function TestButtons() {
         )}
 
         {(roleTier === "ministry" || !roleTier) && (
-          <Section title="👑 وزارت" color="from-yellow-400 to-orange-500">
+          <Section title="👑 وزارت" color="from-warning to-orange-500">
             <Action id="m1" label="ملی" path="/ministry/analytics" />
             <Action id="m2" label="کاربران" path="/ministry/users" />
             <Action id="m3" label="گزارش" path="/ministry/export" />

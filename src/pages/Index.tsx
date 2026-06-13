@@ -43,15 +43,15 @@ export default function Index() {
       icon: Building2,
       label: t('afghanistan.stats.totalSchools'),
       value: '+18000',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-primary',
+      bg: 'bg-primary/10',
     },
     {
       icon: Users,
       label: t('afghanistan.stats.totalStudents'),
       value: '+11.7M',
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      color: 'text-success',
+      bg: 'bg-success/10',
     },
     {
       icon: BookOpen,
@@ -110,7 +110,7 @@ export default function Index() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               {t('afghanistan.title')}
             </h1>
 
@@ -136,7 +136,7 @@ export default function Index() {
         <div className="max-w-3xl mx-auto text-center mb-14 space-y-6">
 
           {/* Icon Badge */}
-          <div className="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-br from-primary/15 to-blue-500/10 shadow-sm">
+          <div className="inline-flex items-center justify-center p-4 rounded-full bg-gradient-to-br from-primary/15 to-primary/10 shadow-sm">
             <Heart className="w-7 h-7 text-primary animate-pulse" />
           </div>
 

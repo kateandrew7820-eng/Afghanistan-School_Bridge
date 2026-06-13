@@ -56,14 +56,14 @@ export function SmartGuidance({
   });
 
   return (
-    <Card className="border-blue-200 bg-blue-50/50">
+    <Card className="border-primary/20 bg-primary/10/50">
       <CardHeader className="pb-3 flex flex-row items-start justify-between">
         <div className="flex items-start gap-3 flex-1">
-          <Lightbulb className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
+          <Lightbulb className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
           <div>
-            <CardTitle className="text-base text-blue-900">{title}</CardTitle>
+            <CardTitle className="text-base text-primary">{title}</CardTitle>
             {description && (
-              <CardDescription className="text-blue-700 mt-1">{description}</CardDescription>
+              <CardDescription className="text-primary mt-1">{description}</CardDescription>
             )}
           </div>
         </div>
@@ -72,7 +72,7 @@ export function SmartGuidance({
             variant="ghost"
             size="sm"
             onClick={handleDismiss}
-            className="text-blue-600 hover:text-blue-700"
+            className="text-primary hover:text-primary"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -85,15 +85,15 @@ export function SmartGuidance({
             key={step.id}
             className={cn(
               'flex items-start gap-3 p-3 rounded-lg transition-colors',
-              step.completed ? 'bg-white/50' : 'bg-white hover:bg-blue-50/50 cursor-pointer',
-              'border border-blue-100'
+              step.completed ? 'bg-white/50' : 'bg-white hover:bg-primary/10/50 cursor-pointer',
+              'border border-primary/20'
             )}
             onClick={() => !step.completed && onStepClick?.(step.id)}
           >
             {step.completed ? (
-              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle2 className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
             ) : (
-              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-200 text-blue-700 text-xs font-bold flex-shrink-0 mt-0.5">
+              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary/20 text-primary text-xs font-bold flex-shrink-0 mt-0.5">
                 {index + 1}
               </div>
             )}
@@ -116,7 +116,7 @@ export function SmartGuidance({
                 <Button
                   variant="link"
                   size="sm"
-                  className="mt-2 h-auto p-0 text-blue-600 hover:text-blue-700"
+                  className="mt-2 h-auto p-0 text-primary hover:text-primary"
                   onClick={(e) => {
                     e.stopPropagation();
                     step.action?.onClick?.();
@@ -171,10 +171,10 @@ export function SmartTip({
   if (isDismissed) return null;
 
   const typeStyles = {
-    info: 'border-blue-200 bg-blue-50 text-blue-900',
-    success: 'border-green-200 bg-green-50 text-green-900',
+    info: 'border-primary/20 bg-primary/10 text-primary',
+    success: 'border-success/20 bg-success/10 text-success',
     warning: 'border-amber-200 bg-amber-50 text-amber-900',
-    error: 'border-red-200 bg-red-50 text-red-900',
+    error: 'border-destructive/20 bg-destructive/10 text-destructive',
   };
 
   const handleDismiss = () => {

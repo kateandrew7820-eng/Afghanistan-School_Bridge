@@ -27,8 +27,8 @@ function getPasswordStrength(password: string): { score: number; label: string; 
 
   if (score <= 1) return { score, label: 'ضعیف', color: 'bg-destructive' };
   if (score <= 2) return { score, label: 'متوسط', color: 'bg-amber-500' };
-  if (score <= 3) return { score, label: 'خوب', color: 'bg-blue-500' };
-  return { score, label: 'قوی', color: 'bg-green-500' };
+  if (score <= 3) return { score, label: 'خوب', color: 'bg-primary' };
+  return { score, label: 'قوی', color: 'bg-success' };
 }
 
 // ============================================================================
@@ -255,7 +255,7 @@ export default function Login() {
                         setDevQuickMode();
                         setTimeout(() => navigate('/setup-profile?quickMode=true'), 100);
                       }}
-                      className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-primary-foreground font-semibold"
+                      className="w-full bg-gradient-to-r from-amber-500 to-warning hover:from-amber-600 hover:to-warning text-primary-foreground font-semibold"
                     >
                       <Zap className="ml-2 h-4 w-4" />
                       ورود سریع
@@ -572,7 +572,7 @@ export default function Login() {
                         )}
                         {/* Real-time match indicator */}
                         {signUpConfirmPassword && !signUpErrors.confirmPassword && signUpPassword === signUpConfirmPassword && (
-                          <p className="text-xs text-green-600 flex items-center gap-1">
+                          <p className="text-xs text-success flex items-center gap-1">
                             <CheckCircle2 className="h-3 w-3" />
                             رمز عبور مطابقت دارد
                           </p>

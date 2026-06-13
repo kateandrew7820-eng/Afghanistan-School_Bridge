@@ -19,7 +19,7 @@ const items = [
   { phase: 'برنامه‌ریزی', status: 'todo', title: 'پشتی‌بانی پشتو', desc: 'دو زبانه دری/پشتو' },
 ];
 
-const icon = (s: string) => s === 'done' ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : s === 'in' ? <Loader2 className="h-4 w-4 text-amber-600 animate-spin" /> : <Circle className="h-4 w-4 text-muted-foreground" />;
+const icon = (s: string) => s === 'done' ? <CheckCircle2 className="h-4 w-4 text-success" /> : s === 'in' ? <Loader2 className="h-4 w-4 text-amber-600 animate-spin" /> : <Circle className="h-4 w-4 text-muted-foreground" />;
 
 export default function Roadmap() {
   return (
