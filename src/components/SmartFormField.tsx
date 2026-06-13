@@ -163,7 +163,7 @@ export function SmartTextarea({
         {maxLength && (
           <p className={cn(
             'text-xs font-medium',
-            remainingChars && remainingChars < 50 && 'text-amber-600',
+            remainingChars && remainingChars < 50 && 'text-warning',
             remainingChars && remainingChars <= 0 && 'text-destructive'
           )}>
             {charCount}/{maxLength}

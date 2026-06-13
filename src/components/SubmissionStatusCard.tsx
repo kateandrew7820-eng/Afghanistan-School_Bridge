@@ -57,7 +57,7 @@ export const SubmissionStatusCard: React.FC<SubmissionStatusCardProps> = ({
       case 'pending':
         return 'bg-warning/10 text-warning';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 

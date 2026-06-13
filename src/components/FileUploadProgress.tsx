@@ -152,7 +152,7 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
               'relative rounded-lg border-2 border-dashed transition-all py-8 px-4',
               dragActive
                 ? 'border-primary bg-primary/5'
-                : 'border-neutral-300 bg-neutral-50 hover:border-primary hover:bg-primary/5',
+                : 'border-border bg-muted hover:border-primary hover:bg-primary/5',
               error && 'border-destructive/20 bg-destructive/10'
             )}
           >
@@ -221,7 +221,7 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
                   </p>
                   <p className="text-xs text-primary">{Math.round(progress)}%</p>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div
                     className="bg-primary h-2 rounded-full transition-all duration-300"
                     style={{ width: `${progress}%` }}

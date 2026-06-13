@@ -238,7 +238,7 @@ export function VerificationPanel({
         <CardDescription>
           {pendingUsers.length} کاربر در انتظار تأیید
           {TEMPORARY_TEST_MODE && (
-            <Badge variant="outline" className="mr-2 text-amber-600 border-amber-300">🧪 حالت آزمایشی</Badge>
+            <Badge variant="outline" className="mr-2 text-warning border-warning/20">🧪 حالت آزمایشی</Badge>
           )}
         </CardDescription>
       </CardHeader>

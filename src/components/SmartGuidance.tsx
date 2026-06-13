@@ -173,7 +173,7 @@ export function SmartTip({
   const typeStyles = {
     info: 'border-primary/20 bg-primary/10 text-primary',
     success: 'border-success/20 bg-success/10 text-success',
-    warning: 'border-amber-200 bg-amber-50 text-amber-900',
+    warning: 'border-warning/20 bg-warning/10 text-warning',
     error: 'border-destructive/20 bg-destructive/10 text-destructive',
   };
 
