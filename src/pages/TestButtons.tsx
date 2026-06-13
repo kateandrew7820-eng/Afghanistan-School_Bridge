@@ -149,21 +149,21 @@ export default function TestButtons() {
         )}
 
         {(roleTier === "province" || !roleTier) && (
-          <Section title="🌍 ولایت" color="from-purple-400 to-purple-600">
+          <Section title="🌍 ولایت" color="from-accent to-accent">
             <Action id="p1" label="آمار" path="/province" />
             <Action id="p2" label="Export" simulateMode />
           </Section>
         )}
 
         {(roleTier === "ministry" || !roleTier) && (
-          <Section title="👑 وزارت" color="from-warning to-orange-500">
+          <Section title="👑 وزارت" color="from-warning to-warning">
             <Action id="m1" label="ملی" path="/ministry/analytics" />
             <Action id="m2" label="کاربران" path="/ministry/users" />
             <Action id="m3" label="گزارش" path="/ministry/export" />
           </Section>
         )}
 
-        <Section title="⚙️ عمومی" color="from-gray-400 to-gray-600">
+        <Section title="⚙️ عمومی" color="from-muted to-muted">
           <Action id="g1" label="Refresh" simulateMode />
           <Action id="g2" label="Save" simulateMode />
           <Action id="g3" label="Download" simulateMode />

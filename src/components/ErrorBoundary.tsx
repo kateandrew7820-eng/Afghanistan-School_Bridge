@@ -84,7 +84,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const errorMessage = this.state.error?.message || 'خطای نامشخص رخ داده است';
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-destructive to-orange-50 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-destructive to-warning p-4">
           <Card className="w-full max-w-md border-destructive/20">
             <CardContent className="pt-6 space-y-4">
               {/* Error Icon */}

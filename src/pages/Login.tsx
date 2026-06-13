@@ -255,7 +255,7 @@ export default function Login() {
                         setDevQuickMode();
                         setTimeout(() => navigate('/setup-profile?quickMode=true'), 100);
                       }}
-                      className="w-full bg-gradient-to-r from-amber-500 to-warning hover:from-amber-600 hover:to-warning text-primary-foreground font-semibold"
+                      className="w-full bg-gradient-to-r from-warning to-warning hover:from-warning hover:to-warning text-primary-foreground font-semibold"
                     >
                       <Zap className="ml-2 h-4 w-4" />
                       ورود سریع
