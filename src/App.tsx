@@ -14,13 +14,17 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 
 // Pages - Core pages loaded immediately, others lazy-loaded for performance
-import Login from "./pages/Login";
+import Login from "./pages/auth/Login";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AccessError from "./pages/AccessError";
 import SetupProfile from "./pages/SetupProfile";
 import AuthCallback from "./pages/AuthCallback";
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+import { ThemeProvider } from "./components/ThemeProvider";
+const Signup = lazy(() => import("./pages/auth/Signup"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
 const AfghanistanInfoPage = lazy(() => import("./pages/AfghanistanInfoPage"));
 const HelpPage = lazy(() => import("./pages/Help"));
 const RoadmapPage = lazy(() => import("./pages/Roadmap"));
@@ -174,6 +178,9 @@ function AppRoutes() {
       <Route path="/login" element={user && roleTier ? <Navigate to={getDashboardRoute()} replace /> : <Login />} />
 
       {/* User Setup & Verification Routes */}
+      <Route path="/signup" element={<Suspense fallback={<LoadingFallback />}><Signup /></Suspense>} />
+      <Route path="/forgot-password" element={<Suspense fallback={<LoadingFallback />}><ForgotPassword /></Suspense>} />
+      <Route path="/verify-email" element={<Suspense fallback={<LoadingFallback />}><VerifyEmail /></Suspense>} />
       <Route path="/setup-profile" element={<SetupProfile />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
@@ -363,25 +370,27 @@ function AppRoutes() {
 }
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <LocalizationProvider>
-        <ConfirmationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <SmartConfirmationDialog />
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <LocalizationProvider>
+          <ConfirmationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <SmartConfirmationDialog />
 
-            <AuthProvider>
-              <BrowserRouter>
-                <Suspense fallback={null}><CommandPalette /></Suspense>
-                <AppRoutes />
-              </BrowserRouter>
-            </AuthProvider>
+              <AuthProvider>
+                <BrowserRouter>
+                  <Suspense fallback={null}><CommandPalette /></Suspense>
+                  <AppRoutes />
+                </BrowserRouter>
+              </AuthProvider>
 
-          </TooltipProvider>
-        </ConfirmationProvider>
-      </LocalizationProvider>
-    </QueryClientProvider>
+            </TooltipProvider>
+          </ConfirmationProvider>
+        </LocalizationProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   </ErrorBoundary>
 );
 export default App;

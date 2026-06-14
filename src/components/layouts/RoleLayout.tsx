@@ -4,6 +4,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import NavigationBackButton from '@/components/NavigationBackButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 import { LogOut, Menu, X, User, Search, Bell, Command as CmdIcon, LucideIcon } from 'lucide-react';
 
@@ -105,6 +106,7 @@ export default function RoleLayout({
               </kbd>
             </Button>
           )}
+          <ThemeToggle className="h-9 w-9 text-muted-foreground" />
           <Button
             variant="ghost" size="icon"
             className="h-9 w-9 text-muted-foreground"

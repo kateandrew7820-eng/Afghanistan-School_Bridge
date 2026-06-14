@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Light theme - used for school-level users */
+    /* Light theme (fallback / toggle target) */
     --background: 210 20% 98%;
     --foreground: 220 20% 10%;
 
@@ -14,8 +14,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    --primary: 210 65% 45%;
+    --primary: 188 85% 38%;
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 175 80% 45%;
 
     --secondary: 210 20% 93%;
     --secondary-foreground: 220 20% 20%;
@@ -23,7 +24,7 @@
     --muted: 210 15% 94%;
     --muted-foreground: 215 14% 40%;
 
-    --accent: 160 50% 42%;
+    --accent: 160 65% 42%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 55%;
@@ -31,68 +32,81 @@
 
     --border: 214 20% 88%;
     --input: 214 20% 88%;
-    --ring: 210 65% 45%;
+    --ring: 188 85% 38%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 210 25% 97%;
     --sidebar-foreground: 220 15% 30%;
-    --sidebar-primary: 210 65% 45%;
+    --sidebar-primary: 188 85% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 20% 93%;
     --sidebar-accent-foreground: 220 15% 20%;
     --sidebar-border: 214 18% 90%;
-    --sidebar-ring: 210 65% 45%;
+    --sidebar-ring: 188 85% 38%;
 
     --success: 142 60% 40%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+
+    --gradient-hero: radial-gradient(1200px 600px at 80% -10%, hsl(188 85% 38% / 0.18), transparent 60%),
+                     radial-gradient(800px 500px at -10% 110%, hsl(160 65% 42% / 0.14), transparent 60%),
+                     linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)));
+    --shadow-glow: 0 10px 40px -10px hsl(188 85% 38% / 0.35);
+    --shadow-elegant: 0 10px 30px -10px hsl(220 30% 8% / 0.12);
   }
 
   .dark {
-    /* Dark theme - used for admin-level dashboards */
-    --background: 222 30% 8%;
-    --foreground: 210 20% 95%;
+    /* Default dark theme — deep slate with teal/cyan glow */
+    --background: 222 35% 7%;
+    --foreground: 210 25% 96%;
 
-    --card: 222 25% 12%;
-    --card-foreground: 210 20% 95%;
+    --card: 222 30% 10%;
+    --card-foreground: 210 25% 96%;
 
-    --popover: 222 25% 12%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 222 30% 10%;
+    --popover-foreground: 210 25% 96%;
 
-    --primary: 210 70% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 175 80% 48%;
+    --primary-foreground: 222 40% 8%;
+    --primary-glow: 188 90% 55%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 210 20% 90%;
+    --secondary: 220 22% 16%;
+    --secondary-foreground: 210 20% 92%;
 
-    --muted: 220 18% 16%;
-    --muted-foreground: 215 15% 60%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 215 16% 65%;
 
-    --accent: 160 55% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 160 70% 50%;
+    --accent-foreground: 222 40% 8%;
 
-    --destructive: 0 65% 48%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 20%;
-    --input: 220 15% 20%;
-    --ring: 210 70% 55%;
+    --border: 220 18% 18%;
+    --input: 220 18% 18%;
+    --ring: 175 80% 48%;
 
-    --sidebar-background: 222 28% 10%;
-    --sidebar-foreground: 210 15% 85%;
-    --sidebar-primary: 210 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 18% 16%;
-    --sidebar-accent-foreground: 210 15% 85%;
-    --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 210 70% 55%;
+    --sidebar-background: 222 35% 8%;
+    --sidebar-foreground: 210 18% 86%;
+    --sidebar-primary: 175 80% 48%;
+    --sidebar-primary-foreground: 222 40% 8%;
+    --sidebar-accent: 220 22% 14%;
+    --sidebar-accent-foreground: 210 18% 92%;
+    --sidebar-border: 220 18% 16%;
+    --sidebar-ring: 175 80% 48%;
 
-    --success: 142 55% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 85% 55%;
-    --warning-foreground: 0 0% 100%;
+    --success: 152 65% 50%;
+    --success-foreground: 222 40% 8%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 222 40% 8%;
+
+    --gradient-hero: radial-gradient(1200px 600px at 80% -10%, hsl(175 80% 48% / 0.22), transparent 60%),
+                     radial-gradient(900px 500px at -10% 110%, hsl(160 70% 50% / 0.18), transparent 60%),
+                     linear-gradient(180deg, hsl(222 38% 6%), hsl(222 32% 9%));
+    --shadow-glow: 0 20px 60px -20px hsl(175 80% 48% / 0.45);
+    --shadow-elegant: 0 20px 60px -20px hsl(0 0% 0% / 0.6);
   }
 }
 
@@ -110,47 +124,26 @@
     @apply font-heading font-bold tracking-tight;
   }
 
-  h1 {
-    @apply text-4xl lg:text-5xl leading-tight;
-  }
+  h1 { @apply text-4xl lg:text-5xl leading-tight; }
+  h2 { @apply text-3xl lg:text-4xl leading-snug; }
+  h3 { @apply text-2xl lg:text-3xl; }
+  h4 { @apply text-xl lg:text-2xl; }
+  h5 { @apply text-lg lg:text-xl; }
+  h6 { @apply text-base lg:text-lg; }
 
-  h2 {
-    @apply text-3xl lg:text-4xl leading-snug;
-  }
+  p { @apply leading-relaxed; }
 
-  h3 {
-    @apply text-2xl lg:text-3xl;
-  }
-
-  h4 {
-    @apply text-xl lg:text-2xl;
-  }
-
-  h5 {
-    @apply text-lg lg:text-xl;
-  }
-
-  h6 {
-    @apply text-base lg:text-lg;
-  }
-
-  p {
-    @apply leading-relaxed;
-  }
-
-  /* Input styling */
   input[type="text"],
   input[type="email"],
   input[type="password"],
   input[type="number"],
   textarea,
   select {
-    @apply transition-all duration-200;
-    @apply border-2 border-border rounded-lg;
-    @apply focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary;
+    @apply transition-colors duration-200;
+    @apply border border-border rounded-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary;
   }
 
-  /* Animations */
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -159,5 +152,17 @@
   .animate-gradient-shift {
     background-size: 200% 200%;
     animation: gradient-shift 3s ease infinite;
+  }
+}
+
+@layer utilities {
+  .bg-hero {
+    background-image: var(--gradient-hero);
+  }
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
   }
 }
