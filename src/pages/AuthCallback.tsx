@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 type Status = "loading" | "success" | "error";
 
@@ -17,24 +18,20 @@ export default function AuthCallback() {
 
     const handleCallback = async () => {
       try {
-        // 1. Check if session already exists (e.g. from auto-detection of hash params)
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error("[AuthCallback] getSession error:", error.message);
           setErrorMsg(mapError(error.message));
           setStatus("error");
           return;
         }
 
         if (data.session) {
-          console.log("[AuthCallback] Session found, redirecting...");
           setStatus("success");
           setTimeout(() => navigate("/", { replace: true }), 800);
           return;
         }
 
-        // 2. Try extracting tokens from URL hash (implicit flow)
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
@@ -44,39 +41,30 @@ export default function AuthCallback() {
             access_token: accessToken,
             refresh_token: refreshToken,
           });
-
           if (sessionError) {
-            console.error("[AuthCallback] setSession error:", sessionError.message);
             setErrorMsg(mapError(sessionError.message));
             setStatus("error");
             return;
           }
-
           setStatus("success");
           setTimeout(() => navigate("/", { replace: true }), 800);
           return;
         }
 
-        // 3. Check for PKCE code in query params
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get("code");
-
         if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-
           if (exchangeError) {
-            console.error("[AuthCallback] code exchange error:", exchangeError.message);
             setErrorMsg(mapError(exchangeError.message));
             setStatus("error");
             return;
           }
-
           setStatus("success");
           setTimeout(() => navigate("/", { replace: true }), 800);
           return;
         }
 
-        // 4. Check for error in URL (e.g. expired link)
         const errorParam = hashParams.get("error_description") || urlParams.get("error_description");
         if (errorParam) {
           setErrorMsg(mapError(errorParam));
@@ -84,7 +72,6 @@ export default function AuthCallback() {
           return;
         }
 
-        // 5. Fallback: wait briefly for onAuthStateChange
         timeout = setTimeout(() => {
           setErrorMsg("لینک تأیید منقضی شده یا نامعتبر است. لطفاً دوباره ثبت‌نام کنید.");
           setStatus("error");
@@ -101,7 +88,6 @@ export default function AuthCallback() {
 
         unsubscribe = () => subscription.unsubscribe();
       } catch (err) {
-        console.error("[AuthCallback] unexpected error:", err);
         setErrorMsg("خطا در تأیید ایمیل. لطفاً دوباره تلاش کنید.");
         setStatus("error");
       }
@@ -116,28 +102,31 @@ export default function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background" dir="rtl">
-      <div className="bg-card border border-border rounded-xl p-8 text-center space-y-5 max-w-sm w-full shadow-lg">
+    <AuthShell title="تأیید ایمیل" description="در حال تأیید حساب کاربری شما">
+      <div className="bg-card border border-border rounded-2xl p-8 text-center space-y-5 shadow-lg">
         {status === "loading" && (
           <>
             <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
-            <h1 className="text-xl font-bold text-foreground">در حال تأیید ایمیل...</h1>
-            <p className="text-muted-foreground text-sm">لطفاً صبر کنید</p>
+            <h1 className="text-xl font-heading font-bold text-foreground">در حال تأیید ایمیل...</h1>
+            <p className="text-muted-foreground text-sm">لطفاً چند لحظه صبر کنید</p>
+            <div className="mx-auto h-1.5 w-40 overflow-hidden rounded-full bg-muted">
+              <div className="h-full w-1/2 bg-primary animate-[shimmer_1.2s_ease-in-out_infinite]" />
+            </div>
           </>
         )}
 
         {status === "success" && (
           <>
             <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
-            <h1 className="text-xl font-bold text-foreground">ایمیل تأیید شد! ✅</h1>
-            <p className="text-muted-foreground text-sm">در حال انتقال به سیستم...</p>
+            <h1 className="text-xl font-heading font-bold text-foreground">ایمیل تأیید شد</h1>
+            <p className="text-muted-foreground text-sm">در حال انتقال به داشبورد...</p>
           </>
         )}
 
         {status === "error" && (
           <>
             <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
-            <h1 className="text-xl font-bold text-foreground">خطا در تأیید</h1>
+            <h1 className="text-xl font-heading font-bold text-foreground">خطا در تأیید</h1>
             <p className="text-muted-foreground text-sm leading-relaxed">{errorMsg}</p>
             <div className="flex flex-col gap-2 pt-2">
               <Button onClick={() => navigate("/login")} className="w-full">
@@ -151,11 +140,10 @@ export default function AuthCallback() {
           </>
         )}
       </div>
-    </div>
+    </AuthShell>
   );
 }
 
-/** Map common Supabase error strings to user-friendly Persian messages */
 function mapError(msg: string): string {
   const lower = msg.toLowerCase();
   if (lower.includes("expired") || lower.includes("invalid")) {
