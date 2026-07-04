@@ -1,206 +1,132 @@
+# Auth Overhaul: Number-Matching Signup + OTP Password Reset
 
-## 1. Why the second tab is blank (root cause)
+## Goals
 
-The white page in your screenshot is **not** an empty component — it's React failing to boot. Three signals confirm it:
+1. Replace the broken "Verify Email" button with a **number-matching** confirmation flow (like Google/Microsoft MFA prompts).
+2. Replace the password-reset magic link with a **6-digit OTP** flow that stays inside the app.
+3. Give the user clear fallback options at every failure point (Resend, Return to Login, Go to Afghanistan Info main page).
 
-- Runtime errors keep saying `Cannot read properties of null (reading 'useContext' / 'useRef')` inside `useNavigate`, `useQueryClient`, and `useSearchParams`. That happens when the `react` module evaluates to `null` — which is what happens when the browser loads `index.html` but the JS chunk URLs it references no longer exist (so React itself never loads).
-- `public/service-worker.js` registers in **every** environment, including the Lovable preview, and uses a "cache-then-network" strategy that **stores `index.html` in `CACHE_DYNAMIC`** on every navigation.
-- When you open the app in a second tab, the SW serves the cached `index.html` that points to old Vite hashed chunks (`?v=950d690a`). Those chunks were replaced on the server, so the browser 404s on the scripts → React = null → blank screen.
+---
 
-This is exactly the "broken existing PWA" pattern: a hand-written app-shell service worker that out-lives deploys and traps users on stale HTML.
+## Part 1 — Signup: Number-Matching Confirmation
 
-## 2. Plan overview
+### User experience
 
-```text
-┌──────────────────────────────────────────────────────────────┐
-│  A. Recovery: kill-switch SW + safer registration            │
-│  B. Default dark theme (with light fallback ready)           │
-│  C. Native split-flow auth                                   │
-│     /login • /signup • /forgot-password                      │
-│     /reset-password • /verify-email • /auth/callback         │
-└──────────────────────────────────────────────────────────────┘
+1. User submits signup form (email + password + profile).
+2. Signup page moves to a new **"Confirm It's You"** step showing **one large number** (e.g. `47`) on screen with a live "waiting…" state.
+3. User receives an email titled **"تأیید ثبت‌نام — شماره را انتخاب کنید"** containing **three big buttons/numbers** (one is `47`, two are decoys like `12` and `83`).
+4. User taps the number that matches their screen on their phone.
+  - **Match** → screen advances **in real time** (no refresh) to the next signup step (profile setup / success).
+  - **Mismatch** → email page shows "Wrong number", and the signup page shows a red **"شماره اشتباه انتخاب شد"** state with 3 buttons:
+    - **ارسال مجدد ایمیل** (Resend, with 60s cooldown)
+    - **بازگشت به ورود** (Go to Login)
+    - **صفحه اصلی افغانستان** (Go to `/afghanistan-info`)
+5. If the user does nothing for 10 minutes, the challenge expires and shows the same 3 options.
+
+### Technical design
+
+**New DB table** `public.signup_challenges`:
+
+```
+id uuid pk, user_id uuid fk auth.users, email text,
+correct_number int, decoys int[],   -- 3 numbers total, 10–99
+status text ('pending'|'matched'|'mismatched'|'expired'),
+created_at timestamptz, expires_at timestamptz (now()+10 min)
 ```
 
-You chose **"Keep aggressive offline"**, so we keep offline behavior — but only after the broken worker is evicted, and with a safer policy that can never strand users on dead HTML again.
+- RLS: user can `select` own row by `user_id`; edge functions use service role.
+- Grants: `select` to `authenticated`, `all` to `service_role`.
+
+**New edge function** `signup-challenge`:
+
+- `POST /create` → after `supabase.auth.signUp()`, called with the new user id + email. Generates correct number + 2 decoys, stores row, sends custom email with three signed links: `https://<app>/confirm-signup?cid=<uuid>&pick=<number>&sig=<hmac>`.
+- Email is sent via existing Lovable email infrastructure (reuse `send-approval-email` pattern; scaffold auth email templates only if the infra path requires it — otherwise send directly from this function).
+
+**New edge function** `signup-challenge-verify` (public, no JWT required):
+
+- Handles the link click. Verifies HMAC, looks up challenge, marks `matched` or `mismatched`, and (on match) calls admin API to `email_confirm: true` on the user.
+- Returns a small styled HTML page in Dari confirming the choice ("درست بود، برگردید به صفحه ثبت‌نام" / "شماره اشتباه بود").
+
+**Realtime bridge**:
+
+- Signup page subscribes to `postgres_changes` on `signup_challenges` filtered by `id=eq.<cid>`.
+- On `status` change → advance step or show mismatch UI.
+
+**Files to add**:
+
+- `supabase/migrations/<ts>_signup_challenges.sql`
+- `supabase/functions/signup-challenge/index.ts`
+- `supabase/functions/signup-challenge-verify/index.ts`
+- `src/pages/auth/ConfirmSignup.tsx` (the "pick the number on your screen" step; realtime listener + fallback UI)
+- `src/pages/auth/SignupConfirmed.tsx` optional success view
+
+**Files to change**:
+
+- `src/pages/auth/Signup.tsx` — after successful `signUp()`, call `signup-challenge/create`, push to `/confirm-signup?cid=…`, remove reliance on Supabase's default confirm email.
+- `src/App.tsx` — register `/confirm-signup` route (public).
+- `src/pages/auth/VerifyEmail.tsx` — retire or redirect to new flow (kept for legacy links but deep-links to `/confirm-signup` if a `cid` is present).
+- Disable Supabase's built-in confirmation email for signup so users only receive our number-match email (configure via `supabase--configure_auth` — keep `auto_confirm_email: false`, and skip default template by using the auth-email-hook to no-op signup type, OR simpler: leave default off and rely solely on our edge function email).
 
 ---
 
-## A. Fix the blank tab (highest priority)
+## Part 2 — Login: Forgot Password with 6-digit OTP
 
-### A1. Replace `public/service-worker.js` with a one-shot kill switch
-Following the PWA skill exactly: same path, self-unregisters, deletes only its own caches, navigates open clients. This evicts the bad SW from every browser that already has it. Ship for one cycle.
+### User experience
 
-### A2. Rebuild offline support cleanly with `vite-plugin-pwa`
-- `registerType: "autoUpdate"`, `injectRegister: null`.
-- HTML / navigations → **NetworkFirst** (never cache-first — this is the rule the old SW violated).
-- Hashed JS/CSS/font assets → CacheFirst (safe because filenames are hashed).
-- Supabase REST → StaleWhileRevalidate with a small TTL.
-- Single registration wrapper at `src/lib/registerSW.ts` that **refuses to register** in dev, inside iframes, and on any Lovable preview host (`*.lovableproject.com`, `id-preview--*`, `preview--*`, `*.beta.lovable.dev`). Supports `?sw=off` kill switch.
+1. On `/login`, the user types their email in the email field, then clicks **"رمز عبور را فراموش کرده‌اید؟"**.
+2. **Immediately** (no page nav) an inline panel expands under the button showing 6 OTP input boxes plus "کد به ایمیل شما ارسال شد".
+3. Backend sends `supabase.auth.resetPasswordForEmail()` — email template updated to show `{{ .Token }}` (6-digit) prominently instead of just a link.
+4. User types the 6 digits:
+  - **Match** → verified via `supabase.auth.verifyOtp({ type: 'recovery', email, token })`, session created, navigate to `/reset-password` for new password entry.
+  - **Mismatch / 3 wrong attempts / expired** → panel switches to a fallback with three buttons:
+    - **بازگشت به صفحه اصلی** (`/afghanistan-info`)
+    - **ارسال مجدد کد** (60s cooldown, resets attempt counter)
+    - **بازگشت به ورود** (collapse panel back to login form)
 
-### A3. Remove SW registration from `src/main.tsx`
-Replace the unguarded `navigator.serviceWorker.register('/service-worker.js')` with the wrapper. Result: previews stop registering workers (your second-tab bug literally cannot reproduce in preview again), published builds still get offline.
+### Technical design
 
-### A4. Defensive routing guard
-Add a Suspense+ErrorBoundary at the route level so a single lazy-chunk fetch failure shows a Persian "بارگذاری دوباره" recovery card with a hard reload button — instead of a white screen — even if a chunk ever goes missing again.
+- No new tables. Uses Supabase's built-in recovery OTP.
+- Auth email template (`supabase/functions/_shared/email-templates/recovery.tsx`) is updated to feature the 6-digit token as the primary content, keeping the link as a small secondary "or click here" for accessibility. Scaffold via `email_domain--scaffold_auth_email_templates` first (only if not already scaffolded).
+- `PasswordField` reused for the new-password screen.
 
----
+**Files to add**:
 
-## B. Default dark theme
+- `src/components/auth/ForgotPasswordPanel.tsx` — inline expandable panel with email pre-fill, OTP inputs (6 boxes), resend cooldown, fallback state.
+- `src/components/auth/OtpInput.tsx` — small 6-box RTL-aware digit input with paste support.
 
-Tokens already exist in `src/index.css` (`.dark { … }`) and `next-themes` is already installed. Light is **kept as a fallback** because some flows (printable exports, Ministry PDF previews) read better light.
+**Files to change**:
 
-### B1. Add `ThemeProvider` (next-themes)
-- `defaultTheme="dark"`, `enableSystem={false}`, `attribute="class"`, `disableTransitionOnChange`.
-- Wraps the app inside `App.tsx`, above `AuthProvider`.
-
-### B2. Polish dark tokens for our brand
-Tune `--background`, `--card`, `--primary`, `--accent`, `--sidebar-*`, and add `--gradient-hero`, `--shadow-glow` to match the inspiration screenshot (deep slate, teal/cyan accent, soft neon glow). All edits stay in `index.css` — no component-level color hardcoding.
-
-### B3. Audit known light-only spots
-- `Login`/`Index` gradients: switch hardcoded `from-primary/5` blends to token-based gradients that read in both modes.
-- `RoleLayout` top bar `bg-card/95` already works; just verify contrast.
-- Demo banner (`bg-warning/10`) already token-based — no change.
-
-### B4. Theme toggle (subtle, header)
-Sun/Moon button in `RoleLayout` header and on `/login`. Persists in `localStorage` via next-themes. Default stays dark.
-
-### B5. Update memory
-Replace the `Styling: Light theme only` core rule with `Default dark theme; light supported via toggle. Roboto body, Montserrat headings.`
+- `src/pages/auth/Login.tsx` — replace `<Link to="/forgot-password">` with a button that expands `ForgotPasswordPanel` inline; pass current `email` value.
+- `src/pages/auth/ForgotPassword.tsx` — either delete or make it a thin wrapper around `ForgotPasswordPanel` for direct-link users.
+- `src/pages/auth/ResetPassword.tsx` — trust the session established by `verifyOtp`; drop the URL-hash `type=recovery` check.
+- Auth email `recovery.tsx` template — token-first layout.
 
 ---
 
-## C. Native login experience — split flows
+## Part 3 — Small hardening also included
 
-You picked **Split flows**. Here is the full UX contract, designed to feel like Linear / Notion / Vercel: each step is its own screen with one job, one primary action, and zero surprises.
-
-### C1. Route map
-
-```text
-/login                  → Sign in (email + password)
-/signup                 → Create account (3-step wizard)
-/forgot-password        → Request reset email
-/reset-password         → Set new password (token from email)
-/verify-email           → "Check your inbox" + resend
-/auth/callback          → OAuth/magic-link landing (exists, hardened)
-/setup-profile          → First-run profile completion (exists)
-/pending-verification   → Awaiting admin approval (exists)
-```
-
-Each route is a thin page that shares one `<AuthShell>` (logo, gradient backdrop, RTL frame, footer trust stats). Form bodies swap; chrome stays.
-
-### C2. `/login` — Sign in (the front door)
-
-**Layout (RTL):** centered card on a dark hero gradient, brand mark at top, then `email`, `password`, `forgot password` link (left-aligned inside card), big **ورود** button, divider, secondary "**ایجاد حساب جدید**" link to `/signup`.
-
-**Inputs & states:**
-- Email: ltr, `autocomplete="email"`, validates on blur, error slides in under field.
-- Password: ltr, `autocomplete="current-password"`, eye toggle, Caps-Lock warning when active.
-- Submit button is a single source of truth for loading; double-submit guard via `useRef` (already in place — preserved).
-- Inline error region replaces the global Alert (cleaner). Toast only for non-form errors (network).
-
-**What happens after click — full state matrix:**
-| Outcome | UX response |
-| --- | --- |
-| Valid creds, verified | Toast "خوش آمدید"; redirect to role-default route (`/school`, `/district`, `/province`, `/ministry`) |
-| Valid creds, pending verification | Redirect to `/pending-verification` |
-| Valid creds, no profile yet | Redirect to `/setup-profile` |
-| Wrong email/password | Inline error under password: "ایمیل یا رمز عبور اشتباه است" (never reveal which) |
-| Email not confirmed | Redirect to `/verify-email?email=…` with "ایمیل خود را تأیید کنید" |
-| Rate-limited (429) | Inline error + countdown "لطفاً ۳۰ ثانیه صبر کنید" |
-| Network down | Toast + Retry; form stays filled |
-| Already signed in | `useEffect` redirects on mount to dashboard |
-
-**Keyboard / a11y:** Enter submits; focus auto-moves to first invalid field on error; all fields wired to `<label htmlFor>`; aria-live region announces errors; Esc clears focused field.
-
-### C3. `/signup` — 3-step native wizard
-Inspired by Linear/Vercel onboarding. Each step is one decision.
-
-```text
-Step 1: Identity        → Full name, email
-Step 2: Security        → Password + confirm + live strength meter
-Step 3: Done            → "Check your email" with resend + open mail client
-```
-- Progress dots at top (3 nodes).
-- Back button per step except first (which has "بازگشت به ورود").
-- Step 1→2 validates before advancing (no server call yet).
-- Step 2 is the only network step; on success → Step 3.
-- Step 3 has a "**باز کردن ایمیل**" button that tries `mailto:` and falls back to Gmail/Outlook quick links; a **"ارسال مجدد لینک"** button (60s cooldown using `useRef` timer).
-- Edge cases: email already registered → jump back to Step 1 with prefilled email + CTA "آیا قبلاً حساب دارید؟ ورود".
-
-### C4. `/forgot-password`
-Single field. On submit, **always** shows the same neutral success screen ("اگر این ایمیل ثبت باشد، لینک بازنشانی ارسال شد") — to prevent email-enumeration. Resend cooldown 60s. Link to `/login`.
-
-### C5. `/reset-password`
-- Reads `type=recovery` and `access_token` from hash, validates with Supabase.
-- Two fields: new password + confirm, strength meter (reused component).
-- Submit calls `supabase.auth.updateUser({ password })`. On success → toast → redirect to `/login` with prefilled email.
-- Invalid/expired token → friendly "این لینک منقضی شده" screen with "ارسال لینک جدید" CTA going back to `/forgot-password`.
-
-### C6. `/verify-email`
-- Pulls `email` from query.
-- Shows confirmation icon, resend button (60s cooldown), and "ایمیل را اشتباه وارد کردید؟" → returns to `/signup`.
-- Polls Supabase session every 5s while tab is visible; if session appears (user clicked the link in another tab), auto-redirect to `/setup-profile` or dashboard.
-
-### C7. `/auth/callback` (harden, keep)
-Already prevents redirect loops. Add a clear branded loading state ("در حال تأیید حساب…") instead of the bare spinner.
-
-### C8. Cross-cutting auth polish
-- **`AuthShell`** — shared frame with brand, gradient, RTL, helmet meta per page.
-- **`AuthCard`** — consistent card width (max-w-md), spacing, divider treatment.
-- **`PasswordField`**, **`PasswordStrengthMeter`** — extracted from current `Login.tsx` so all four screens share them.
-- **`useCooldown(seconds)`** — small hook for resend timers (signup, forgot, verify).
-- **`useAuthRedirect()`** — central "where should this user go right now?" helper used by `/login`, `/signup` final step, `/auth/callback`, `/reset-password`.
-- **Trust signals** (3 stats: schools / provinces / students) stay only on `/login` and `/signup` step 1 — they create context without cluttering security screens.
-- **Dev quick-enter** stays gated to `import.meta.env.DEV`, repositioned as a subtle footer chip instead of a yellow banner.
-
-### C9. Security hygiene retained
-- Double-submit `useRef` guards.
-- Generic error messages on sign-in (no "user not found" vs "wrong password" leakage).
-- Forgot-password neutral response (no enumeration).
-- Password strength gating ≥ 6 chars (existing rule) preserved.
-- All redirects use `Navigate replace` to keep history clean.
+- `Signup.tsx`: ensure `emailRedirectTo` is unused (we're not relying on the link).
+- `Login.tsx`: on "email not confirmed" error, redirect to `/confirm-signup?email=…` to trigger a fresh challenge instead of the old `/verify-email`.
+- `AuthCallback.tsx`: keep OAuth handling untouched; add a branch that if the URL is our old confirm link, redirect users to the new number-match page.
 
 ---
 
-## File changes summary
+## Out of scope (will not touch)
 
-```text
-public/
-  service-worker.js                 → REPLACED with kill-switch worker
-src/
-  main.tsx                          → SW registration uses guarded wrapper
-  App.tsx                           → Wrap with <ThemeProvider>; add new auth routes
-  index.css                         → Tune dark tokens; add hero gradient + glow
-  lib/
-    registerSW.ts                   → NEW guarded SW registration
-  components/
-    ThemeToggle.tsx                 → NEW (Sun/Moon)
-    layouts/RoleLayout.tsx          → Add ThemeToggle in header
-    auth/
-      AuthShell.tsx                 → NEW
-      AuthCard.tsx                  → NEW
-      PasswordField.tsx             → NEW (extracted)
-      PasswordStrengthMeter.tsx     → NEW (extracted)
-  hooks/
-    useCooldown.ts                  → NEW
-    useAuthRedirect.ts              → NEW
-  pages/auth/
-    Login.tsx                       → REWRITTEN (sign-in only)
-    Signup.tsx                      → NEW (3-step wizard)
-    ForgotPassword.tsx              → NEW
-    ResetPassword.tsx               → MOVED + native polish
-    VerifyEmail.tsx                 → NEW
-vite.config.ts                      → Add vite-plugin-pwa (generateSW)
-```
-
-Old `src/pages/Login.tsx` and `src/pages/ResetPassword.tsx` are deleted after the split lands; redirects from `/admin/*` etc. stay untouched.
+- Google/OAuth login flow.
+- Existing role/tier redirect logic in `AuthContext`.
+- `AdminLayout`, dashboards, RLS on unrelated tables.
 
 ---
 
-## Order of work
-1. **Stop the bleeding** — kill-switch SW + guarded registration + route-level error fallback.
-2. **Dark theme default** — ThemeProvider, token polish, toggle.
-3. **Auth split** — shared shell + 5 screens + cross-cutting hooks.
-4. **Verify** — read console & network requests in preview; open `/school` in a second tab and confirm no white page; sign-in → dashboard → sign out flow end-to-end; signup → verify-email → callback round-trip.
+## Rollout order (once approved)
 
-After you approve, I'll switch to build mode and implement in that order.
+1. Migration for `signup_challenges` (+ grants + RLS).
+2. Edge functions `signup-challenge` and `signup-challenge-verify`, deploy.
+3. Signup UI (`Signup.tsx` + new `ConfirmSignup.tsx` + route).
+4. Scaffold auth email templates (if not already) and rewrite `recovery.tsx` for OTP-first.
+5. Login UI (`Login.tsx` + `ForgotPasswordPanel` + `OtpInput`).
+6. Reset password page trimmed to just "set new password".
+7. Manual verification via Playwright (signup happy path + wrong-number path + forgot-password OTP path).
+
+Confirm and I'll build it.
