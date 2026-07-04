@@ -453,6 +453,42 @@ export type Database = {
           },
         ]
       }
+      signup_challenges: {
+        Row: {
+          correct_number: number
+          created_at: string
+          decoys: number[]
+          email: string
+          expires_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          correct_number: number
+          created_at?: string
+          decoys: number[]
+          email: string
+          expires_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          correct_number?: number
+          created_at?: string
+          decoys?: number[]
+          email?: string
+          expires_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       statistics_submissions: {
         Row: {
           academic_year: string
