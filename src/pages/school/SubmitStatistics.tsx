@@ -51,11 +51,29 @@ export default function SubmitStatistics() {
   };
   const [formData, setFormData, clearDraft, hadDraft] = useDraft<FormData>('school-statistics', initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [totalManual, setTotalManual] = useState(false); // user overrode auto-total
 
   const setField = (name: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
+
+  // Smart auto-total: total_students = male + female unless user overrode.
+  const derived = useMemo(() => deriveStats({
+    male: toInt(formData.male_students),
+    female: toInt(formData.female_students),
+    teachers: toInt(formData.total_teachers),
+    total: toInt(formData.total_students),
+  }), [formData.male_students, formData.female_students, formData.total_teachers, formData.total_students]);
+
+  useEffect(() => {
+    if (totalManual) return;
+    const auto = derived.autoTotal;
+    if (auto > 0 && String(auto) !== formData.total_students) {
+      setFormData(prev => ({ ...prev, total_students: String(auto) }));
+    }
+  }, [derived.autoTotal, totalManual]);
+
 
   const validateStep = (s: number): boolean => {
     const e: Record<string, string> = {};
