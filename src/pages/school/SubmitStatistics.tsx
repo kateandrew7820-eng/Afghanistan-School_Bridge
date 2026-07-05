@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { BarChart3, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Users, GraduationCap, ClipboardCheck } from 'lucide-react';
+import { BarChart3, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Users, GraduationCap, ClipboardCheck, Sparkles, Pencil } from 'lucide-react';
 import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
@@ -13,6 +13,7 @@ import { validateNumberRange, validateRequired } from '@/lib/validation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDraft } from '@/hooks/useDraft';
 import { Stepper } from '@/components/Stepper';
+import { deriveStats, toInt, toPersianDigits } from '@/lib/smartCalc';
 
 type FormData = {
   academic_year: string;
@@ -50,11 +51,29 @@ export default function SubmitStatistics() {
   };
   const [formData, setFormData, clearDraft, hadDraft] = useDraft<FormData>('school-statistics', initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [totalManual, setTotalManual] = useState(false); // user overrode auto-total
 
   const setField = (name: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
+
+  // Smart auto-total: total_students = male + female unless user overrode.
+  const derived = useMemo(() => deriveStats({
+    male: toInt(formData.male_students),
+    female: toInt(formData.female_students),
+    teachers: toInt(formData.total_teachers),
+    total: toInt(formData.total_students),
+  }), [formData.male_students, formData.female_students, formData.total_teachers, formData.total_students]);
+
+  useEffect(() => {
+    if (totalManual) return;
+    const auto = derived.autoTotal;
+    if (auto > 0 && String(auto) !== formData.total_students) {
+      setFormData(prev => ({ ...prev, total_students: String(auto) }));
+    }
+  }, [derived.autoTotal, totalManual]);
+
 
   const validateStep = (s: number): boolean => {
     const e: Record<string, string> = {};
@@ -129,7 +148,11 @@ export default function SubmitStatistics() {
     { label: 'دختران', value: formData.female_students || '۰' },
     { label: 'کل معلمان', value: formData.total_teachers || '۰' },
     { label: 'نرخ حضور', value: formData.attendance_rate ? `${formData.attendance_rate}%` : '—' },
-  ]), [formData]);
+    { label: 'دانش‌آموز به معلم',
+      value: derived.studentsPerTeacher != null ? `${toPersianDigits(derived.studentsPerTeacher.toFixed(1))} : ۱` : '—' },
+    { label: 'درصد دختران',
+      value: derived.femalePercent != null ? `${toPersianDigits(derived.femalePercent.toFixed(1))}٪` : '—' },
+  ]), [formData, derived]);
 
   if (submitted) {
     return (
@@ -208,8 +231,43 @@ export default function SubmitStatistics() {
               <FormFieldWrapper label="سال تحصیلی *" error={errors.academic_year}>
                 <Input value={formData.academic_year} onChange={(e) => setField('academic_year', e.target.value)} placeholder="1402" disabled={isSubmitting} />
               </FormFieldWrapper>
-              <FormFieldWrapper label="کل دانش‌آموزان *" error={errors.total_students}>
-                <Input type="number" value={formData.total_students} onChange={(e) => setField('total_students', e.target.value)} placeholder="0" min="0" disabled={isSubmitting} />
+              <FormFieldWrapper
+                label={
+                  <span className="flex items-center gap-2">
+                    کل دانش‌آموزان *
+                    {!totalManual && derived.autoTotal > 0 && (
+                      <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary">
+                        <Sparkles className="h-3 w-3" /> محاسبه خودکار
+                      </span>
+                    )}
+                  </span> as any
+                }
+                error={errors.total_students}
+              >
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    value={formData.total_students}
+                    onChange={(e) => { setTotalManual(true); setField('total_students', e.target.value); }}
+                    placeholder="0"
+                    min="0"
+                    disabled={isSubmitting || !totalManual}
+                    readOnly={!totalManual}
+                    className={!totalManual ? 'bg-muted/40' : ''}
+                  />
+                  {!totalManual ? (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setTotalManual(true)} className="shrink-0 gap-1">
+                      <Pencil className="h-3.5 w-3.5" /> ویرایش دستی
+                    </Button>
+                  ) : (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => { setTotalManual(false); setField('total_students', String(derived.autoTotal || '')); }} className="shrink-0 gap-1">
+                      <Sparkles className="h-3.5 w-3.5" /> خودکار
+                    </Button>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  با وارد کردن پسران و دختران در گام بعد، مجموع به‌طور خودکار محاسبه می‌شود.
+                </p>
               </FormFieldWrapper>
             </div>
           )}
@@ -230,6 +288,53 @@ export default function SubmitStatistics() {
                   <Input type="number" value={formData.attendance_rate} onChange={(e) => setField('attendance_rate', e.target.value)} placeholder="85.5" min="0" max="100" step="0.1" disabled={isSubmitting} />
                 </FormFieldWrapper>
               </div>
+
+              {(derived.autoTotal > 0 || derived.studentsPerTeacher != null) && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                    <Sparkles className="h-4 w-4" /> محاسبات خودکار
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                      <div className="text-lg font-bold">{toPersianDigits(derived.autoTotal)}</div>
+                      <div className="text-[11px] text-muted-foreground">مجموع دانش‌آموزان</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold">
+                        {derived.studentsPerTeacher != null ? toPersianDigits(derived.studentsPerTeacher.toFixed(1)) : '—'}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">دانش‌آموز به معلم</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold">
+                        {derived.femalePercent != null ? `${toPersianDigits(derived.femalePercent.toFixed(0))}٪` : '—'}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">درصد دختران</div>
+                    </div>
+                  </div>
+                  {derived.isOvercrowded && (
+                    <Alert className="border-warning/30 bg-warning/10 py-2">
+                      <AlertCircle className="h-3.5 w-3.5 text-warning" />
+                      <AlertDescription className="text-warning text-xs">
+                        نسبت دانش‌آموز به معلم بالای ۴۰ است — کیفیت تدریس می‌تواند تحت تأثیر قرار گیرد.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {derived.totalMismatch && (
+                    <Alert className="border-warning/30 bg-warning/10 py-2">
+                      <AlertCircle className="h-3.5 w-3.5 text-warning" />
+                      <AlertDescription className="text-warning text-xs flex items-center justify-between gap-2">
+                        <span>مجموع پسر و دختر ({toPersianDigits(derived.autoTotal)}) با کل دستی مطابقت ندارد.</span>
+                        <Button size="sm" variant="ghost" className="h-6 text-xs"
+                          onClick={() => { setTotalManual(false); setField('total_students', String(derived.autoTotal)); }}>
+                          اصلاح
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
+
               <FormFieldWrapper label="یادداشت‌های اضافی">
                 <Textarea value={formData.notes} onChange={(e) => setField('notes', e.target.value)} placeholder="هر اطلاعات اضافی..." rows={3} disabled={isSubmitting} />
               </FormFieldWrapper>

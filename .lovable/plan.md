@@ -1,132 +1,155 @@
-# Auth Overhaul: Number-Matching Signup + OTP Password Reset
+# Smarter Platform + Demo Readiness
 
-## Goals
-
-1. Replace the broken "Verify Email" button with a **number-matching** confirmation flow (like Google/Microsoft MFA prompts).
-2. Replace the password-reset magic link with a **6-digit OTP** flow that stays inside the app.
-3. Give the user clear fallback options at every failure point (Resend, Return to Login, Go to Afghanistan Info main page).
+Scope covers four areas from your message. Signup/OTP work stays deferred until email domain is ready.
 
 ---
 
-## Part 1 — Signup: Number-Matching Confirmation
+## 1) Smarter forms (Statistics submission)
 
-### User experience
+Goal: reduce typing, catch mistakes early, auto-derive whatever can be computed.
 
-1. User submits signup form (email + password + profile).
-2. Signup page moves to a new **"Confirm It's You"** step showing **one large number** (e.g. `47`) on screen with a live "waiting…" state.
-3. User receives an email titled **"تأیید ثبت‌نام — شماره را انتخاب کنید"** containing **three big buttons/numbers** (one is `47`, two are decoys like `12` and `83`).
-4. User taps the number that matches their screen on their phone.
-  - **Match** → screen advances **in real time** (no refresh) to the next signup step (profile setup / success).
-  - **Mismatch** → email page shows "Wrong number", and the signup page shows a red **"شماره اشتباه انتخاب شد"** state with 3 buttons:
-    - **ارسال مجدد ایمیل** (Resend, with 60s cooldown)
-    - **بازگشت به ورود** (Go to Login)
-    - **صفحه اصلی افغانستان** (Go to `/afghanistan-info`)
-5. If the user does nothing for 10 minutes, the challenge expires and shows the same 3 options.
+Changes in `src/pages/school/SubmitStatistics.tsx`:
 
-### Technical design
+- **Auto-total students**: when male + female change, `total_students` fills automatically; the field becomes read-only with a small "محاسبه خودکار" badge. User can override by clicking an "ویرایش دستی" link (kept for edge cases).
+- **Live derived KPIs** shown under the form (recomputed on every keystroke, memoized):
+  - Ratio of students per teacher (`total_students / total_teachers`)
+  - % female (`female / total * 100`)
+  - Class-size warning if ratio > 40 (soft yellow banner, non-blocking)
+- **Smart validation**: mismatch between typed total and male+female shows an inline hint with a one-click "اصلاح" button that resyncs — instead of the current hard error.
+- **Number input polish**: strip non-digits, format thousands with Persian digits for display only, keep raw value in state.
+- **Draft autosave** already exists via `useDraft`; add a "پاک کردن پیش‌نویس" button next to the header.
 
-**New DB table** `public.signup_challenges`:
+New tiny helper `src/lib/smartCalc.ts` for the derived fields so it can be reused later in Reports.
 
-```
-id uuid pk, user_id uuid fk auth.users, email text,
-correct_number int, decoys int[],   -- 3 numbers total, 10–99
-status text ('pending'|'matched'|'mismatched'|'expired'),
-created_at timestamptz, expires_at timestamptz (now()+10 min)
-```
-
-- RLS: user can `select` own row by `user_id`; edge functions use service role.
-- Grants: `select` to `authenticated`, `all` to `service_role`.
-
-**New edge function** `signup-challenge`:
-
-- `POST /create` → after `supabase.auth.signUp()`, called with the new user id + email. Generates correct number + 2 decoys, stores row, sends custom email with three signed links: `https://<app>/confirm-signup?cid=<uuid>&pick=<number>&sig=<hmac>`.
-- Email is sent via existing Lovable email infrastructure (reuse `send-approval-email` pattern; scaffold auth email templates only if the infra path requires it — otherwise send directly from this function).
-
-**New edge function** `signup-challenge-verify` (public, no JWT required):
-
-- Handles the link click. Verifies HMAC, looks up challenge, marks `matched` or `mismatched`, and (on match) calls admin API to `email_confirm: true` on the user.
-- Returns a small styled HTML page in Dari confirming the choice ("درست بود، برگردید به صفحه ثبت‌نام" / "شماره اشتباه بود").
-
-**Realtime bridge**:
-
-- Signup page subscribes to `postgres_changes` on `signup_challenges` filtered by `id=eq.<cid>`.
-- On `status` change → advance step or show mismatch UI.
-
-**Files to add**:
-
-- `supabase/migrations/<ts>_signup_challenges.sql`
-- `supabase/functions/signup-challenge/index.ts`
-- `supabase/functions/signup-challenge-verify/index.ts`
-- `src/pages/auth/ConfirmSignup.tsx` (the "pick the number on your screen" step; realtime listener + fallback UI)
-- `src/pages/auth/SignupConfirmed.tsx` optional success view
-
-**Files to change**:
-
-- `src/pages/auth/Signup.tsx` — after successful `signUp()`, call `signup-challenge/create`, push to `/confirm-signup?cid=…`, remove reliance on Supabase's default confirm email.
-- `src/App.tsx` — register `/confirm-signup` route (public).
-- `src/pages/auth/VerifyEmail.tsx` — retire or redirect to new flow (kept for legacy links but deep-links to `/confirm-signup` if a `cid` is present).
-- Disable Supabase's built-in confirmation email for signup so users only receive our number-match email (configure via `supabase--configure_auth` — keep `auto_confirm_email: false`, and skip default template by using the auth-email-hook to no-op signup type, OR simpler: leave default off and rely solely on our edge function email).
+Out of scope this round: Reports and generic Forms auto-calc (per your answer).
 
 ---
 
-## Part 2 — Login: Forgot Password with 6-digit OTP
+## 2) Demo content + 6 test accounts + general-admin powers
 
-### User experience
+### 2a. Test users (order: teacher → ministry)
 
-1. On `/login`, the user types their email in the email field, then clicks **"رمز عبور را فراموش کرده‌اید؟"**.
-2. **Immediately** (no page nav) an inline panel expands under the button showing 6 OTP input boxes plus "کد به ایمیل شما ارسال شد".
-3. Backend sends `supabase.auth.resetPasswordForEmail()` — email template updated to show `{{ .Token }}` (6-digit) prominently instead of just a link.
-4. User types the 6 digits:
-  - **Match** → verified via `supabase.auth.verifyOtp({ type: 'recovery', email, token })`, session created, navigate to `/reset-password` for new password entry.
-  - **Mismatch / 3 wrong attempts / expired** → panel switches to a fallback with three buttons:
-    - **بازگشت به صفحه اصلی** (`/afghanistan-info`)
-    - **ارسال مجدد کد** (60s cooldown, resets attempt counter)
-    - **بازگشت به ورود** (collapse panel back to login form)
 
-### Technical design
+| Email                                                         | Role                                   |
+| ------------------------------------------------------------- | -------------------------------------- |
+| [masoudsalik2024@gmail.com](mailto:masoudsalik2024@gmail.com) | ministry_admin (General Administrator) |
+| [manotofaza@gmail.com](mailto:manotofaza@gmail.com)           | ministry_admin (secondary)             |
+| [zahrasalik87@gmail.com](mailto:zahrasalik87@gmail.com)       | province_admin (Kabul)                 |
+| [salikmasoud621@gmail.com](mailto:salikmasoud621@gmail.com)   | district_admin (Kabul → کابل ۱)        |
+| [kateandrew78.20@gmail.com](mailto:kateandrew78.20@gmail.com) | principal (demo school)                |
+| [salikmasoud1@gmail.com](mailto:salikmasoud1@gmail.com)       | teacher (demo school)                  |
 
-- No new tables. Uses Supabase's built-in recovery OTP.
-- Auth email template (`supabase/functions/_shared/email-templates/recovery.tsx`) is updated to feature the 6-digit token as the primary content, keeping the link as a small secondary "or click here" for accessibility. Scaffold via `email_domain--scaffold_auth_email_templates` first (only if not already scaffolded).
-- `PasswordField` reused for the new-password screen.
 
-**Files to add**:
+Wait — your message said "in order, from teacher to ministry" with masoudsalik2024 as General Administrator. I'll map by that order:
 
-- `src/components/auth/ForgotPasswordPanel.tsx` — inline expandable panel with email pre-fill, OTP inputs (6 boxes), resend cooldown, fallback state.
-- `src/components/auth/OtpInput.tsx` — small 6-box RTL-aware digit input with paste support.
 
-**Files to change**:
+| #   | Email                                                         | Role                                                                                                            |
+| --- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 1   | [salikmasoud1@gmail.com](mailto:salikmasoud1@gmail.com)       | teacher                                                                                                         |
+| 2   | [kateandrew78.20@gmail.com](mailto:kateandrew78.20@gmail.com) | principal                                                                                                       |
+| 3   | [salikmasoud621@gmail.com](mailto:salikmasoud621@gmail.com)   | district_admin                                                                                                  |
+| 4   | [zahrasalik87@gmail.com](mailto:zahrasalik87@gmail.com)       | province_admin                                                                                                  |
+| 5   | [manotofaza@gmail.com](mailto:manotofaza@gmail.com)           | country admin                                                                                                   |
+| 6   | [masoudsalik2024@gmail.com](mailto:masoudsalik2024@gmail.com) | (General Administrator, full Developer powers -> can add or change anything as owner of platform and developer) |
 
-- `src/pages/auth/Login.tsx` — replace `<Link to="/forgot-password">` with a button that expands `ForgotPasswordPanel` inline; pass current `email` value.
-- `src/pages/auth/ForgotPassword.tsx` — either delete or make it a thin wrapper around `ForgotPasswordPanel` for direct-link users.
-- `src/pages/auth/ResetPassword.tsx` — trust the session established by `verifyOtp`; drop the URL-hash `type=recovery` check.
-- Auth email `recovery.tsx` template — token-first layout.
+
+If mapping is wrong, tell me before I run.
+
+Implementation:
+
+- New edge function `seed-demo-users` (service-role, one-shot, JWT-protected to ministry_admin OR gated by a one-time secret token). It:
+  1. Creates each auth user via admin API with `email_confirm: true` and a per-account 16-char random password.
+  2. Upserts `profiles` (full_name, province, district, school_id, status='verified', verified_at=now()).
+  3. Inserts matching `user_roles` row.
+  4. Returns the 6 email/password pairs as JSON — I'll paste them back to you once, in chat. Store in a temporary secret as backup too.
+- I'll invoke the function once after deploy and hand you the credentials.
+
+### 2b. General Administrator = ministry_admin + explicit school/province/district CRUD
+
+The `ministry_admin` role already has broad access. Gaps to close:
+
+- **Provinces/districts CRUD UI**: no current page. Add `src/pages/ministry/Regions.tsx` with two tabs (ولایت‌ها / ولسوالی‌ها), inline add/edit/delete, guarded by RLS.
+- **Schools CRUD**: `ManageSchools.tsx` already has add. Add edit + soft-delete (toggle `is_active`) + real delete for ministry_admin only.
+- RLS migration: allow `ministry_admin` full write on `provinces`, `districts`, `schools`. Currently only read is broad. Add policies + GRANT statements.
+
+### 2c. Seed demo content (minimal, 1 of each)
+
+Migration inserts:
+
+- 1 `schools` row: "مکتب نمونه دموی کابل" in Kabul → کابل ۱ (used by teacher/principal accounts).
+- 1 `announcements` row (visible to all).
+- 1 `deadlines` row (30 days out).
+- 1 `center_documents` row pointing to a placeholder file in `center-documents` bucket (uploaded via `storage_upload`).
+- 1 `statistics_submissions` row (status='approved') so ministry dashboards show non-empty data.
+- 1 `report_submissions` row (status='pending') so district inbox has something to approve.
+- 1 `submission_comments` row on the pending submission.
+
+All tagged with a `demo=true` marker in a comment column so easy to identify/remove later.
 
 ---
 
-## Part 3 — Small hardening also included
+## 3) Complete provinces + districts
 
-- `Signup.tsx`: ensure `emailRedirectTo` is unused (we're not relying on the link).
-- `Login.tsx`: on "email not confirmed" error, redirect to `/confirm-signup?email=…` to trigger a fresh challenge instead of the old `/verify-email`.
-- `AuthCallback.tsx`: keep OAuth handling untouched; add a branch that if the URL is our old confirm link, redirect users to the new number-match page.
+- Provinces: already 34 (verified). No change.
+- Districts: currently only 50 rows. Afghanistan has ~421 official districts. New migration seeds the full list (Dari names) for all 34 provinces, using `ON CONFLICT (province_id, name) DO NOTHING` so existing rows are preserved.
+- Every dropdown that today reads from `districts`/`provinces` (ManageSchools, SetupProfile, filters in Analytics, submission location fields) will show the full list automatically — no UI code change needed.
 
----
-
-## Out of scope (will not touch)
-
-- Google/OAuth login flow.
-- Existing role/tier redirect logic in `AuthContext`.
-- `AdminLayout`, dashboards, RLS on unrelated tables.
+Source: standard Afghan administrative division (IEC 2019 baseline). List will be embedded in the migration.
 
 ---
 
-## Rollout order (once approved)
+## 4) Reliability sweep — fixable weak spots
 
-1. Migration for `signup_challenges` (+ grants + RLS).
-2. Edge functions `signup-challenge` and `signup-challenge-verify`, deploy.
-3. Signup UI (`Signup.tsx` + new `ConfirmSignup.tsx` + route).
-4. Scaffold auth email templates (if not already) and rewrite `recovery.tsx` for OTP-first.
-5. Login UI (`Login.tsx` + `ForgotPasswordPanel` + `OtpInput`).
-6. Reset password page trimmed to just "set new password".
-7. Manual verification via Playwright (signup happy path + wrong-number path + forgot-password OTP path).
+Only shipping fixes that are quick and don't expand scope:
 
-Confirm and I'll build it.
+- **AdminLayout unused imports** (`useAuth` imported but not used) — clean up small dead code across `AdminLayout`, `MinistryLayout` to prevent warnings.
+- **ManageSchools search**: LTR icon offset (`left-3`) inside RTL — flip to `right-3` and `pr-10`. Small but visible bug.
+- `**fetchSchools` errors are swallowed** — add toast on error.
+- `**schools.province/district` are free-text** while master tables exist — populate `school_id` foreign-key path stays, but add a soft check that warns when a school's province/district doesn't match a master row (helps ministry_admin clean data). Non-blocking.
+- **Realtime enablement** for `announcements` and `deadlines` so newly seeded rows appear without refresh (already done for submissions).
+- **Empty-state polish** on `Ministry/Users.tsx`, `Ministry/Provinces.tsx` when 0 rows.
+- **Console errors from `useEffect` racing on unmount** in `Dashboard.tsx` (school + admin) — wrap async in cancel-guard.
+
+Anything larger (auth flow rewrite, WelcomeGuide, offline sync) stays deferred.
+
+---
+
+## Technical notes
+
+**Migrations (in order):**
+
+1. `xxxxx_regions_rls.sql` — add write policies + GRANTs for ministry_admin on provinces/districts/schools.
+2. `xxxxx_seed_districts_full.sql` — full 421-district seed with `ON CONFLICT DO NOTHING`.
+3. `xxxxx_demo_content.sql` — announcements/deadlines/documents/submissions demo rows (school seeded first inside same migration).
+
+**Edge function:**
+
+- `supabase/functions/seed-demo-users/index.ts` — POST, requires `x-seed-token` header matching a new `DEMO_SEED_TOKEN` secret (I'll generate). Idempotent: skips if email already exists, returns existing IDs.
+
+**New files:**
+
+- `src/pages/ministry/Regions.tsx` (provinces + districts CRUD)
+- `src/lib/smartCalc.ts` (auto-total, ratios)
+- Route added to `App.tsx`, nav item added to `MinistryLayout.tsx` under مدیریت.
+
+**Edited files:**
+
+- `src/pages/school/SubmitStatistics.tsx` (auto-calc + smart validation)
+- `src/pages/admin/ManageSchools.tsx` (edit/delete, RTL search fix, error toast)
+- `src/components/layouts/AdminLayout.tsx`, `MinistryLayout.tsx` (cleanups, Regions nav)
+- `src/pages/school/Dashboard.tsx`, `src/pages/admin/Dashboard.tsx` (cancel-guard)
+
+**Not doing this round** (from your prior answers): number-match signup, OTP forgot-password, email domain setup, Reports/Forms auto-calc.
+
+---
+
+## Rollout order
+
+1. Migrations (regions RLS → districts seed → demo content).
+2. `seed-demo-users` edge function + deploy + invoke → paste you the 6 credentials.
+3. Regions page + ManageSchools upgrades.
+4. Smart Statistics form.
+5. Reliability sweep.
+6. Playwright smoke test: log in as each of the 6 accounts, verify each dashboard loads.
+
+Approve to build, or tell me what to change (role mapping, seed volume, extra pages).

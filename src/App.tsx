@@ -67,6 +67,7 @@ const MinistryProvinces = lazy(() => import("./pages/ministry/Provinces"));
 const MinistryInbox = lazy(() => import("./pages/ministry/Inbox"));
 const MinistryUsers = lazy(() => import("./pages/ministry/Users"));
 const MinistryExport = lazy(() => import("./pages/ministry/Export"));
+const MinistryRegions = lazy(() => import("./pages/ministry/Regions"));
 
 
 // Legacy Admin Pages (will be used under ministry) - Lazy loaded
@@ -358,6 +359,11 @@ function AppRoutes() {
       <Route path="/ministry/export" element={
         <ProtectedRoute allowedTier="ministry">
           <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryExport /></Suspense></MinistryLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ministry/regions" element={
+        <ProtectedRoute allowedTier="ministry">
+          <MinistryLayout><Suspense fallback={<LoadingFallback />}><MinistryRegions /></Suspense></MinistryLayout>
         </ProtectedRoute>
       } />
 

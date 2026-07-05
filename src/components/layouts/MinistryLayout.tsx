@@ -4,7 +4,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import RoleLayout, { NavGroup } from './RoleLayout';
 import {
   LayoutDashboard, Inbox, Bell, FileDown, Calendar,
-  School, Map, Users, TrendingUp, Download, Building2,
+  School, Map, Users, TrendingUp, Download, Building2, Globe,
 } from 'lucide-react';
 
 
@@ -34,6 +34,8 @@ export default function MinistryLayout({ children }: Props) {
     {
       label: 'مدیریت',
       items: [
+        { href: '/ministry/schools', icon: School, label: t('ministry.allSchools') },
+        { href: '/ministry/regions', icon: Globe, label: 'ولایت‌ها و ولسوالی‌ها' },
         { href: '/ministry/users', icon: Users, label: t('ministry.userManagement') },
         { href: '/ministry/announcements', icon: Bell, label: t('navigation.announcements') },
         { href: '/ministry/documents', icon: FileDown, label: t('navigation.documents') },
