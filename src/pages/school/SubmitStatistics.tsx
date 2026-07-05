@@ -148,7 +148,11 @@ export default function SubmitStatistics() {
     { label: 'دختران', value: formData.female_students || '۰' },
     { label: 'کل معلمان', value: formData.total_teachers || '۰' },
     { label: 'نرخ حضور', value: formData.attendance_rate ? `${formData.attendance_rate}%` : '—' },
-  ]), [formData]);
+    { label: 'دانش‌آموز به معلم',
+      value: derived.studentsPerTeacher != null ? `${toPersianDigits(derived.studentsPerTeacher.toFixed(1))} : ۱` : '—' },
+    { label: 'درصد دختران',
+      value: derived.femalePercent != null ? `${toPersianDigits(derived.femalePercent.toFixed(1))}٪` : '—' },
+  ]), [formData, derived]);
 
   if (submitted) {
     return (
