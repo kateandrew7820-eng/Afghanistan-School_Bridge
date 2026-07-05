@@ -75,12 +75,16 @@ export default function ManageSchools() {
   }, []);
 
   async function fetchSchools() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('schools')
       .select('*')
       .order('name', { ascending: true });
-    
-    if (data) setSchools(data);
+
+    if (error) {
+      toast({ title: 'خطا در بارگذاری مکاتب', description: sanitizeError(error), variant: 'destructive' });
+    } else if (data) {
+      setSchools(data);
+    }
     setLoading(false);
   }
 
