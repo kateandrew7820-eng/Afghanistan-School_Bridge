@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { BarChart3, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Users, GraduationCap, ClipboardCheck } from 'lucide-react';
+import { BarChart3, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Users, GraduationCap, ClipboardCheck, Sparkles, Pencil } from 'lucide-react';
 import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
@@ -13,6 +13,7 @@ import { validateNumberRange, validateRequired } from '@/lib/validation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDraft } from '@/hooks/useDraft';
 import { Stepper } from '@/components/Stepper';
+import { deriveStats, toInt, toPersianDigits } from '@/lib/smartCalc';
 
 type FormData = {
   academic_year: string;
