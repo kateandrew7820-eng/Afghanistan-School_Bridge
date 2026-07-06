@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from '@/contexts/LocalizationContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { NotificationBell } from '@/components/NotificationBell';
-
 import {
   Building2,
   Users,
@@ -249,10 +248,15 @@ export default function Index() {
             آماده ادامه هستید؟
           </h3>
 
-          <Button size="lg" onClick={handleContinue} className="gap-2">
-            ورود به دشبورد
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button size="lg" onClick={handleContinue} className="gap-2">
+              ورود به دشبورد
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link to="/owner-access">ورود مالک</Link>
+            </Button>
+          </div>
         </div>
 
       </main>
