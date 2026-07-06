@@ -108,26 +108,27 @@ export default function Index() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-background/80 via-card/70 to-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between" dir="rtl">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               {t('afghanistan.title')}
             </h1>
-
             <p className="text-sm text-muted-foreground">
               {t('afghanistan.description')}
             </p>
           </div>
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleContinue}
-            className="hover:bg-primary hover:text-white transition"
-          >
-            {t('common.close')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationBell align="start" />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleContinue}
+              className="hover:bg-primary hover:text-white transition"
+            >
+              {t('common.close')}
+            </Button>
+          </div>
         </div>
       </header>
 
