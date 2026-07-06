@@ -93,36 +93,36 @@ export default function RoleLayout({
 
         <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {onOpenCommand && (
-            <Button
-              variant="outline" size="sm"
-              onClick={onOpenCommand}
-              className="hidden md:flex h-8 gap-2 text-xs text-muted-foreground"
-              aria-label="جستجو سریع"
-            >
-              <Search className="h-3.5 w-3.5" />
-              <span>جستجو…</span>
-              <kbd className="ms-2 hidden lg:inline-flex items-center gap-0.5 rounded border bg-muted px-1.5 text-[10px] font-mono">
-                <CmdIcon className="h-2.5 w-2.5" />K
-              </kbd>
-            </Button>
+            <>
+              <Button
+                variant="outline" size="sm"
+                onClick={onOpenCommand}
+                className="hidden md:flex h-8 gap-2 text-xs text-muted-foreground"
+                aria-label="جستجو سریع"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span>جستجو…</span>
+                <kbd className="ms-2 hidden lg:inline-flex items-center gap-0.5 rounded border bg-muted px-1.5 text-[10px] font-mono">
+                  <CmdIcon className="h-2.5 w-2.5" />K
+                </kbd>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onOpenCommand}
+                className="flex md:hidden h-9 w-9 text-muted-foreground"
+                aria-label="جستجو سریع"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </>
           )}
-          <ThemeToggle className="h-9 w-9 text-muted-foreground" />
           <Button
             variant="ghost" size="icon"
             className="h-9 w-9 text-muted-foreground"
             aria-label="اعلان‌ها"
           >
             <Bell className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/profile')}
-            className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-lg bg-muted/40 max-w-[180px] h-auto"
-            aria-label="مشاهده پروفایل"
-          >
-            <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span className="text-xs text-muted-foreground truncate">{profile?.full_name}</span>
           </Button>
           <Button
             variant="ghost" size="icon" onClick={signOut}
@@ -163,7 +163,22 @@ export default function RoleLayout({
               <p className="text-[11px] text-muted-foreground truncate">{brand.subtitle}</p>
             </div>
           </div>
-
+          <div className="px-3 py-3 border-b border-border">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 h-10 px-3 text-sm text-foreground"
+              onClick={() => {
+                setOpen(false);
+                navigate('/profile');
+              }}
+            >
+              <User className="h-4 w-4 shrink-0" />
+              <span className="truncate">پروفایل</span>
+              {profile?.full_name && (
+                <span className="text-xs text-muted-foreground truncate">{profile.full_name}</span>
+              )}
+            </Button>
+          </div>
           {/* Grouped nav */}
           <nav
             className="flex-1 px-2 py-3 space-y-5 overflow-y-auto"
@@ -209,7 +224,24 @@ export default function RoleLayout({
           </nav>
 
           {/* Footer */}
-          <div className="px-4 py-3 border-t border-border">
+          <div className="px-4 py-3 border-t border-border space-y-3">
+            {onOpenCommand && (
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 h-10"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenCommand();
+                }}
+              >
+                <Search className="h-4 w-4" />
+                <span>جستجو سریع</span>
+              </Button>
+            )}
+            <div className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
+              <span className="text-sm text-muted-foreground">حالت تاریک</span>
+              <ThemeToggle className="h-9 w-9 text-muted-foreground" />
+            </div>
             <p className="text-[10px] text-muted-foreground text-center">پل آموزش افغانستان</p>
           </div>
         </div>
