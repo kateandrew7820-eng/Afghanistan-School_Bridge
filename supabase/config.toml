@@ -1,1 +1,4 @@
 project_id = "avjorxzmfgijnfvtxjqf"
+
+[functions.handle-approval-decision]
+verify_jwt = false

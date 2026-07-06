@@ -47,6 +47,72 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_requests: {
+        Row: {
+          action_token: string
+          applicant_email: string
+          applicant_full_name: string | null
+          applicant_role: string
+          applicant_user_id: string
+          approver_email: string
+          approver_label: string
+          created_at: string
+          decided_at: string | null
+          decided_by_email: string | null
+          decision_note: string | null
+          district: string | null
+          email_sent_at: string | null
+          id: string
+          phone_number: string | null
+          province: string | null
+          school_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action_token?: string
+          applicant_email: string
+          applicant_full_name?: string | null
+          applicant_role: string
+          applicant_user_id: string
+          approver_email: string
+          approver_label: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by_email?: string | null
+          decision_note?: string | null
+          district?: string | null
+          email_sent_at?: string | null
+          id?: string
+          phone_number?: string | null
+          province?: string | null
+          school_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action_token?: string
+          applicant_email?: string
+          applicant_full_name?: string | null
+          applicant_role?: string
+          applicant_user_id?: string
+          approver_email?: string
+          approver_label?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by_email?: string | null
+          decision_note?: string | null
+          district?: string | null
+          email_sent_at?: string | null
+          id?: string
+          phone_number?: string | null
+          province?: string | null
+          school_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       center_documents: {
         Row: {
           category: string | null
@@ -234,6 +300,42 @@ export type Database = {
           target_year?: number | null
           unit?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

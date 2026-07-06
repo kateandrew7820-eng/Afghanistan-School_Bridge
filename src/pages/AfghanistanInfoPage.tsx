@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Building2, Users, BookOpen, MapPin, BarChart3, Heart, ArrowRight, Clock } from 'lucide-react';
+import { NotificationBell } from '@/components/NotificationBell';
 
 export default function AfghanistanInfoPage() {
   const navigate = useNavigate();
@@ -98,13 +99,16 @@ export default function AfghanistanInfoPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
+          <div className="flex items-center gap-2">
+            <NotificationBell align="start" />
+            <Button variant="outline" size="sm" onClick={handleContinue}>
+              {t('common.close')}
+            </Button>
+          </div>
+          <div className="text-right">
             <h1 className="text-2xl font-bold">{t('afghanistan.title')}</h1>
             <p className="text-sm text-muted-foreground">{t('afghanistan.description')}</p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleContinue}>
-            {t('common.close')}
-          </Button>
         </div>
       </header>
 
