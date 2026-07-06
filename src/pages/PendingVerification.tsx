@@ -1,15 +1,50 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, AlertCircle, RefreshCw, LogOut, ArrowRight } from "lucide-react";
+import { Clock, AlertCircle, RefreshCw, LogOut, ArrowRight, MailCheck } from "lucide-react";
 import { useVerification } from "@/hooks/useVerification";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/NotificationBell";
+import { getApproverRoute, DASHBOARD_ROUTE_BY_ROLE } from "@/lib/approverRouting";
 
 export default function PendingVerification() {
   const navigate = useNavigate();
   const { user, profile, loading, signOut } = useAuth();
   const verification = useVerification();
+  const requestedRef = useRef(false);
+  const [approverLabel, setApproverLabel] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState<boolean | null>(null);
+
+  // Send the approval-request email the moment the user lands here
+  useEffect(() => {
+    if (!user || !profile?.role || requestedRef.current) return;
+    if (profile.status && profile.status !== 'pending_verification' && profile.status !== 'pending') return;
+
+    const sentKey = `approvalRequestSent:${user.id}`;
+    // Set the approver label immediately from the local routing table
+    const route = getApproverRoute(profile.role);
+    setApproverLabel(route.label);
+
+    if (sessionStorage.getItem(sentKey)) {
+      setEmailSent(true);
+      return;
+    }
+    requestedRef.current = true;
+
+    supabase.functions
+      .invoke('request-approval', { body: {} })
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn('request-approval error:', error);
+          setEmailSent(false);
+          return;
+        }
+        sessionStorage.setItem(sentKey, '1');
+        setEmailSent(Boolean(data?.email_sent));
+        if (data?.approver_label) setApproverLabel(data.approver_label);
+      });
+  }, [user, profile?.role, profile?.status]);
 
   // Realtime listener for profile status changes
   useEffect(() => {
@@ -39,9 +74,10 @@ export default function PendingVerification() {
   // Auto redirect if verified
   useEffect(() => {
     if (verification.isVerified && verification.canAccessDashboard) {
-      navigate("/school", { replace: true });
+      const target = profile?.role ? DASHBOARD_ROUTE_BY_ROLE[profile.role] ?? '/school' : '/school';
+      navigate(target, { replace: true });
     }
-  }, [verification.isVerified, verification.canAccessDashboard, navigate]);
+  }, [verification.isVerified, verification.canAccessDashboard, profile?.role, navigate]);
 
   if (loading) {
     return (
@@ -55,7 +91,10 @@ export default function PendingVerification() {
   // Rejected
   if (verification.isRejected) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-background" dir="rtl">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-background relative" dir="rtl">
+        <div className="absolute top-4 right-4">
+          <NotificationBell align="end" />
+        </div>
         <div className="bg-card border border-border rounded-xl p-6 text-center space-y-4 max-w-sm w-full">
           <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
           <h2 className="text-destructive font-bold text-lg">حساب رد شده</h2>
@@ -79,13 +118,30 @@ export default function PendingVerification() {
 
   // Pending (default)
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-background relative" dir="rtl">
+      <div className="absolute top-4 right-4">
+        <NotificationBell align="end" />
+      </div>
       <div className="bg-card border border-border rounded-xl p-8 text-center space-y-5 max-w-sm w-full">
         <Clock className="w-12 h-12 text-primary animate-pulse mx-auto" />
         <h1 className="text-xl font-bold text-foreground">در انتظار تأیید</h1>
         <p className="text-muted-foreground text-sm">
           حساب شما هنوز تایید نشده است. پس از تأیید توسط مدیر، به صورت خودکار منتقل می‌شوید.
         </p>
+
+        {approverLabel && (
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-right space-y-1">
+            <div className="flex items-center gap-2 text-primary text-sm font-medium">
+              <MailCheck className="w-4 h-4" />
+              درخواست تأیید ارسال شد
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              درخواست شما برای <strong>{approverLabel}</strong> فرستاده شد.
+              {emailSent === false && ' (در حال آماده‌سازی سیستم ایمیل)'}
+            </p>
+          </div>
+        )}
+
         <div className="text-xs text-muted-foreground/60">
           بروزرسانی خودکار فعال است
         </div>
