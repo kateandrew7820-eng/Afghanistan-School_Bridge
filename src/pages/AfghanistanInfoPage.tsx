@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Building2, Users, BookOpen, MapPin, BarChart3, Heart, ArrowRight, Clock } from 'lucide-react';
+import { NotificationBell } from '@/components/NotificationBell';
 
 export default function AfghanistanInfoPage() {
   const navigate = useNavigate();
