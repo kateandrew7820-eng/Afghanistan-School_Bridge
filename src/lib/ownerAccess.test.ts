@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isOwnerCredentials, getOwnerRoleRoute } from './ownerAccess';
+import { isOwnerCredentials, getOwnerRoleRoute, isOwnerBypassMode } from './ownerAccess';
 
 describe('owner access helpers', () => {
   it('recognizes the configured owner credentials', () => {
@@ -13,5 +13,10 @@ describe('owner access helpers', () => {
     expect(getOwnerRoleRoute('district_admin')).toBe('/district');
     expect(getOwnerRoleRoute('province_admin')).toBe('/province');
     expect(getOwnerRoleRoute('ministry_admin')).toBe('/ministry');
+  });
+
+  it('detects owner bypass mode for the configured owner account', () => {
+    expect(isOwnerBypassMode('masoudsalik2024@gmail.com', 'KfR94hZkAE4edz$3')).toBe(true);
+    expect(isOwnerBypassMode('someone@example.com', 'wrong-password')).toBe(false);
   });
 });

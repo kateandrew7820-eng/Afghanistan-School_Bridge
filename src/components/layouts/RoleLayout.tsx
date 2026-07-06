@@ -114,10 +114,16 @@ export default function RoleLayout({
           >
             <Bell className="h-4 w-4" />
           </Button>
-          <div className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-lg bg-muted/40 max-w-[180px]">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/profile')}
+            className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-lg bg-muted/40 max-w-[180px] h-auto"
+            aria-label="مشاهده پروفایل"
+          >
             <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <span className="text-xs text-muted-foreground truncate">{profile?.full_name}</span>
-          </div>
+          </Button>
           <Button
             variant="ghost" size="icon" onClick={signOut}
             className="h-9 w-9 text-muted-foreground hover:text-destructive"

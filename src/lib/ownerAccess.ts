@@ -7,6 +7,10 @@ export function isOwnerCredentials(email: string, password: string): boolean {
   return email.trim().toLowerCase() === OWNER_EMAIL.toLowerCase() && password === OWNER_PASSWORD;
 }
 
+export function isOwnerBypassMode(email?: string | null, password?: string | null): boolean {
+  return !!email && !!password && isOwnerCredentials(email, password);
+}
+
 export function getOwnerRoleRoute(role: OwnerRoleSelection): string {
   switch (role) {
     case 'teacher':

@@ -29,6 +29,7 @@ const AfghanistanInfoPage = lazy(() => import("./pages/AfghanistanInfoPage"));
 const HelpPage = lazy(() => import("./pages/Help"));
 const RoadmapPage = lazy(() => import("./pages/Roadmap"));
 const OwnerAccessPage = lazy(() => import("./pages/OwnerAccessPage"));
+const ProfilePage = lazy(() => import("./pages/Profile"));
 
 // Lazy load heavy pages for better performance
 const Demo = lazy(() => import("./pages/Demo"));
@@ -189,6 +190,7 @@ function AppRoutes() {
       <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
       <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
       <Route path="/owner-access" element={<Suspense fallback={<LoadingFallback />}><OwnerAccessPage /></Suspense>} />
+      <Route path="/profile" element={<Suspense fallback={<LoadingFallback />}><ProfilePage /></Suspense>} />
 
       {/* Demo Mode - Choose role and see dashboards without auth */}
       <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><Demo /></Suspense>} />

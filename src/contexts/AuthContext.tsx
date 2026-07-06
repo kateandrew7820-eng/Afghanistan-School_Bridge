@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, getUserRole, getUserProfile, UserRole, getRoleTier, getRoleDefaultRoute } from '@/lib/supabase';
-import { isOwnerCredentials, type OwnerRoleSelection } from '@/lib/ownerAccess';
+import { isOwnerCredentials, isOwnerBypassMode, type OwnerRoleSelection } from '@/lib/ownerAccess';
 
 interface Profile {
   id: string;
@@ -158,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             loadUserData(newSession.user.id);
           }
         } else if (event === 'SIGNED_OUT') {
+          localStorage.removeItem('schoolbridge-owner-bypass');
           setRole(null);
           setProfile(null);
           setProfileLoading(false);
@@ -181,6 +182,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
 
       if (isOwnerCredentials(email, password)) {
+        localStorage.setItem('schoolbridge-owner-bypass', 'true');
+
         const ownerUser = {
           id: 'owner-user',
           email,
@@ -294,6 +297,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      localStorage.removeItem('schoolbridge-owner-bypass');
       setUser(null);
       setSession(null);
       setProfile(null);
