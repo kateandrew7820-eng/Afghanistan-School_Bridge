@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>صفحه یافت نشد — بازگشت به برنامه</title>
+    <meta http-equiv="refresh" content="0; url=/" />
+    <script>
+      // GitHub Pages SPA fallback: replace content with index.html so client-side
+      // router can handle the route. If fetch fails, redirect to root.
+      (async function(){
+        try {
+          const resp = await fetch('/index.html');
+          if (!resp.ok) return (location.href = '/');
+          const html = await resp.text();
+          document.open();
+          document.write(html);
+          document.close();
+        } catch (e) {
+          location.href = '/';
+        }
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
