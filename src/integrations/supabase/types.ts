@@ -651,6 +651,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_access_submission: {
+        Args: { _id: string; _table: string }
+        Returns: boolean
+      }
       get_user_district: { Args: { _user_id: string }; Returns: string }
       get_user_province: { Args: { _user_id: string }; Returns: string }
       get_user_school_id: { Args: { _user_id: string }; Returns: string }
