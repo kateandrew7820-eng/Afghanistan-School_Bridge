@@ -126,13 +126,13 @@ export default function AfghanistanInfoPage() {
         </div>
 
         {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-12 justify-items-center">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
-                  <div className={`inline-flex p-3 rounded-lg ${stat.bg} mb-4`}>
+              <Card key={index} className="w-full max-w-xs border-0 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="pt-6 text-center">
+                  <div className={`inline-flex p-3 rounded-lg ${stat.bg} mb-4 mx-auto`}>
                     <Icon className={`w-6 h-6 ${stat.color}`} />
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
@@ -146,13 +146,13 @@ export default function AfghanistanInfoPage() {
         {/* Features Section */}
         <div className="mb-12">
           <h3 className="text-2xl font-bold mb-6 text-center">ویژگی‌های اصلی سیستم</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-items-center">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card key={index} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="inline-flex p-2 bg-primary/10 rounded-lg mb-4 w-fit">
+                <Card key={index} className="w-full max-w-md border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="text-center">
+                    <div className="inline-flex p-2 bg-primary/10 rounded-lg mb-4 w-fit mx-auto">
                       <Icon className="w-5 h-5 text-primary" />
                     </div>
                     <CardTitle className="text-lg">{feature.title}</CardTitle>
@@ -175,16 +175,16 @@ export default function AfghanistanInfoPage() {
         </div>
 
         {/* Information Cards */}
-        <div className="max-w-3xl mx-auto grid gap-6 mb-12">
-          <Card>
-            <CardHeader>
+        <div className="max-w-3xl mx-auto grid gap-6 mb-12 justify-items-center">
+          <Card className="w-full max-w-xl">
+            <CardHeader className="text-center">
               <CardTitle className="text-lg">نام شما</CardTitle>
               <CardDescription>{profile?.full_name || 'بدون نام'}</CardDescription>
             </CardHeader>
           </Card>
           
-          <Card>
-            <CardHeader>
+          <Card className="w-full max-w-xl">
+            <CardHeader className="text-center">
               <CardTitle className="text-lg">نقش شما</CardTitle>
               <CardDescription>
                 {typeof role === 'string' && t(`roles.${role}`) || 'نامشخص'}
@@ -192,8 +192,8 @@ export default function AfghanistanInfoPage() {
             </CardHeader>
           </Card>
 
-          <Card>
-            <CardHeader>
+          <Card className="w-full max-w-xl">
+            <CardHeader className="text-center">
               <CardTitle className="text-lg">مکتب</CardTitle>
               <CardDescription>{profile?.school_name || 'نیمشخص'}</CardDescription>
             </CardHeader>
