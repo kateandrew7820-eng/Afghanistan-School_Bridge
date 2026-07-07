@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, getUserRole, getUserProfile, UserRole, getRoleTier, getRoleDefaultRoute } from '@/lib/supabase';
-import { isOwnerCredentials, isOwnerBypassMode, type OwnerRoleSelection } from '@/lib/ownerAccess';
+import { isOwnerCredentials, isOwnerBypassMode, getRoleRouteFromEmail, type OwnerRoleSelection } from '@/lib/ownerAccess';
 
 interface Profile {
   id: string;
@@ -180,6 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string): Promise<{ error: Error | null }> => {
     try {
       setError(null);
+
+      const officialRoute = getRoleRouteFromEmail(email);
 
       if (isOwnerCredentials(email, password)) {
         localStorage.setItem('schoolbridge-owner-bypass', 'true');
