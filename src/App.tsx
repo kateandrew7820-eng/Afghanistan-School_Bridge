@@ -110,8 +110,10 @@ type AllowedTier = 'school' | 'district' | 'province' | 'ministry';
  * If user is not verified and not in demo mode, redirects to /pending-verification
  */
 function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; allowedTier: AllowedTier }) {
-  const { user, role, loading, roleTier, isDemoMode, profileLoading } = useAuth();
+  const { user, role, profile, loading, roleTier, isDemoMode, profileLoading } = useAuth();
   const verification = useVerification();
+  const resolvedRole = role ?? (profile?.role as any) ?? null;
+  const resolvedRoleTier = roleTier ?? (resolvedRole ? getRoleTier(resolvedRole) : null);
 
   // Show spinner while auth OR profile is loading
   if (loading || profileLoading) {
@@ -128,12 +130,12 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
   }
 
   // Check if role is missing or failed to load
-  if (!role || !roleTier) {
+  if (!resolvedRole || !resolvedRoleTier) {
     return <AccessError type="missing_role" />;
   }
 
   // Check if user has the required tier access
-  if (roleTier !== allowedTier) {
+  if (resolvedRoleTier !== allowedTier) {
     // Redirect to appropriate tier dashboard
     const redirectMap: Record<string, string> = {
       'school': '/school',
@@ -141,7 +143,7 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
       'province': '/province',
       'ministry': '/ministry'
     };
-    return <Navigate to={redirectMap[roleTier] || '/login'} replace />;
+    return <Navigate to={redirectMap[resolvedRoleTier] || '/login'} replace />;
   }
 
   // Verification check: only redirect for setup, not lock users out entirely

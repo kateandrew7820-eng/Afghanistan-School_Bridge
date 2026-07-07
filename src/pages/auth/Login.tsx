@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { sanitizeError } from "@/lib/sanitizeError";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
-import { getRoleRouteFromEmail, isOwnerCredentials } from '@/lib/ownerAccess';
+import { isOwnerCredentials } from '@/lib/ownerAccess';
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -73,15 +73,8 @@ export default function LoginPage() {
         return;
       }
 
-      const officialRoute = getRoleRouteFromEmail(em);
-      if (officialRoute) {
-        toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به داشبورد…" });
-        navigate(officialRoute, { replace: true });
-        return;
-      }
-
       toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به داشبورد…" });
-      navigate("/", { replace: true });
+      return;
     },
     [email, password, signIn, navigate, toast]
   );
