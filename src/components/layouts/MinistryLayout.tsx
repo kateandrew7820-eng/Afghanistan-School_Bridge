@@ -4,7 +4,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import RoleLayout, { NavGroup } from './RoleLayout';
 import {
   LayoutDashboard, Inbox, Bell, FileDown, Calendar,
-  School, Map, Users, TrendingUp, Download, Building2, Globe,
+  School, Map, Users, TrendingUp, Download, Building2, Globe, MessageSquare,
 } from 'lucide-react';
 
 
@@ -20,6 +20,7 @@ export default function MinistryLayout({ children }: Props) {
       items: [
         { href: '/ministry', icon: LayoutDashboard, label: t('navigation.dashboard') },
         { href: '/ministry/inbox', icon: Inbox, label: 'صندوق تأیید' },
+        { href: '/chat', icon: MessageSquare, label: 'گفتگو' },
       ],
     },
     {

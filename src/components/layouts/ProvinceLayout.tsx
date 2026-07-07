@@ -4,7 +4,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import RoleLayout, { NavGroup } from './RoleLayout';
 import { ScopeChip } from '@/components/ScopeChip';
 import {
-  LayoutDashboard, Inbox, Bell, FileDown, Calendar,
+  LayoutDashboard, Inbox, Bell, FileDown, Calendar, MessageSquare,
   MapPin, TrendingUp, Building2,
 } from 'lucide-react';
 
@@ -22,6 +22,7 @@ export default function ProvinceLayout({ children }: Props) {
       items: [
         { href: '/province', icon: LayoutDashboard, label: t('navigation.dashboard') },
         { href: '/province/inbox', icon: Inbox, label: 'صندوق تأیید' },
+        { href: '/chat', icon: MessageSquare, label: 'گفتگو' },
       ],
     },
     {

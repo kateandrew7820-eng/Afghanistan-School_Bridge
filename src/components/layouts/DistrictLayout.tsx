@@ -4,7 +4,7 @@ import { useTranslation } from '@/contexts/LocalizationContext';
 import RoleLayout, { NavGroup } from './RoleLayout';
 import { ScopeChip } from '@/components/ScopeChip';
 import {
-  LayoutDashboard, Bell, FileDown, Calendar,
+  LayoutDashboard, Bell, FileDown, Calendar, MessageSquare,
   School, Inbox, MapPin,
 } from 'lucide-react';
 
@@ -22,6 +22,7 @@ export default function DistrictLayout({ children }: Props) {
       items: [
         { href: '/district', icon: LayoutDashboard, label: t('navigation.dashboard') },
         { href: '/district/inbox', icon: Inbox, label: 'صندوق تأیید' },
+        { href: '/chat', icon: MessageSquare, label: 'گفتگو' },
       ],
     },
     {

@@ -7,7 +7,7 @@ import { ProfileCompletionModal } from '@/components/ProfileCompletionModal';
 import RoleLayout, { NavGroup } from './RoleLayout';
 import { ScopeChip } from '@/components/ScopeChip';
 import {
-  LayoutDashboard, Send,
+  LayoutDashboard, Send, MessageSquare,
   Bell, FileDown, Calendar, School,
 } from 'lucide-react';
 
@@ -36,6 +36,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
       items: [
         { href: '/school', icon: LayoutDashboard, label: t('navigation.dashboard') },
         { href: '/school/submit', icon: Send, label: 'ارسال اطلاعات' },
+        { href: '/chat', icon: MessageSquare, label: 'گفتگو' },
       ],
     },
     {

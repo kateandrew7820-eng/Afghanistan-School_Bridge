@@ -35,6 +35,7 @@ const ProfilePage = lazy(() => import("./pages/Profile"));
 const Demo = lazy(() => import("./pages/Demo"));
 const PendingVerification = lazy(() => import("./pages/PendingVerification"));
 const TestButtons = lazy(() => import("./pages/TestButtons"));
+const ChatPage = lazy(() => import("./pages/Chat"));
 const CommandPalette = lazy(() => import("./components/CommandPalette").then(m => ({ default: m.CommandPalette })));
 
 // Layouts
@@ -191,6 +192,13 @@ function AppRoutes() {
       <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
       <Route path="/owner-access" element={<Suspense fallback={<LoadingFallback />}><OwnerAccessPage /></Suspense>} />
       <Route path="/profile" element={<Suspense fallback={<LoadingFallback />}><ProfilePage /></Suspense>} />
+
+      {/* Chat — shared across all roles */}
+      <Route path="/chat" element={
+        <Suspense fallback={<LoadingFallback />}>
+          {user ? <ChatPage /> : <Navigate to="/login" replace />}
+        </Suspense>
+      } />
 
       {/* Demo Mode - Choose role and see dashboards without auth */}
       <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><Demo /></Suspense>} />

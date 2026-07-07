@@ -1,114 +1,129 @@
-# Hierarchical Approval Emails + Real Notifications
 
-Turn the pending-verification step into a real approval workflow: the moment a user lands on `/pending-verification`, an email with Accept / Deny / Delay buttons is sent to their hierarchical head, and the applicant sees real in-app notifications.
+# Chat MVP — Plan
 
-## 1. Approver routing (defaults per position)
+Ship a real-time chat feature at `/chat` for all verified users. Light theme, RTL Dari, three-column layout adapted from the reference screenshot. Round 1 = messaging fundamentals only; reactions/threads/voice/calls/AI deferred.
 
-Each role's approval email goes to a preset head email. If the applicant filled a matching principal/district/etc. in the DB later, we still use these defaults for now (as requested).
+## 1. Scope this round
 
+In:
+- 1-to-1 direct messages and group conversations
+- Real-time message delivery, typing indicator, online presence
+- File attachments (image / PDF / Word / Excel / PowerPoint), inline image preview
+- Read receipts (✓ sent, ✓✓ delivered, teal ✓✓ read)
+- Unread badges + toast + in-app `NotificationBell` entry for new messages
+- Search conversations by name
+- New conversation modal: pick user(s) from verified profiles, optional group name
 
-| Applicant role    | Approver email                               | Approver label     |
-| ----------------- | -------------------------------------------- | ------------------ |
-| student / teacher | `kateandrew78.20@gmail.com` (principal)      | مدیر مکتب          |
-| principal         | `salikmasoud621@gmail.com` (district admin)  | رئیس معارف ولسوالی |
-| district_admin    | `zahrasalik87@gmail.com` (province admin)    | رئیس معارف ولایت   |
-| province_admin    | `manotofaza@gmail.com` (admin)               | مدیر ملی           |
-| admin             | `masoudsalik2024@gmail.com` (ministry)       | وزیر معارف         |
-| ministry_admin    | `masoudsalik2024@gmail.com` (platform owner) | مالک پلتفرم        |
+Out (later rounds):
+- Reactions, threads, pinned/starred, mentions, edit/delete-for-everyone
+- Voice notes, video/voice calls, GIF, location, contact cards
+- Roles/permissions, moderation, archive, mute, AI features
+- Global cross-content search (messages/users/schools/docs)
 
+## 2. Layout & UX
 
-Stored in `src/lib/approverRouting.ts` (single source of truth) and mirrored in the edge function.
+New route `/chat` added to every role's sidebar (`SchoolLayout`, `DistrictLayout`, `ProvinceLayout`, `MinistryLayout`, `AdminLayout`) with a `MessageSquare` icon and unread badge.
 
-## 2. Database (one migration)
+Three-column layout, **light theme** using existing tokens (`background`, `card`, `muted`, `primary` teal accent). Full RTL — column order in visual space becomes: right = conversation list, center = active chat, left = details panel (mirrors screenshot in RTL).
 
-New table `public.approval_requests`:
+Mobile (<768px): stack — list → chat → details as separate views with back navigation using existing `NavigationBackButton`.
 
-- `applicant_user_id`, `applicant_email`, `applicant_full_name`, `applicant_role`, `school_name`, `district`, `province`, `phone_number`
-- `approver_email`, `approver_label`
-- `status` enum text: `pending` | `approved` | `denied` | `delayed`
-- `action_token` uuid unique (signed link param)
-- `decided_at`, `decided_by_email`, `decision_note`
-- `created_at`, `updated_at`
-- Grants: `SELECT, INSERT` to `authenticated`; `ALL` to `service_role`. No anon.
-- RLS: applicant can `SELECT` their own rows; admins can select all; only service_role writes decisions.
+```text
+[ Details 300px | Active Chat (flex-1) | Conversation List 340px ]  (RTL)
+```
 
-New table `public.notifications`:
+Message bubbles:
+- Incoming: `bg-muted text-foreground` right-aligned relative to sender (in RTL: left side of thread)
+- Outgoing: `bg-primary text-primary-foreground` opposite side
+- Time + read ticks under bubble; sender name shown in groups only
+- Date separators (`امروز`, `دیروز`, weekday, full date)
+- Grouping: consecutive messages by same sender within 5 min share one avatar
 
-- `user_id`, `title`, `body`, `type` (`approval_approved` | `approval_denied` | `approval_delayed` | `info`), `link` (target route), `read_at`, `created_at`
-- Grants: `SELECT, UPDATE` to `authenticated`; `ALL` to `service_role`.
-- RLS: user can select/update their own rows (only `read_at`).
+Composer: attachment button, textarea (Enter=send, Shift+Enter=newline), send button. Drag-drop + paste image supported.
 
-Both get `updated_at` trigger and are added to realtime publication.
+## 3. Data model (new migration)
 
-## 3. Edge functions (public — verify_jwt=false where noted)
+Tables (all in `public`, RLS on, GRANTs to `authenticated` + `service_role`, added to `supabase_realtime`):
 
-- `request-approval` (JWT-protected): called from `/pending-verification` on mount. Reads applicant's `profiles` row, picks approver from routing table, upserts `approval_requests` row (idempotent per `applicant_user_id` while pending), sends the email via Lovable Emails (React Email template `approval-request.tsx`) containing full name, role, school, district, province, phone (or "ثبت نشده"), submission timestamp, and three big buttons linking to `<app>/approve/{token}?action=accept|deny|delay`.
-- `handle-approval-decision` (verify_jwt=false, public link target): validates `action_token`, marks decision, inserts a `notifications` row for the applicant, updates `profiles.status` to `verified` on accept (with `verified_by_email = approver_email`) or `rejected` on deny. Shows a small branded confirmation HTML page in Dari to the head.
+- `conversations` — `id`, `type` ('direct' | 'group'), `title` (nullable, groups only), `avatar_url`, `created_by`, `last_message_at`, `created_at`, `updated_at`
+- `conversation_members` — `conversation_id`, `user_id`, `role` ('member' | 'admin'), `joined_at`, `last_read_at`, `muted_until` — PK `(conversation_id, user_id)`
+- `messages` — `id`, `conversation_id`, `sender_id`, `body` (text, nullable when attachment-only), `attachment_url`, `attachment_name`, `attachment_mime`, `attachment_size`, `reply_to_id` (nullable, reserved), `created_at`, `edited_at`, `deleted_at`
+- `message_reads` — `message_id`, `user_id`, `read_at` — PK `(message_id, user_id)` — used for group "seen by N" and DM read ticks
+- `typing_indicators` — ephemeral via Realtime broadcast (no table)
 
-Both use `SUPABASE_SERVICE_ROLE_KEY` server-side only. Input validated with Zod.
+Storage bucket: `chat-attachments` (private). Path convention: `<conversation_id>/<message_id>/<filename>`. RLS on `storage.objects` restricts read/write to conversation members.
 
-## 4. App email template
+### RLS (open model)
 
-`supabase/functions/_shared/transactional-email-templates/approval-request.tsx` — React Email, RTL Dari, brand colors, three inline buttons (green Accept, red Deny, amber Delay) no link, just the fully functional buttons, applicant info table, timestamp. Registered in `registry.ts`.
+- `conversations`: SELECT if `auth.uid()` is a member; INSERT allowed for any verified user (`profiles.status = 'verified'`); UPDATE by members (title/avatar for groups), admin only for member changes.
+- `conversation_members`: SELECT own membership + membership of conversations you're in; INSERT by creator/admin or self-join to groups you're invited to; DELETE self (leave) or admin.
+- `messages`: SELECT if member of conversation; INSERT if member and `sender_id = auth.uid()`; UPDATE only own message within 15 min for `body`, or set `deleted_at` on own message; no hard DELETE.
+- `message_reads`: SELECT if member; INSERT own reads only.
 
-## 5. In-app notifications
+Helper SECURITY DEFINER function `public.is_conversation_member(_conv uuid, _user uuid)` to avoid recursive RLS.
 
-New `useNotifications()` hook (`src/hooks/useNotifications.ts`):
+Trigger: on `messages` INSERT, update `conversations.last_message_at`.
 
-- Fetches `notifications` for `auth.uid()` ordered by `created_at desc`.
-- Realtime subscription on INSERT for the current user.
-- `markAsRead(id)`, `markAllRead()`.
+## 4. Frontend structure
 
-New `NotificationBell` component (`src/components/NotificationBell.tsx`):
+```
+src/pages/Chat.tsx                    // route entry, three-column shell
+src/components/chat/
+  ConversationList.tsx                // search, filter pills (All/Unread/Groups/Direct), list rows
+  ConversationRow.tsx
+  NewConversationModal.tsx            // pick users from verified profiles, create direct or group
+  ChatHeader.tsx                      // title, member count, actions (search placeholder)
+  MessageThread.tsx                   // virtualized-ish scroll, date separators, grouping
+  MessageBubble.tsx                   // text, attachment renderers, read ticks
+  MessageComposer.tsx                 // textarea, attach, drop/paste
+  TypingIndicator.tsx
+  DetailsPanel.tsx                    // group info, members, shared files
+  AttachmentPreview.tsx               // image/pdf/office icon renderers
+src/hooks/
+  useConversations.ts                 // list + realtime updates
+  useMessages.ts                      // per-conversation messages + realtime INSERT/UPDATE
+  useChatPresence.ts                  // Realtime presence channel per conversation for online + typing broadcast
+  useUnreadCount.ts                   // total unread for sidebar badge
+src/lib/chat/
+  attachments.ts                      // upload to chat-attachments bucket, mime helpers
+  readReceipts.ts                     // mark-read batching
+```
 
-- Bell icon + unread badge.
-- Popover with the last 10 notifications; clicking one marks read and navigates to `notification.link`.
-- Placement:
-  - `PendingVerification.tsx`: top-right corner (RTL → visually top-right of the card header).
-  - `AfghanistanInfoPage.tsx` and `Index.tsx` (homepage): top-left corner.
+Wire `useUnreadCount` into every role layout to render a small dot on the `/chat` nav item. Extend existing `NotificationBell` to also surface "new message from X" entries by inserting a row into `notifications` from a trigger on `messages` (only when recipient's `last_read_at < now()` and browser tab closed — recipient-side; simpler: trigger inserts, hook dedupes when user opens the conversation).
 
-## 6. Pending verification page changes
+## 5. Realtime wiring
 
-`src/pages/PendingVerification.tsx`:
+- Per-conversation postgres_changes subscription on `messages` filtered by `conversation_id=eq.<id>` for the open thread.
+- Global subscription on `messages` filtered by conversations the user is in (via `conversation_members` join done client-side after initial fetch) to update sidebar list ordering + unread counts.
+- Presence + typing: `supabase.channel('conv:'+id, { config: { presence: { key: userId }}})`, broadcast event `typing` throttled to 1/2s, auto-clear after 3s idle.
 
-- On first mount, if `profile.status === 'pending_verification'` and no active `approval_requests` row exists for this user, call `supabase.functions.invoke('request-approval')`. Guard with a `sessionStorage` flag to avoid duplicate sends across React strict-mode mounts.
-- Show a small "درخواست تأیید ارسال شد به {approver_label}" line under the existing message.
-- Mount `<NotificationBell />` in the header.
-- Keep existing realtime `profiles` listener; on approved → navigate to role's dashboard route; on rejected → show existing rejected state.
+All subscriptions live in `useEffect` with cleanup — followed strictly to avoid Realtime bill blow-up.
 
-## 7. Decision → applicant experience
+## 6. Files created / edited
 
-- Accept → notification "حساب شما تأیید شد" with `link = /school|/district|/province|/ministry` (based on role). Clicking navigates there. Profile status flipped to `verified` so `useVerification()` unlocks access.
-- Deny → notification "متأسفانه توسط {approver_label} تأیید نشدید. لطفاً با معلومات دقیق دوباره تلاش کنید." with `link = /setup-profile`.
-- Delay → notification "بررسی درخواست شما به تأخیر افتاده است." Applicant stays on pending page.
+New:
+- migration (tables, RLS, GRANTs, realtime, helper fn, trigger, storage bucket policies)
+- `src/pages/Chat.tsx`, 10 components under `src/components/chat/`, 4 hooks under `src/hooks/`, 2 libs under `src/lib/chat/`
 
-## 8. Files
+Edited:
+- `src/App.tsx` — add `/chat` route (protected, requires verified profile)
+- `src/components/layouts/{School,District,Province,Ministry,Admin}Layout.tsx` — add "گفتگو" nav entry with unread dot
+- `src/i18n/locales/fa.json` — chat strings
 
-**New**
+Storage bucket `chat-attachments` created via storage tool (private).
 
-- `supabase/migrations/<ts>_approval_and_notifications.sql`
-- `supabase/functions/request-approval/index.ts`
-- `supabase/functions/handle-approval-decision/index.ts`
-- `supabase/functions/_shared/transactional-email-templates/approval-request.tsx`
-- `src/lib/approverRouting.ts`
-- `src/hooks/useNotifications.ts`
-- `src/components/NotificationBell.tsx`
+## 7. Verification
 
-**Edited**
+- Two-browser manual check: send text + image both ways, see realtime delivery, typing indicator, read ticks flip.
+- Create a group with 3 users, verify member list, unread badges.
+- Refresh mid-thread; messages restore ordered by `created_at`.
+- Sidebar unread dot appears/clears correctly.
+- RLS spot check via `read_query`: user not in conversation cannot select its messages.
 
-- `supabase/functions/_shared/transactional-email-templates/registry.ts` (register template)
-- `supabase/config.toml` (register two functions; `handle-approval-decision` with `verify_jwt = false`)
-- `src/pages/PendingVerification.tsx` (auto-send + bell)
-- `src/pages/AfghanistanInfoPage.tsx` (bell top-left)
-- `src/pages/Index.tsx` (bell top-left)
-- `src/App.tsx` (route `/approve/:token` optional — but decision link points to the edge function directly, so route not needed unless we want a client landing)
+## Technical notes
 
-## 9. Prerequisites the tool will handle
-
-Approval emails require Lovable Emails. If the domain/infrastructure is not yet set up when we invoke email tools, the setup dialog will appear first; after completion I'll continue with scaffolding and this feature end-to-end in the same run.
-
-## 10. Out of scope
-
-- Editing the applicant's setup form itself.
-- Real hierarchical lookup by school/district/province ownership (deferred; using default emails as requested).
-- Push notifications / SMS.
+- Message pagination: initial load last 50, infinite scroll upward loads 50 more (keyset on `created_at`).
+- Attachment size cap 20 MB client-side, mime allowlist enforced by storage policy.
+- `messages.body` sanitized on render (plain text only round 1, no markdown/HTML).
+- Read receipts written in batches on scroll / focus — one row per (message, user) via upsert.
+- Design system: no hardcoded colors; teal accent already lives on `--primary`.
