@@ -33,7 +33,7 @@ interface Props {
 }
 
 
-export function MessageComposer({ conversationId, onSend, onTyping }: Props) {
+export function MessageComposer({ conversationId, replyTo, onCancelReply, onSend, onTyping }: Props) {
   const { toast } = useToast();
   const [text, setText] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -41,6 +41,11 @@ export function MessageComposer({ conversationId, onSend, onTyping }: Props) {
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (replyTo) textareaRef.current?.focus();
+  }, [replyTo]);
+
 
   const validateFile = useCallback(
     (file: File): boolean => {
