@@ -6,7 +6,7 @@ import { ChatAvatar } from './ChatAvatar';
 import { AddMembersDialog } from './AddMembersDialog';
 import { cn } from '@/lib/utils';
 import { getRoleLabelFA } from '@/lib/permissions';
-import { humanFileSize, getAttachmentUrl } from '@/lib/chat/attachments';
+import { humanFileSize, getAttachmentSignedUrl } from '@/lib/chat/attachments';
 import { relativeTimeFa } from '@/lib/chat/format';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -87,7 +87,7 @@ export function DetailsPanel({
 
   const openFile = async (path: string) => {
     try {
-      const url = await getAttachmentUrl(path);
+      const url = await getAttachmentSignedUrl(path);
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch {
       toast({ title: 'باز کردن فایل ناموفق بود', variant: 'destructive' });
