@@ -202,7 +202,7 @@ export function MessageComposer({ conversationId, replyTo, onCancelReply, onSend
           onKeyDown={handleKey}
           onPaste={handlePaste}
           rows={1}
-          placeholder="پیام خود را بنویسید…"
+          placeholder={replyTo ? 'پاسخ خود را بنویسید…' : 'پیام خود را بنویسید…'}
           className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 max-h-[140px]"
         />
         <Button
@@ -212,8 +212,9 @@ export function MessageComposer({ conversationId, replyTo, onCancelReply, onSend
           className="h-10 w-10 shrink-0"
           aria-label="ارسال"
         >
-          <Send className="h-4 w-4" />
+          {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
+
       </div>
     </div>
   );
