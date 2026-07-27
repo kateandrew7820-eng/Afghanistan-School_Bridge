@@ -120,8 +120,10 @@ export function useConversations() {
             last_read_at: m.last_read_at,
             full_name: p?.full_name ?? null,
             avatar_url: null,
+            platform_role: (p as any)?.role ?? null,
           };
         });
+
       return {
         id: c.id,
         type: c.type as 'direct' | 'group',
