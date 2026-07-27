@@ -75,8 +75,9 @@ export function useConversations() {
     );
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('user_id, full_name')
+      .select('user_id, full_name, role')
       .in('user_id', memberUserIds);
+
     const profileMap = new Map(
       (profiles ?? []).map((p) => [p.user_id, p]),
     );
