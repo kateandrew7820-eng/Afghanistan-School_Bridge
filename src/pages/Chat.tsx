@@ -27,7 +27,13 @@ export default function Chat() {
   const [newOpen, setNewOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(true);
   const [replyTo, setReplyTo] = useState<ComposerReply | null>(null);
-  const [jumpTo, setJumpTo] = useState<string | null>(null);
+  const jumpToMessage = useCallback((id: string) => {
+    const el = document.getElementById(`msg-${id}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('ring-2', 'ring-primary', 'rounded-2xl');
+    setTimeout(() => el.classList.remove('ring-2', 'ring-primary', 'rounded-2xl'), 1400);
+  }, []);
 
   const {
     messages,
@@ -110,7 +116,7 @@ export default function Chat() {
                 onToggleDetails={() => setDetailsOpen((v) => !v)}
                 onBack={() => setActive(null)}
                 pins={pins}
-                onJumpToPin={(id) => setJumpTo(id)}
+                onJumpToPin={jumpToMessage}
               />
               <MessageThread
                 messages={messages}
@@ -130,8 +136,6 @@ export default function Chat() {
                 onDelete={deleteMessage}
                 onRetry={retryMessage}
                 onDiscard={discardMessage}
-                jumpToId={jumpTo}
-                onJumpHandled={() => setJumpTo(null)}
               />
               <MessageComposer
                 conversationId={activeConv.id}
@@ -165,7 +169,7 @@ export default function Chat() {
               currentUserId={user.id}
               onlineUserIds={onlineUserIds}
               pins={pins}
-              onJumpToMessage={(id) => setJumpTo(id)}
+              onJumpToMessage={jumpToMessage}
               onUnpin={togglePin}
               onChanged={reload}
               onClose={() => setDetailsOpen(false)}
