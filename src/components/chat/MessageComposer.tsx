@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState, KeyboardEvent, DragEvent, ClipboardEvent } from 'react';
-import { Paperclip, Send, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState, KeyboardEvent, DragEvent, ClipboardEvent } from 'react';
+import { Paperclip, Send, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { QuotedMessage } from './QuotedMessage';
 import {
   isAllowedMime,
   MAX_ATTACHMENT_SIZE,
@@ -9,17 +10,28 @@ import {
   humanFileSize,
 } from '@/lib/chat/attachments';
 
+export interface ComposerReply {
+  id: string;
+  senderName: string;
+  body: string | null;
+  attachmentName: string | null;
+}
+
 interface Props {
   conversationId: string;
+  replyTo: ComposerReply | null;
+  onCancelReply: () => void;
   onSend: (input: {
     body?: string | null;
     attachment_url?: string | null;
     attachment_name?: string | null;
     attachment_mime?: string | null;
     attachment_size?: number | null;
+    reply_to_id?: string | null;
   }) => Promise<void>;
   onTyping: () => void;
 }
+
 
 export function MessageComposer({ conversationId, onSend, onTyping }: Props) {
   const { toast } = useToast();
