@@ -88,7 +88,7 @@ export function DetailsPanel({
   const openFile = async (path: string) => {
     try {
       const url = await getAttachmentSignedUrl(path);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
     } catch {
       toast({ title: 'باز کردن فایل ناموفق بود', variant: 'destructive' });
     }
