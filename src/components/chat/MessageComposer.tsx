@@ -66,11 +66,11 @@ export function MessageComposer({ conversationId, replyTo, onCancelReply, onSend
     const body = text.trim();
     if (!body && !attachment) return;
     setSending(true);
+    let attachmentPath: string | null = null;
+    let attachmentName: string | null = null;
+    let attachmentMime: string | null = null;
+    let attachmentSize: number | null = null;
     try {
-      let attachmentPath: string | null = null;
-      let attachmentName: string | null = null;
-      let attachmentMime: string | null = null;
-      let attachmentSize: number | null = null;
       if (attachment) {
         const { path } = await uploadChatAttachment(conversationId, attachment);
         attachmentPath = path;
@@ -78,22 +78,35 @@ export function MessageComposer({ conversationId, replyTo, onCancelReply, onSend
         attachmentMime = attachment.type;
         attachmentSize = attachment.size;
       }
+    } catch (err: any) {
+      // upload failed — keep the draft so nothing is lost
+      toast({ title: 'بارگذاری فایل ناموفق بود', description: err?.message ?? '', variant: 'destructive' });
+      setSending(false);
+      return;
+    }
+
+    const replyId = replyTo?.id ?? null;
+    // clear the composer immediately; the optimistic bubble handles retry on failure
+    setText('');
+    setAttachment(null);
+    onCancelReply();
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    try {
       await onSend({
         body: body || null,
         attachment_url: attachmentPath,
         attachment_name: attachmentName,
         attachment_mime: attachmentMime,
         attachment_size: attachmentSize,
+        reply_to_id: replyId,
       });
-      setText('');
-      setAttachment(null);
-      if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    } catch (err: any) {
-      toast({ title: 'ارسال ناموفق بود', description: err?.message ?? '', variant: 'destructive' });
+    } catch {
+      /* surfaced on the failed bubble */
     } finally {
       setSending(false);
     }
-  }, [text, attachment, conversationId, onSend, toast]);
+  }, [text, attachment, conversationId, onSend, toast, replyTo, onCancelReply]);
+
 
   const handleKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
