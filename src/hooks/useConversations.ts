@@ -15,7 +15,9 @@ export interface ConversationSummary {
     last_read_at: string;
     full_name: string | null;
     avatar_url: string | null;
+    platform_role: string | null;
   }[];
+
   last_message: {
     id: string;
     body: string | null;
@@ -73,8 +75,9 @@ export function useConversations() {
     );
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('user_id, full_name')
+      .select('user_id, full_name, role')
       .in('user_id', memberUserIds);
+
     const profileMap = new Map(
       (profiles ?? []).map((p) => [p.user_id, p]),
     );
@@ -117,8 +120,10 @@ export function useConversations() {
             last_read_at: m.last_read_at,
             full_name: p?.full_name ?? null,
             avatar_url: null,
+            platform_role: (p as any)?.role ?? null,
           };
         });
+
       return {
         id: c.id,
         type: c.type as 'direct' | 'group',
