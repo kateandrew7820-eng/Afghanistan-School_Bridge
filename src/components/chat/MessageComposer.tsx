@@ -132,7 +132,7 @@ export function MessageComposer({ conversationId, replyTo, onCancelReply, onSend
 
   return (
     <div
-      className={`border-t border-border bg-card p-3 ${dragging ? 'ring-2 ring-primary' : ''}`}
+      className={`border-t border-border bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${dragging ? 'ring-2 ring-primary' : ''}`}
       onDragOver={(e) => {
         e.preventDefault();
         setDragging(true);
@@ -140,7 +140,26 @@ export function MessageComposer({ conversationId, replyTo, onCancelReply, onSend
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
     >
+      {replyTo && (
+        <div className="mb-2 flex items-start gap-2">
+          <QuotedMessage
+            variant="composer"
+            senderName={replyTo.senderName}
+            body={replyTo.body}
+            attachmentName={replyTo.attachmentName}
+            className="mb-0"
+          />
+          <button
+            onClick={onCancelReply}
+            className="h-8 w-8 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-muted"
+            aria-label="لغو پاسخ"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       {attachment && (
+
         <div className="mb-2 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-xs">
           <Paperclip className="h-3.5 w-3.5" />
           <span className="truncate flex-1">{attachment.name}</span>
