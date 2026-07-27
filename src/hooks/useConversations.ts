@@ -15,7 +15,9 @@ export interface ConversationSummary {
     last_read_at: string;
     full_name: string | null;
     avatar_url: string | null;
+    platform_role: string | null;
   }[];
+
   last_message: {
     id: string;
     body: string | null;
