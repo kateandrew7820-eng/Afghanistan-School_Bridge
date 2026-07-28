@@ -112,16 +112,24 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: Props) {
         .single();
       if (error || !conv) throw error;
 
-      const members = [
-        { conversation_id: conv.id, user_id: user.id, role: 'admin' as const },
-        ...Array.from(selected).map((uid) => ({
-          conversation_id: conv.id,
-          user_id: uid,
-          role: 'member' as const,
-        })),
-      ];
-      const { error: mErr } = await supabase.from('conversation_members').insert(members);
-      if (mErr) throw mErr;
+      // the creator must be inserted first: only an existing group admin may add others
+      const { error: selfErr } = await supabase.from('conversation_members').insert({
+        conversation_id: conv.id,
+        user_id: user.id,
+        role: 'admin' as const,
+      });
+      if (selfErr) throw selfErr;
+
+      const others = Array.from(selected).map((uid) => ({
+        conversation_id: conv.id,
+        user_id: uid,
+        role: 'member' as const,
+      }));
+      if (others.length > 0) {
+        const { error: mErr } = await supabase.from('conversation_members').insert(others);
+        if (mErr) throw mErr;
+      }
+
 
       onCreated(conv.id);
       onOpenChange(false);
