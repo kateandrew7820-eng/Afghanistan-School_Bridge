@@ -48,13 +48,15 @@ Deno.serve(async (req) => {
       await admin.from('user_roles').delete().eq('user_id', A.id).eq('role', 'admin');
     };
 
+    const { data: whoami } = await A.client.rpc('has_role', { _user_id: A.id, _role: 'admin' });
+    rec('rpc reachable', true, 'has_role=' + JSON.stringify(whoami));
     const { data: selfProf, error: selfErr } = await A.client.from('profiles').select('user_id,status,role').eq('user_id', A.id).maybeSingle();
     rec('A profile readable+verified', selfProf?.status === 'verified', JSON.stringify(selfProf) + (selfErr?.message ?? ''));
 
     // create group
     const { data: conv, error: convErr } = await A.client
       .from('conversations').insert({ type: 'group', title: 'SelfTest', created_by: A.id }).select().single();
-    rec('create group conversation', !convErr, convErr?.message);
+    rec('create group conversation', !convErr, JSON.stringify(convErr) + ' uid=' + A.id);
     if (!conv) throw new Error('cannot continue');
     created.push(conv.id);
 
