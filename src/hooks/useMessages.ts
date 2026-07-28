@@ -168,10 +168,10 @@ export function useMessages(conversationId: string | null) {
           const [hydrated] = await hydrate([m]);
           setMessages((prev) => {
             if (prev.some((x) => x.id === m.id)) return prev;
-            // reconcile an optimistic row from the same sender with the same body
-            const optimisticIdx = prev.findIndex(
-              (x) => x.pending && x.sender_id === m.sender_id && (x.body ?? '') === (m.body ?? ''),
-            );
+            // reconcile the optimistic row by its client_id
+            const optimisticIdx = m.client_id
+              ? prev.findIndex((x) => x.client_id === m.client_id)
+              : -1;
             if (optimisticIdx >= 0) {
               const next = prev.slice();
               next[optimisticIdx] = hydrated;
