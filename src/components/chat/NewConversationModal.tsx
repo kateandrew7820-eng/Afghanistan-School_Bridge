@@ -120,13 +120,13 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: Props) {
       });
       if (selfErr) throw selfErr;
 
-      const others = Array.from(selected).map((uid) => ({
+      const invitees = Array.from(selected).map((uid) => ({
         conversation_id: conv.id,
         user_id: uid,
         role: 'member' as const,
       }));
-      if (others.length > 0) {
-        const { error: mErr } = await supabase.from('conversation_members').insert(others);
+      if (invitees.length > 0) {
+        const { error: mErr } = await supabase.from('conversation_members').insert(invitees);
         if (mErr) throw mErr;
       }
 
