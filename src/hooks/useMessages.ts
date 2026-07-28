@@ -168,10 +168,10 @@ export function useMessages(conversationId: string | null) {
           const [hydrated] = await hydrate([m]);
           setMessages((prev) => {
             if (prev.some((x) => x.id === m.id)) return prev;
-            // reconcile an optimistic row from the same sender with the same body
-            const optimisticIdx = prev.findIndex(
-              (x) => x.pending && x.sender_id === m.sender_id && (x.body ?? '') === (m.body ?? ''),
-            );
+            // reconcile the optimistic row by its client_id
+            const optimisticIdx = m.client_id
+              ? prev.findIndex((x) => x.client_id === m.client_id)
+              : -1;
             if (optimisticIdx >= 0) {
               const next = prev.slice();
               next[optimisticIdx] = hydrated;
@@ -240,6 +240,7 @@ export function useMessages(conversationId: string | null) {
       const { error } = await supabase.from('messages').insert({
         conversation_id: conversationId,
         sender_id: user.id,
+        client_id: clientId,
         body: input.body ?? null,
         attachment_url: input.attachment_url ?? null,
         attachment_name: input.attachment_name ?? null,
@@ -247,7 +248,8 @@ export function useMessages(conversationId: string | null) {
         attachment_size: input.attachment_size ?? null,
         reply_to_id: input.reply_to_id ?? null,
       });
-      if (error) {
+      // 23505: the row already landed (duplicate retry) — treat as success
+      if (error && (error as { code?: string }).code !== '23505') {
         setMessages((prev) =>
           prev.map((m) => (m.client_id === clientId ? { ...m, pending: false, failed: true } : m)),
         );
@@ -256,6 +258,7 @@ export function useMessages(conversationId: string | null) {
     },
     [user, conversationId],
   );
+
 
   const sendMessage = useCallback(
     async (input: SendInput & { reply_to?: ReplyTarget | null }) => {
