@@ -48,6 +48,9 @@ Deno.serve(async (req) => {
       await admin.from('user_roles').delete().eq('user_id', A.id).eq('role', 'admin');
     };
 
+    const { data: selfProf, error: selfErr } = await A.client.from('profiles').select('user_id,status,role').eq('user_id', A.id).maybeSingle();
+    rec('A profile readable+verified', selfProf?.status === 'verified', JSON.stringify(selfProf) + (selfErr?.message ?? ''));
+
     // create group
     const { data: conv, error: convErr } = await A.client
       .from('conversations').insert({ type: 'group', title: 'SelfTest', created_by: A.id }).select().single();
