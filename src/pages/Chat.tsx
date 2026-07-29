@@ -53,6 +53,15 @@ export default function Chat() {
   const { onlineUserIds, typingUserIds, broadcastTyping } = useChatPresence(activeId);
   const { pins, isPinned, togglePin } = usePins(activeId);
 
+  useEffect(() => {
+    setActiveConversation(activeId);
+  }, [activeId, setActiveConversation]);
+
+  const handleMarkRead = useCallback(async () => {
+    await markRead();
+    if (activeId) markConversationRead(activeId);
+  }, [markRead, activeId, markConversationRead]);
+
   const setActive = (id: string | null) => {
     setReplyTo(null);
     if (id) setSearchParams({ c: id });
