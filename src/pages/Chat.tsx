@@ -138,7 +138,7 @@ export default function Chat() {
                 onRetryLoad={reloadMessages}
                 onLoadOlder={loadOlder}
                 hasMore={hasMore}
-                onVisible={markRead}
+                onVisible={handleMarkRead}
                 isPinned={isPinned}
                 onReply={handleReply}
                 onReact={toggleReaction}
