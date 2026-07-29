@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -28,14 +28,25 @@ export interface ConversationSummary {
   unread_count: number;
 }
 
+function sortByRecency(list: ConversationSummary[]): ConversationSummary[] {
+  return list
+    .slice()
+    .sort((a, b) => (a.last_message_at < b.last_message_at ? 1 : -1));
+}
+
 export function useConversations() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  /** conversation ids the user belongs to — used to filter realtime traffic */
+  const memberOfRef = useRef<Set<string>>(new Set());
+  /** the conversation currently open, so its unread count stays at zero */
+  const activeRef = useRef<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) {
       setConversations([]);
+      memberOfRef.current = new Set();
       setLoading(false);
       return;
     }
@@ -47,42 +58,41 @@ export function useConversations() {
       .select('conversation_id, last_read_at')
       .eq('user_id', user.id);
     const convIds = (myMemberships ?? []).map((m) => m.conversation_id);
+    memberOfRef.current = new Set(convIds);
     if (convIds.length === 0) {
       setConversations([]);
       setLoading(false);
       return;
     }
-    const readMap = new Map(
-      (myMemberships ?? []).map((m) => [m.conversation_id, m.last_read_at]),
+
+    // 2. Conversations, members, unread counts in parallel
+    const [convsRes, membersRes, unreadRes] = await Promise.all([
+      supabase
+        .from('conversations')
+        .select('*')
+        .in('id', convIds)
+        .order('last_message_at', { ascending: false }),
+      supabase
+        .from('conversation_members')
+        .select('conversation_id, user_id, role, last_read_at')
+        .in('conversation_id', convIds),
+      supabase.rpc('chat_unread_counts'),
+    ]);
+    const convs = convsRes.data ?? [];
+    const allMembers = membersRes.data ?? [];
+    const unreadMap = new Map<string, number>(
+      (unreadRes.data ?? []).map((r) => [r.conversation_id, r.unread_count]),
     );
 
-    // 2. Fetch conversations
-    const { data: convs } = await supabase
-      .from('conversations')
-      .select('*')
-      .in('id', convIds)
-      .order('last_message_at', { ascending: false });
-
-    // 3. Fetch all members of those conversations
-    const { data: allMembers } = await supabase
-      .from('conversation_members')
-      .select('conversation_id, user_id, role, last_read_at')
-      .in('conversation_id', convIds);
-
-    // 4. Fetch profiles for member user_ids
-    const memberUserIds = Array.from(
-      new Set((allMembers ?? []).map((m) => m.user_id)),
-    );
+    // 3. Profiles for member user_ids
+    const memberUserIds = Array.from(new Set(allMembers.map((m) => m.user_id)));
     const { data: profiles } = await supabase
       .from('profiles')
       .select('user_id, full_name, role')
       .in('user_id', memberUserIds);
+    const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
 
-    const profileMap = new Map(
-      (profiles ?? []).map((p) => [p.user_id, p]),
-    );
-
-    // 5. Latest message per conversation (last 1 each)
+    // 4. Latest message per conversation
     const { data: recentMsgs } = await supabase
       .from('messages')
       .select('id, conversation_id, body, sender_id, attachment_name, created_at')
@@ -94,23 +104,8 @@ export function useConversations() {
       if (!lastMsgMap.has(m.conversation_id)) lastMsgMap.set(m.conversation_id, m);
     }
 
-    // 6. Unread counts
-    const unreadMap = new Map<string, number>();
-    await Promise.all(
-      convIds.map(async (cid) => {
-        const lastRead = readMap.get(cid) ?? '1970-01-01';
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('conversation_id', cid)
-          .neq('sender_id', user.id)
-          .gt('created_at', lastRead);
-        unreadMap.set(cid, count ?? 0);
-      }),
-    );
-
-    const built: ConversationSummary[] = (convs ?? []).map((c) => {
-      const members = (allMembers ?? [])
+    const built: ConversationSummary[] = convs.map((c) => {
+      const members = allMembers
         .filter((m) => m.conversation_id === c.id)
         .map((m) => {
           const p = profileMap.get(m.user_id);
@@ -120,7 +115,7 @@ export function useConversations() {
             last_read_at: m.last_read_at,
             full_name: p?.full_name ?? null,
             avatar_url: null,
-            platform_role: (p as any)?.role ?? null,
+            platform_role: (p as { role?: string } | undefined)?.role ?? null,
           };
         });
 
@@ -136,7 +131,7 @@ export function useConversations() {
         unread_count: unreadMap.get(c.id) ?? 0,
       };
     });
-    setConversations(built);
+    setConversations(sortByRecency(built));
     setLoading(false);
   }, [user]);
 
@@ -144,7 +139,22 @@ export function useConversations() {
     load();
   }, [load]);
 
-  // Realtime: refresh on new messages / new memberships
+  /** Called by the chat view so the open conversation never shows unread. */
+  const setActiveConversation = useCallback((id: string | null) => {
+    activeRef.current = id;
+    if (!id) return;
+    setConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, unread_count: 0 } : c)),
+    );
+  }, []);
+
+  const markConversationRead = useCallback((id: string) => {
+    setConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, unread_count: 0 } : c)),
+    );
+  }, []);
+
+  // Realtime: patch local state instead of refetching everything
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -152,11 +162,77 @@ export function useConversations() {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
-        () => load(),
+        (payload) => {
+          const m = payload.new as {
+            id: string;
+            conversation_id: string;
+            body: string | null;
+            sender_id: string;
+            attachment_name: string | null;
+            created_at: string;
+          };
+          // ignore traffic from conversations the user is not a member of
+          if (!memberOfRef.current.has(m.conversation_id)) return;
+          setConversations((prev) => {
+            const idx = prev.findIndex((c) => c.id === m.conversation_id);
+            if (idx < 0) return prev;
+            const target = prev[idx];
+            const isMine = m.sender_id === user.id;
+            const isActive = activeRef.current === m.conversation_id;
+            const next = prev.slice();
+            next[idx] = {
+              ...target,
+              last_message_at: m.created_at,
+              last_message: {
+                id: m.id,
+                body: m.body,
+                sender_id: m.sender_id,
+                attachment_name: m.attachment_name,
+                created_at: m.created_at,
+              },
+              unread_count:
+                isMine || isActive ? target.unread_count : target.unread_count + 1,
+            };
+            return sortByRecency(next);
+          });
+        },
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'conversation_members', filter: `user_id=eq.${user.id}` },
+        { event: 'UPDATE', schema: 'public', table: 'conversations' },
+        (payload) => {
+          const c = payload.new as {
+            id: string;
+            title: string | null;
+            avatar_url: string | null;
+            last_message_at: string;
+          };
+          if (!memberOfRef.current.has(c.id)) return;
+          setConversations((prev) =>
+            sortByRecency(
+              prev.map((x) =>
+                x.id === c.id
+                  ? {
+                      ...x,
+                      title: c.title,
+                      avatar_url: c.avatar_url,
+                      last_message_at: c.last_message_at,
+                    }
+                  : x,
+              ),
+            ),
+          );
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'conversation_members',
+          filter: `user_id=eq.${user.id}`,
+        },
+        // joining or leaving a conversation changes the list itself
         () => load(),
       )
       .subscribe();
@@ -167,5 +243,12 @@ export function useConversations() {
 
   const totalUnread = conversations.reduce((s, c) => s + c.unread_count, 0);
 
-  return { conversations, loading, reload: load, totalUnread };
+  return {
+    conversations,
+    loading,
+    reload: load,
+    totalUnread,
+    setActiveConversation,
+    markConversationRead,
+  };
 }

@@ -17,7 +17,8 @@ import { cn } from '@/lib/utils';
 
 export default function Chat() {
   const { user } = useAuth();
-  const { conversations, loading, reload } = useConversations();
+  const { conversations, loading, reload, setActiveConversation, markConversationRead } =
+    useConversations();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeId = searchParams.get('c');
   const activeConv = useMemo(
@@ -51,6 +52,15 @@ export default function Chat() {
   } = useMessages(activeId);
   const { onlineUserIds, typingUserIds, broadcastTyping } = useChatPresence(activeId);
   const { pins, isPinned, togglePin } = usePins(activeId);
+
+  useEffect(() => {
+    setActiveConversation(activeId);
+  }, [activeId, setActiveConversation]);
+
+  const handleMarkRead = useCallback(async () => {
+    await markRead();
+    if (activeId) markConversationRead(activeId);
+  }, [markRead, activeId, markConversationRead]);
 
   const setActive = (id: string | null) => {
     setReplyTo(null);
@@ -128,7 +138,7 @@ export default function Chat() {
                 onRetryLoad={reloadMessages}
                 onLoadOlder={loadOlder}
                 hasMore={hasMore}
-                onVisible={markRead}
+                onVisible={handleMarkRead}
                 isPinned={isPinned}
                 onReply={handleReply}
                 onReact={toggleReaction}

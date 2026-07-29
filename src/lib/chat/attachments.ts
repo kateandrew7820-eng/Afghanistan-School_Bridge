@@ -53,3 +53,16 @@ export async function getAttachmentSignedUrl(path: string): Promise<string | nul
     .createSignedUrl(path, 60 * 60);
   return data?.signedUrl ?? null;
 }
+
+/**
+ * Remove an uploaded object that never made it onto a message
+ * (send discarded or permanently failed), so the bucket keeps no orphans.
+ */
+export async function removeChatAttachment(path: string | null | undefined): Promise<void> {
+  if (!path) return;
+  try {
+    await supabase.storage.from('chat-attachments').remove([path]);
+  } catch {
+    /* best-effort cleanup — never block the UI on this */
+  }
+}
