@@ -313,7 +313,12 @@ export function useMessages(conversationId: string | null) {
   );
 
   const discardMessage = useCallback((clientId: string) => {
-    setMessages((prev) => prev.filter((m) => m.client_id !== clientId));
+    setMessages((prev) => {
+      const target = prev.find((m) => m.client_id === clientId);
+      // the upload already landed in storage but the message never will — clean it up
+      if (target?.attachment_url) void removeChatAttachment(target.attachment_url);
+      return prev.filter((m) => m.client_id !== clientId);
+    });
   }, []);
 
   const deleteMessage = useCallback(
