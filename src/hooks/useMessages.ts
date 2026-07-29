@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { removeChatAttachment } from '@/lib/chat/attachments';
 
 export interface ReplyTarget {
   id: string;
