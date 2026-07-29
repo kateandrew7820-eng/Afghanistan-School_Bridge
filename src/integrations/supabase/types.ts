@@ -995,6 +995,13 @@ export type Database = {
         Args: { _id: string; _table: string }
         Returns: boolean
       }
+      chat_unread_counts: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          unread_count: number
+        }[]
+      }
       get_user_district: { Args: { _user_id: string }; Returns: string }
       get_user_province: { Args: { _user_id: string }; Returns: string }
       get_user_school_id: { Args: { _user_id: string }; Returns: string }
