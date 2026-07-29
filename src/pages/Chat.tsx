@@ -17,7 +17,8 @@ import { cn } from '@/lib/utils';
 
 export default function Chat() {
   const { user } = useAuth();
-  const { conversations, loading, reload } = useConversations();
+  const { conversations, loading, reload, setActiveConversation, markConversationRead } =
+    useConversations();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeId = searchParams.get('c');
   const activeConv = useMemo(
