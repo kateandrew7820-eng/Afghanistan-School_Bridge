@@ -9,7 +9,9 @@ import { ScopeChip } from '@/components/ScopeChip';
 import {
   LayoutDashboard, Send, MessageSquare,
   Bell, FileDown, Calendar, School,
+  CalendarRange, Layers, Grid3x3,
 } from 'lucide-react';
+
 
 
 
@@ -40,6 +42,14 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
       ],
     },
     {
+      label: 'مدیریت اکادمیک',
+      items: [
+        { href: '/school/academic/years', icon: CalendarRange, label: 'سال‌های تحصیلی' },
+        { href: '/school/academic/grades', icon: Layers, label: 'صنف‌ها' },
+        { href: '/school/academic/sections', icon: Grid3x3, label: 'بخش‌ها' },
+      ],
+    },
+    {
       label: 'منابع',
       items: [
         { href: '/school/announcements', icon: Bell, label: t('navigation.announcements') },
@@ -48,6 +58,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
       ],
     },
   ];
+
 
   return (
     <>
