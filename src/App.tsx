@@ -248,6 +248,25 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
+      {/* Academic Management */}
+      <Route path="/school/academic/years" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><AcademicYearsPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/school/academic/grades" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><GradesPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/school/academic/sections" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SectionsPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+
+
+
       {/* District Routes */}
       <Route path="/district" element={
         <ProtectedRoute allowedTier="district">
