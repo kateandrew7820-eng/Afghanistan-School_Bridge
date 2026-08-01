@@ -9,7 +9,9 @@ import { ScopeChip } from '@/components/ScopeChip';
 import {
   LayoutDashboard, Send, MessageSquare,
   Bell, FileDown, Calendar, School,
+  CalendarRange, Layers, Grid3x3,
 } from 'lucide-react';
+
 
 
 
