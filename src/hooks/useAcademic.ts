@@ -255,8 +255,10 @@ export function useAcademicMutation(table: TableName) {
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: key });
+    qc.invalidateQueries({ queryKey: academicKeys.assignments(schoolId) });
     if (table !== 'sections') qc.invalidateQueries({ queryKey: academicKeys.sections(schoolId) });
   };
+
 
   const onError = (error: unknown) =>
     toast({ title: 'خطا', description: sanitizeError(error), variant: 'destructive' });
