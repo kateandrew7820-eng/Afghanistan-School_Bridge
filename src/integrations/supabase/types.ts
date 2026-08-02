@@ -1049,6 +1049,63 @@ export type Database = {
           },
         ]
       }
+      subjects: {
+        Row: {
+          code: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          grade_level_id: string | null
+          id: string
+          name: string
+          school_id: string
+          status: string
+          updated_at: string
+          weekly_hours: number
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          grade_level_id?: string | null
+          id?: string
+          name: string
+          school_id: string
+          status?: string
+          updated_at?: string
+          weekly_hours?: number
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          grade_level_id?: string | null
+          id?: string
+          name?: string
+          school_id?: string
+          status?: string
+          updated_at?: string
+          weekly_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjects_grade_level_id_fkey"
+            columns: ["grade_level_id"]
+            isOneToOne: false
+            referencedRelation: "grade_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submission_comments: {
         Row: {
           author_user_id: string
@@ -1114,6 +1171,80 @@ export type Database = {
           to_stage?: Database["public"]["Enums"]["review_stage"] | null
         }
         Relationships: []
+      }
+      teacher_assignments: {
+        Row: {
+          academic_year_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          school_id: string
+          section_id: string
+          status: string
+          subject_id: string
+          teacher_user_id: string
+          updated_at: string
+          weekly_hours: number
+        }
+        Insert: {
+          academic_year_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          school_id: string
+          section_id: string
+          status?: string
+          subject_id: string
+          teacher_user_id: string
+          updated_at?: string
+          weekly_hours?: number
+        }
+        Update: {
+          academic_year_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          school_id?: string
+          section_id?: string
+          status?: string
+          subject_id?: string
+          teacher_user_id?: string
+          updated_at?: string
+          weekly_hours?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_assignments_academic_year_id_fkey"
+            columns: ["academic_year_id"]
+            isOneToOne: false
+            referencedRelation: "academic_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_assignments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_assignments_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_assignments_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
