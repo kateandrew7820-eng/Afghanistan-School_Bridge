@@ -49,6 +49,50 @@ export interface SectionWithRelations extends Section {
   enrollment_count: number;
 }
 
+export interface Subject {
+  id: string;
+  school_id: string;
+  grade_level_id: string | null;
+  name: string;
+  code: string | null;
+  weekly_hours: number;
+  description: string | null;
+  status: AcademicStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubjectWithRelations extends Subject {
+  grade_name: string;
+}
+
+export interface TeacherAssignment {
+  id: string;
+  school_id: string;
+  teacher_user_id: string;
+  subject_id: string;
+  section_id: string;
+  academic_year_id: string;
+  weekly_hours: number;
+  notes: string | null;
+  status: AcademicStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TeacherAssignmentWithRelations extends TeacherAssignment {
+  teacher_name: string;
+  subject_name: string;
+  section_name: string;
+  grade_name: string;
+  academic_year_name: string;
+}
+
+export interface SchoolTeacher {
+  user_id: string;
+  full_name: string;
+}
+
 /** School scope + write permission for academic structure data. */
 export function useAcademicScope() {
   const { profile, role } = useAuth();
@@ -61,7 +105,11 @@ export const academicKeys = {
   years: (schoolId: string | null) => ['academic-years', schoolId] as const,
   grades: (schoolId: string | null) => ['grade-levels', schoolId] as const,
   sections: (schoolId: string | null) => ['sections', schoolId] as const,
+  subjects: (schoolId: string | null) => ['subjects', schoolId] as const,
+  assignments: (schoolId: string | null) => ['teacher-assignments', schoolId] as const,
+  teachers: (schoolId: string | null) => ['school-teachers', schoolId] as const,
 };
+
 
 export function useAcademicYears() {
   const { schoolId } = useAcademicScope();
