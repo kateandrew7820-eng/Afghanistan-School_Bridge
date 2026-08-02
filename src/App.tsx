@@ -53,6 +53,9 @@ const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
 const AcademicYearsPage = lazy(() => import("./pages/school/academic/AcademicYears"));
 const GradesPage = lazy(() => import("./pages/school/academic/Grades"));
 const SectionsPage = lazy(() => import("./pages/school/academic/Sections"));
+const SubjectsPage = lazy(() => import("./pages/school/academic/Subjects"));
+const TeacherAssignmentsPage = lazy(() => import("./pages/school/academic/TeacherAssignments"));
+
 
 
 // District Pages - Lazy loaded
