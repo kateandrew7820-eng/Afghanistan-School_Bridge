@@ -167,7 +167,73 @@ export function useSections() {
   });
 }
 
-type TableName = 'academic_years' | 'grade_levels' | 'sections';
+export function useSubjects() {
+  const { schoolId } = useAcademicScope();
+  return useQuery({
+    queryKey: academicKeys.subjects(schoolId),
+    enabled: !!schoolId,
+    queryFn: async (): Promise<SubjectWithRelations[]> => {
+      const { data, error } = await supabase
+        .from('subjects')
+        .select('*, grade_levels(name)')
+        .eq('school_id', schoolId!)
+        .order('name', { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((row: any) => ({
+        ...(row as Subject),
+        grade_name: row.grade_levels?.name ?? 'عمومی',
+      }));
+    },
+  });
+}
+
+/** Teachers and principals belonging to the current school (assignment targets). */
+export function useSchoolTeachers() {
+  const { schoolId } = useAcademicScope();
+  return useQuery({
+    queryKey: academicKeys.teachers(schoolId),
+    enabled: !!schoolId,
+    queryFn: async (): Promise<SchoolTeacher[]> => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, role')
+        .eq('school_id', schoolId!)
+        .order('full_name', { ascending: true });
+      if (error) throw error;
+      return (data ?? [])
+        .filter((p: any) => p.role === 'teacher' || p.role === 'principal' || p.role === 'school')
+        .map((p: any) => ({ user_id: p.user_id, full_name: p.full_name || 'بدون نام' }));
+    },
+  });
+}
+
+export function useTeacherAssignments() {
+  const { schoolId } = useAcademicScope();
+  const { data: teachers = [] } = useSchoolTeachers();
+  return useQuery({
+    queryKey: [...academicKeys.assignments(schoolId), teachers.length],
+    enabled: !!schoolId,
+    queryFn: async (): Promise<TeacherAssignmentWithRelations[]> => {
+      const { data, error } = await supabase
+        .from('teacher_assignments')
+        .select('*, subjects(name), sections(name, grade_levels(name)), academic_years(name)')
+        .eq('school_id', schoolId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const names = new Map(teachers.map((t) => [t.user_id, t.full_name]));
+      return (data ?? []).map((row: any) => ({
+        ...(row as TeacherAssignment),
+        teacher_name: names.get(row.teacher_user_id) ?? 'نامشخص',
+        subject_name: row.subjects?.name ?? '—',
+        section_name: row.sections?.name ?? '—',
+        grade_name: row.sections?.grade_levels?.name ?? '—',
+        academic_year_name: row.academic_years?.name ?? '—',
+      }));
+    },
+  });
+}
+
+type TableName = 'academic_years' | 'grade_levels' | 'sections' | 'subjects' | 'teacher_assignments';
 
 /** Generic create/update/delete for the academic tables with toasts + cache invalidation. */
 export function useAcademicMutation(table: TableName) {
@@ -180,7 +246,12 @@ export function useAcademicMutation(table: TableName) {
       ? academicKeys.years(schoolId)
       : table === 'grade_levels'
         ? academicKeys.grades(schoolId)
-        : academicKeys.sections(schoolId);
+        : table === 'subjects'
+          ? academicKeys.subjects(schoolId)
+          : table === 'teacher_assignments'
+            ? academicKeys.assignments(schoolId)
+            : academicKeys.sections(schoolId);
+
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: key });
