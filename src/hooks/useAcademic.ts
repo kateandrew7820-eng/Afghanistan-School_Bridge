@@ -93,6 +93,47 @@ export interface SchoolTeacher {
   full_name: string;
 }
 
+export type StudentStatus = 'active' | 'archived';
+export type EnrollmentStatus = 'active' | 'transferred' | 'withdrawn' | 'completed';
+
+export interface Student {
+  id: string;
+  school_id: string;
+  student_code: string;
+  full_name: string;
+  father_name: string | null;
+  gender: 'male' | 'female';
+  date_of_birth: string | null;
+  national_id: string | null;
+  guardian_name: string | null;
+  guardian_phone: string | null;
+  address: string | null;
+  status: StudentStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Enrollment {
+  id: string;
+  school_id: string;
+  student_id: string;
+  section_id: string;
+  academic_year_id: string;
+  enrollment_date: string;
+  status: EnrollmentStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EnrollmentWithRelations extends Enrollment {
+  student_name: string;
+  student_code: string;
+  section_name: string;
+  grade_name: string;
+  academic_year_name: string;
+}
+
 /** School scope + write permission for academic structure data. */
 export function useAcademicScope() {
   const { profile, role } = useAuth();
@@ -108,7 +149,10 @@ export const academicKeys = {
   subjects: (schoolId: string | null) => ['subjects', schoolId] as const,
   assignments: (schoolId: string | null) => ['teacher-assignments', schoolId] as const,
   teachers: (schoolId: string | null) => ['school-teachers', schoolId] as const,
+  students: (schoolId: string | null) => ['students', schoolId] as const,
+  enrollments: (schoolId: string | null) => ['enrollments', schoolId] as const,
 };
+
 
 
 export function useAcademicYears() {
@@ -151,18 +195,31 @@ export function useSections() {
     queryKey: academicKeys.sections(schoolId),
     enabled: !!schoolId,
     queryFn: async (): Promise<SectionWithRelations[]> => {
-      const { data, error } = await supabase
-        .from('sections')
-        .select('*, grade_levels(name), academic_years(name)')
-        .eq('school_id', schoolId!)
-        .order('created_at', { ascending: false });
+      const [{ data, error }, { data: enrolled, error: enrollError }] = await Promise.all([
+        supabase
+          .from('sections')
+          .select('*, grade_levels(name), academic_years(name)')
+          .eq('school_id', schoolId!)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('enrollments')
+          .select('section_id')
+          .eq('school_id', schoolId!)
+          .eq('status', 'active'),
+      ]);
       if (error) throw error;
+      if (enrollError) throw enrollError;
+      const counts = new Map<string, number>();
+      for (const row of enrolled ?? []) {
+        counts.set(row.section_id, (counts.get(row.section_id) ?? 0) + 1);
+      }
       return (data ?? []).map((row: any) => ({
         ...(row as Section),
         grade_name: row.grade_levels?.name ?? '—',
         academic_year_name: row.academic_years?.name ?? '—',
-        enrollment_count: 0,
+        enrollment_count: counts.get(row.id) ?? 0,
       }));
+
     },
   });
 }
@@ -233,7 +290,55 @@ export function useTeacherAssignments() {
   });
 }
 
-type TableName = 'academic_years' | 'grade_levels' | 'sections' | 'subjects' | 'teacher_assignments';
+export function useStudents() {
+  const { schoolId } = useAcademicScope();
+  return useQuery({
+    queryKey: academicKeys.students(schoolId),
+    enabled: !!schoolId,
+    queryFn: async (): Promise<Student[]> => {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('school_id', schoolId!)
+        .order('full_name', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Student[];
+    },
+  });
+}
+
+export function useEnrollments() {
+  const { schoolId } = useAcademicScope();
+  return useQuery({
+    queryKey: academicKeys.enrollments(schoolId),
+    enabled: !!schoolId,
+    queryFn: async (): Promise<EnrollmentWithRelations[]> => {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select('*, students(full_name, student_code), sections(name, grade_levels(name)), academic_years(name)')
+        .eq('school_id', schoolId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((row: any) => ({
+        ...(row as Enrollment),
+        student_name: row.students?.full_name ?? 'نامشخص',
+        student_code: row.students?.student_code ?? '—',
+        section_name: row.sections?.name ?? '—',
+        grade_name: row.sections?.grade_levels?.name ?? '—',
+        academic_year_name: row.academic_years?.name ?? '—',
+      }));
+    },
+  });
+}
+
+type TableName =
+  | 'academic_years'
+  | 'grade_levels'
+  | 'sections'
+  | 'subjects'
+  | 'teacher_assignments'
+  | 'students'
+  | 'enrollments';
 
 /** Generic create/update/delete for the academic tables with toasts + cache invalidation. */
 export function useAcademicMutation(table: TableName) {
@@ -250,14 +355,20 @@ export function useAcademicMutation(table: TableName) {
           ? academicKeys.subjects(schoolId)
           : table === 'teacher_assignments'
             ? academicKeys.assignments(schoolId)
-            : academicKeys.sections(schoolId);
+            : table === 'students'
+              ? academicKeys.students(schoolId)
+              : table === 'enrollments'
+                ? academicKeys.enrollments(schoolId)
+                : academicKeys.sections(schoolId);
 
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: key });
     qc.invalidateQueries({ queryKey: academicKeys.assignments(schoolId) });
     if (table !== 'sections') qc.invalidateQueries({ queryKey: academicKeys.sections(schoolId) });
+    if (table === 'students') qc.invalidateQueries({ queryKey: academicKeys.enrollments(schoolId) });
   };
+
 
 
   const onError = (error: unknown) =>

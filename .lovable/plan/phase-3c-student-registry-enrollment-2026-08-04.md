@@ -1,5 +1,19 @@
 # Phase 3C — Student Registry & Enrollment
 
+(## Non-destructive requirement
+
+This phase must be fully backward compatible.
+
+- Do not modify or remove existing tables.
+
+- Do not rename existing columns.
+
+- Do not change existing RLS behavior.
+
+- Do not introduce breaking schema changes.
+
+- If a migration requires altering existing structures, stop and explain why before proceeding.)
+
 ## Documentation check first
 
 There is no phase roadmap file in the repository. The only roadmap artifact is the public `/roadmap` page (`src/pages/Roadmap.tsx`), which lists product-level items (notifications, offline PWA, Pashto) and was never updated for the Academic Management phases. The phase plan itself lives in the project history, and the code confirms the state:
@@ -13,6 +27,7 @@ Discrepancy to note (not a blocker): `/roadmap` is stale relative to the deliver
 ## Phase 3B confirmed complete
 
 Deliverables in place:
+
 - `subjects` and `teacher_assignments` tables with school scoping, unique constraints, and `can_manage_academics` RLS.
 - `useSubjects()`, `useSchoolTeachers()`, `useTeacherAssignments()` in `src/hooks/useAcademic.ts`.
 - `src/pages/school/academic/Subjects.tsx` and `TeacherAssignments.tsx` with CRUD, filters, status badges.
@@ -39,6 +54,7 @@ Sections already display an enrollment count that is hardcoded to zero, so the a
 ## What will be built
 
 ### Database (one migration)
+
 - `public.students` — `school_id`, `student_code`, `full_name`, `father_name`, `gender`, `date_of_birth`, `national_id`, `guardian_name`, `guardian_phone`, `address`, `status` (`active` / `archived`), timestamps.
 - `public.enrollments` — `school_id`, `student_id`, `section_id`, `academic_year_id`, `enrollment_date`, `status` (`active` / `transferred` / `withdrawn` / `completed`), `notes`, timestamps.
 - Unique: `student_code` per school; one active enrollment per student per academic year.
@@ -47,30 +63,35 @@ Sections already display an enrollment count that is hardcoded to zero, so the a
 - A capacity guard trigger on `enrollments` refusing an active enrollment when the section is already at `capacity`.
 
 ### Hooks — `src/hooks/useAcademic.ts`
+
 - Add `Student`, `Enrollment` types plus `useStudents()` and `useEnrollments()`.
 - Extend the `TableName` union so `useAcademicMutation` covers `students` and `enrollments` with no new mutation machinery.
 - Replace the `enrollment_count: 0` placeholder in `useSections()` with a real count of active enrollments.
 
 ### UI
+
 - `src/pages/school/academic/Students.tsx` — DataTable of students, search by name/code, filter by status and gender, create/edit dialog, archive action.
 - `src/pages/school/academic/Enrollments.tsx` — enroll a student into a section for an academic year, filter by year/grade/section, status change, plus a section capacity indicator.
 - Both follow the existing pattern in `Subjects.tsx`: Dari RTL labels, semantic tokens, `DataTable`, `Badge` variants, inline validation.
 
 ### Wiring
+
 - `src/components/layouts/SchoolLayout.tsx` — two entries in the existing "مدیریت اکادمیک" group (شاگردان, ثبت‌نام).
 - `src/App.tsx` — lazy routes `/school/academic/students` and `/school/academic/enrollments` under the same guards as the other academic routes.
 
 ## Files touched
 
-| File | Reason |
-| --- | --- |
-| new migration | students + enrollments tables, grants, RLS, triggers |
-| `src/hooks/useAcademic.ts` | new types/hooks, real enrollment counts |
-| `src/pages/school/academic/Students.tsx` | new page |
-| `src/pages/school/academic/Enrollments.tsx` | new page |
-| `src/components/layouts/SchoolLayout.tsx` | sidebar entries |
-| `src/App.tsx` | routes |
-| `src/integrations/supabase/types.ts` | regenerated after migration |
+
+| File                                        | Reason                                               |
+| ------------------------------------------- | ---------------------------------------------------- |
+| new migration                               | students + enrollments tables, grants, RLS, triggers |
+| `src/hooks/useAcademic.ts`                  | new types/hooks, real enrollment counts              |
+| `src/pages/school/academic/Students.tsx`    | new page                                             |
+| `src/pages/school/academic/Enrollments.tsx` | new page                                             |
+| `src/components/layouts/SchoolLayout.tsx`   | sidebar entries                                      |
+| `src/App.tsx`                               | routes                                               |
+| `src/integrations/supabase/types.ts`        | regenerated after migration                          |
+
 
 ## Dependencies and risks
 
