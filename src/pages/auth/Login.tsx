@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { sanitizeError } from "@/lib/sanitizeError";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
-import { isOwnerCredentials } from '@/lib/ownerAccess';
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -67,11 +66,6 @@ export default function LoginPage() {
         return;
       }
 
-      if (isOwnerCredentials(em, password)) {
-        toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به صفحه انتخاب نقش…" });
-        navigate("/owner-access", { replace: true });
-        return;
-      }
 
       toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به داشبورد…" });
       return;
