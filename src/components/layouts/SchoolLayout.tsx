@@ -50,8 +50,11 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         { href: '/school/academic/sections', icon: Grid3x3, label: 'بخش‌ها' },
         { href: '/school/academic/subjects', icon: BookOpen, label: 'مضامین' },
         { href: '/school/academic/assignments', icon: UserCheck, label: 'تخصیص معلمان' },
+        { href: '/school/academic/students', icon: GraduationCap, label: 'شاگردان' },
+        { href: '/school/academic/enrollments', icon: ClipboardList, label: 'ثبت‌نام شاگردان' },
       ],
     },
+
 
     {
       label: 'منابع',
