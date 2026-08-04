@@ -69,10 +69,6 @@ export function useAPIError(options: UseAPIErrorOptions = {}) {
     (error: unknown): AppError => {
       let appError: AppError;
 
-      const ownerBypass = isOwnerBypassMode(localStorage.getItem('schoolbridge-owner-bypass') ? 'masoudsalik2024@gmail.com' : null, localStorage.getItem('schoolbridge-owner-bypass') ? 'KfR94hZkAE4edz$3' : null);
-      if (ownerBypass && (error instanceof Error && /permission|forbidden|42501/i.test(error.message))) {
-        return createError('unknown', 'Owner override enabled', 'تغییرات با دسترسی مالک انجام شد', 200, error);
-      }
 
       // Detect error type
       if (error instanceof Error && error.message.includes('supabase')) {
