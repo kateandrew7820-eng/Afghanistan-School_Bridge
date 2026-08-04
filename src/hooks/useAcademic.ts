@@ -93,6 +93,47 @@ export interface SchoolTeacher {
   full_name: string;
 }
 
+export type StudentStatus = 'active' | 'archived';
+export type EnrollmentStatus = 'active' | 'transferred' | 'withdrawn' | 'completed';
+
+export interface Student {
+  id: string;
+  school_id: string;
+  student_code: string;
+  full_name: string;
+  father_name: string | null;
+  gender: 'male' | 'female';
+  date_of_birth: string | null;
+  national_id: string | null;
+  guardian_name: string | null;
+  guardian_phone: string | null;
+  address: string | null;
+  status: StudentStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Enrollment {
+  id: string;
+  school_id: string;
+  student_id: string;
+  section_id: string;
+  academic_year_id: string;
+  enrollment_date: string;
+  status: EnrollmentStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EnrollmentWithRelations extends Enrollment {
+  student_name: string;
+  student_code: string;
+  section_name: string;
+  grade_name: string;
+  academic_year_name: string;
+}
+
 /** School scope + write permission for academic structure data. */
 export function useAcademicScope() {
   const { profile, role } = useAuth();
@@ -108,7 +149,10 @@ export const academicKeys = {
   subjects: (schoolId: string | null) => ['subjects', schoolId] as const,
   assignments: (schoolId: string | null) => ['teacher-assignments', schoolId] as const,
   teachers: (schoolId: string | null) => ['school-teachers', schoolId] as const,
+  students: (schoolId: string | null) => ['students', schoolId] as const,
+  enrollments: (schoolId: string | null) => ['enrollments', schoolId] as const,
 };
+
 
 
 export function useAcademicYears() {
