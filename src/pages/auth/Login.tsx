@@ -10,7 +10,6 @@ import { useToast } from "@/hooks/use-toast";
 import { sanitizeError } from "@/lib/sanitizeError";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
-import { isOwnerCredentials } from '@/lib/ownerAccess';
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

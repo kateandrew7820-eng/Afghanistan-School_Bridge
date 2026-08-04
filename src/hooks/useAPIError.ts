@@ -7,7 +7,6 @@
 
 import { useCallback, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { isOwnerBypassMode } from '@/lib/ownerAccess';
 import {
   AppError,
   ErrorType,

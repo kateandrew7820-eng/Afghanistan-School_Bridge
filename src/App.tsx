@@ -28,7 +28,6 @@ const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
 const AfghanistanInfoPage = lazy(() => import("./pages/AfghanistanInfoPage"));
 const HelpPage = lazy(() => import("./pages/Help"));
 const RoadmapPage = lazy(() => import("./pages/Roadmap"));
-const OwnerAccessPage = lazy(() => import("./pages/OwnerAccessPage"));
 const ProfilePage = lazy(() => import("./pages/Profile"));
 
 // Lazy load heavy pages for better performance
@@ -199,7 +198,6 @@ function AppRoutes() {
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
       <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
       <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
-      <Route path="/owner-access" element={<Suspense fallback={<LoadingFallback />}><OwnerAccessPage /></Suspense>} />
       <Route path="/profile" element={<Suspense fallback={<LoadingFallback />}><ProfilePage /></Suspense>} />
 
       {/* Chat — shared across all roles */}
