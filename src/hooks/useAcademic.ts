@@ -290,7 +290,55 @@ export function useTeacherAssignments() {
   });
 }
 
-type TableName = 'academic_years' | 'grade_levels' | 'sections' | 'subjects' | 'teacher_assignments';
+export function useStudents() {
+  const { schoolId } = useAcademicScope();
+  return useQuery({
+    queryKey: academicKeys.students(schoolId),
+    enabled: !!schoolId,
+    queryFn: async (): Promise<Student[]> => {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('school_id', schoolId!)
+        .order('full_name', { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Student[];
+    },
+  });
+}
+
+export function useEnrollments() {
+  const { schoolId } = useAcademicScope();
+  return useQuery({
+    queryKey: academicKeys.enrollments(schoolId),
+    enabled: !!schoolId,
+    queryFn: async (): Promise<EnrollmentWithRelations[]> => {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select('*, students(full_name, student_code), sections(name, grade_levels(name)), academic_years(name)')
+        .eq('school_id', schoolId!)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((row: any) => ({
+        ...(row as Enrollment),
+        student_name: row.students?.full_name ?? 'نامشخص',
+        student_code: row.students?.student_code ?? '—',
+        section_name: row.sections?.name ?? '—',
+        grade_name: row.sections?.grade_levels?.name ?? '—',
+        academic_year_name: row.academic_years?.name ?? '—',
+      }));
+    },
+  });
+}
+
+type TableName =
+  | 'academic_years'
+  | 'grade_levels'
+  | 'sections'
+  | 'subjects'
+  | 'teacher_assignments'
+  | 'students'
+  | 'enrollments';
 
 /** Generic create/update/delete for the academic tables with toasts + cache invalidation. */
 export function useAcademicMutation(table: TableName) {
@@ -307,14 +355,20 @@ export function useAcademicMutation(table: TableName) {
           ? academicKeys.subjects(schoolId)
           : table === 'teacher_assignments'
             ? academicKeys.assignments(schoolId)
-            : academicKeys.sections(schoolId);
+            : table === 'students'
+              ? academicKeys.students(schoolId)
+              : table === 'enrollments'
+                ? academicKeys.enrollments(schoolId)
+                : academicKeys.sections(schoolId);
 
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: key });
     qc.invalidateQueries({ queryKey: academicKeys.assignments(schoolId) });
     if (table !== 'sections') qc.invalidateQueries({ queryKey: academicKeys.sections(schoolId) });
+    if (table === 'students') qc.invalidateQueries({ queryKey: academicKeys.enrollments(schoolId) });
   };
+
 
 
   const onError = (error: unknown) =>
