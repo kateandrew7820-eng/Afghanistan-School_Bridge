@@ -323,6 +323,77 @@ export type Database = {
           },
         ]
       }
+      enrollments: {
+        Row: {
+          academic_year_id: string
+          created_at: string
+          created_by: string | null
+          enrollment_date: string
+          id: string
+          notes: string | null
+          school_id: string
+          section_id: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year_id: string
+          created_at?: string
+          created_by?: string | null
+          enrollment_date?: string
+          id?: string
+          notes?: string | null
+          school_id: string
+          section_id: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year_id?: string
+          created_at?: string
+          created_by?: string | null
+          enrollment_date?: string
+          id?: string
+          notes?: string | null
+          school_id?: string
+          section_id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_academic_year_id_fkey"
+            columns: ["academic_year_id"]
+            isOneToOne: false
+            referencedRelation: "academic_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submissions: {
         Row: {
           created_at: string
@@ -1042,6 +1113,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "statistics_submissions_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          date_of_birth: string | null
+          father_name: string | null
+          full_name: string
+          gender: string
+          guardian_name: string | null
+          guardian_phone: string | null
+          id: string
+          national_id: string | null
+          school_id: string
+          status: string
+          student_code: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
+          father_name?: string | null
+          full_name: string
+          gender?: string
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          national_id?: string | null
+          school_id: string
+          status?: string
+          student_code: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
+          father_name?: string | null
+          full_name?: string
+          gender?: string
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          national_id?: string | null
+          school_id?: string
+          status?: string
+          student_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_school_id_fkey"
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "schools"
