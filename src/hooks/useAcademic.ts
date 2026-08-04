@@ -195,18 +195,31 @@ export function useSections() {
     queryKey: academicKeys.sections(schoolId),
     enabled: !!schoolId,
     queryFn: async (): Promise<SectionWithRelations[]> => {
-      const { data, error } = await supabase
-        .from('sections')
-        .select('*, grade_levels(name), academic_years(name)')
-        .eq('school_id', schoolId!)
-        .order('created_at', { ascending: false });
+      const [{ data, error }, { data: enrolled, error: enrollError }] = await Promise.all([
+        supabase
+          .from('sections')
+          .select('*, grade_levels(name), academic_years(name)')
+          .eq('school_id', schoolId!)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('enrollments')
+          .select('section_id')
+          .eq('school_id', schoolId!)
+          .eq('status', 'active'),
+      ]);
       if (error) throw error;
+      if (enrollError) throw enrollError;
+      const counts = new Map<string, number>();
+      for (const row of enrolled ?? []) {
+        counts.set(row.section_id, (counts.get(row.section_id) ?? 0) + 1);
+      }
       return (data ?? []).map((row: any) => ({
         ...(row as Section),
         grade_name: row.grade_levels?.name ?? '—',
         academic_year_name: row.academic_years?.name ?? '—',
-        enrollment_count: 0,
+        enrollment_count: counts.get(row.id) ?? 0,
       }));
+
     },
   });
 }
