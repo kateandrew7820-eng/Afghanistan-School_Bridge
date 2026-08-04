@@ -66,11 +66,6 @@ export default function LoginPage() {
         return;
       }
 
-      if (isOwnerCredentials(em, password)) {
-        toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به صفحه انتخاب نقش…" });
-        navigate("/owner-access", { replace: true });
-        return;
-      }
 
       toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به داشبورد…" });
       return;
