@@ -10,6 +10,7 @@ import {
   LayoutDashboard, Send, MessageSquare,
   Bell, FileDown, Calendar, School,
   CalendarRange, Layers, Grid3x3, BookOpen, UserCheck, GraduationCap, ClipboardList,
+  CalendarCheck, ClipboardCheck, Award,
 } from 'lucide-react';
 
 
