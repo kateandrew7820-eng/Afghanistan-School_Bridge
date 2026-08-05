@@ -10,6 +10,7 @@ import {
   LayoutDashboard, Send, MessageSquare,
   Bell, FileDown, Calendar, School,
   CalendarRange, Layers, Grid3x3, BookOpen, UserCheck, GraduationCap, ClipboardList,
+  CalendarCheck, ClipboardCheck, Award,
 } from 'lucide-react';
 
 
@@ -52,6 +53,9 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         { href: '/school/academic/assignments', icon: UserCheck, label: 'تخصیص معلمان' },
         { href: '/school/academic/students', icon: GraduationCap, label: 'شاگردان' },
         { href: '/school/academic/enrollments', icon: ClipboardList, label: 'ثبت‌نام شاگردان' },
+        { href: '/school/academic/attendance', icon: CalendarCheck, label: 'حاضری' },
+        { href: '/school/academic/assessments', icon: ClipboardCheck, label: 'امتحانات و نمرات' },
+        { href: '/school/academic/report-cards', icon: Award, label: 'کارنامه‌ها' },
       ],
     },
 
