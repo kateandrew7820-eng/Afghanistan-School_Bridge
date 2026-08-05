@@ -338,7 +338,8 @@ type TableName =
   | 'subjects'
   | 'teacher_assignments'
   | 'students'
-  | 'enrollments';
+  | 'enrollments'
+  | 'assessments';
 
 /** Generic create/update/delete for the academic tables with toasts + cache invalidation. */
 export function useAcademicMutation(table: TableName) {
@@ -359,7 +360,10 @@ export function useAcademicMutation(table: TableName) {
               ? academicKeys.students(schoolId)
               : table === 'enrollments'
                 ? academicKeys.enrollments(schoolId)
-                : academicKeys.sections(schoolId);
+                : table === 'assessments'
+                  ? attendanceKeys.assessments(schoolId)
+                  : academicKeys.sections(schoolId);
+
 
 
   const invalidate = () => {
