@@ -56,6 +56,9 @@ const SubjectsPage = lazy(() => import("./pages/school/academic/Subjects"));
 const TeacherAssignmentsPage = lazy(() => import("./pages/school/academic/TeacherAssignments"));
 const StudentsPage = lazy(() => import("./pages/school/academic/Students"));
 const EnrollmentsPage = lazy(() => import("./pages/school/academic/Enrollments"));
+const AttendancePage = lazy(() => import("./pages/school/academic/Attendance"));
+const AssessmentsPage = lazy(() => import("./pages/school/academic/Assessments"));
+const ReportCardsPage = lazy(() => import("./pages/school/academic/ReportCards"));
 
 
 
