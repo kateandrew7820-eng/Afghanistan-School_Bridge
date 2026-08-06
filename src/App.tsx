@@ -286,6 +286,16 @@ function AppRoutes() {
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><StudentsPage /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
+      <Route path="/school/academic/students/:studentId" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><StudentProfilePage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/school/academic/enrollments" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><EnrollmentsPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
       <Route path="/school/academic/attendance" element={
         <ProtectedRoute allowedTier="school">
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><AttendancePage /></Suspense></SchoolLayout>
