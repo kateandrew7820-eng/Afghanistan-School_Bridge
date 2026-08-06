@@ -812,7 +812,15 @@ export function useStudentProfile(studentId: string | null) {
       if (attendanceError) throw attendanceError;
       if (markError) throw markError;
 
-      const enrollments: StudentEnrollmentHistory[] = (enrollmentRows ?? []).map((row: any) => ({
+      type EnrollmentJoinRow = {
+        id: string;
+        enrollment_date: string;
+        status: EnrollmentStatus;
+        notes: string | null;
+        sections: { name: string; grade_levels: { name: string } | null } | null;
+        academic_years: { name: string } | null;
+      };
+      const enrollments: StudentEnrollmentHistory[] = ((enrollmentRows ?? []) as unknown as EnrollmentJoinRow[]).map((row) => ({
         id: row.id,
         section_name: row.sections?.name ?? '—',
         grade_name: row.sections?.grade_levels?.name ?? '—',
