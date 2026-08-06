@@ -123,7 +123,19 @@ export default function Students() {
       header: 'شماره',
       cell: ({ row }) => <span className="text-muted-foreground text-xs">{row.original.student_code}</span>,
     },
-    { accessorKey: 'full_name', header: 'نام کامل' },
+    {
+      accessorKey: 'full_name',
+      header: 'نام کامل',
+      cell: ({ row }) => (
+        <button
+          type="button"
+          className="text-start font-medium text-primary hover:underline"
+          onClick={() => navigate(`/school/academic/students/${row.original.id}`)}
+        >
+          {row.original.full_name}
+        </button>
+      ),
+    },
     {
       accessorKey: 'father_name',
       header: 'نام پدر',
