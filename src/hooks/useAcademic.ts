@@ -867,3 +867,13 @@ export function useStudentProfile(studentId: string | null) {
     },
   });
 }
+
+export type GradeBandVariant = 'success' | 'info' | 'warning' | 'destructive';
+
+/** Shared grade banding used by report cards and the student profile. */
+export function gradeBand(percent: number): { label: string; variant: GradeBandVariant } {
+  if (percent >= 80) return { label: 'عالی', variant: 'success' };
+  if (percent >= 65) return { label: 'خوب', variant: 'info' };
+  if (percent >= 50) return { label: 'قابل قبول', variant: 'warning' };
+  return { label: 'ناکام', variant: 'destructive' };
+}
