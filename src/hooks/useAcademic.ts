@@ -739,3 +739,131 @@ export function useReportCard(sectionId: string | null, term: string) {
     },
   });
 }
+
+export interface StudentEnrollmentHistory {
+  id: string;
+  section_name: string;
+  grade_name: string;
+  academic_year_name: string;
+  enrollment_date: string;
+  status: EnrollmentStatus;
+  notes: string | null;
+}
+
+export interface StudentAttendanceSummary {
+  present: number;
+  absent: number;
+  late: number;
+  excused: number;
+  total: number;
+  rate: number | null;
+  /** Chronological daily rate (1 = present/excused, 0 otherwise) for the trend line. */
+  trend: number[];
+}
+
+export interface StudentProfileData {
+  student: Student;
+  enrollments: StudentEnrollmentHistory[];
+  currentEnrollment: StudentEnrollmentHistory | null;
+  attendance: StudentAttendanceSummary;
+  subjects: ReportCardSubject[];
+  average: number | null;
+}
+
+/** Everything shown on a single student's profile page, composed from existing academic tables. */
+export function useStudentProfile(studentId: string | null) {
+  const { schoolId } = useAcademicScope();
+
+  return useQuery({
+    queryKey: ['student-profile', schoolId, studentId],
+    enabled: !!schoolId && !!studentId,
+    queryFn: async (): Promise<StudentProfileData> => {
+      const { data: studentRow, error: studentError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('school_id', schoolId!)
+        .eq('id', studentId!)
+        .maybeSingle();
+      if (studentError) throw studentError;
+      if (!studentRow) throw new Error('شاگرد یافت نشد');
+
+      const [{ data: enrollmentRows, error: enrollmentError },
+             { data: attendanceRows, error: attendanceError },
+             { data: markRows, error: markError }] = await Promise.all([
+        supabase
+          .from('enrollments')
+          .select('id, enrollment_date, status, notes, sections(name, grade_levels(name)), academic_years(name)')
+          .eq('school_id', schoolId!)
+          .eq('student_id', studentId!)
+          .order('enrollment_date', { ascending: false }),
+        supabase
+          .from('attendance_records')
+          .select('attendance_date, status')
+          .eq('school_id', schoolId!)
+          .eq('student_id', studentId!)
+          .order('attendance_date', { ascending: true }),
+        supabase
+          .from('marks')
+          .select('score, assessments(subject_id, max_score, weight, subjects(name))')
+          .eq('school_id', schoolId!)
+          .eq('student_id', studentId!),
+      ]);
+      if (enrollmentError) throw enrollmentError;
+      if (attendanceError) throw attendanceError;
+      if (markError) throw markError;
+
+      const enrollments: StudentEnrollmentHistory[] = (enrollmentRows ?? []).map((row: any) => ({
+        id: row.id,
+        section_name: row.sections?.name ?? '—',
+        grade_name: row.sections?.grade_levels?.name ?? '—',
+        academic_year_name: row.academic_years?.name ?? '—',
+        enrollment_date: row.enrollment_date,
+        status: row.status as EnrollmentStatus,
+        notes: row.notes ?? null,
+      }));
+
+      const counts = { present: 0, absent: 0, late: 0, excused: 0 };
+      const trend: number[] = [];
+      for (const row of (attendanceRows ?? []) as { status: AttendanceStatus }[]) {
+        if (row.status in counts) counts[row.status] += 1;
+        trend.push(row.status === 'present' || row.status === 'excused' ? 1 : 0);
+      }
+      const total = counts.present + counts.absent + counts.late + counts.excused;
+      const attendance: StudentAttendanceSummary = {
+        ...counts,
+        total,
+        rate: total > 0 ? ((counts.present + counts.excused) / total) * 100 : null,
+        trend,
+      };
+
+      const bySubject = new Map<string, { name: string; earned: number; possible: number }>();
+      for (const row of (markRows ?? []) as any[]) {
+        const a = row.assessments;
+        if (!a || row.score === null || row.score === undefined) continue;
+        const cur = bySubject.get(a.subject_id) ?? { name: a.subjects?.name ?? '—', earned: 0, possible: 0 };
+        cur.earned += Number(row.score) * Number(a.weight);
+        cur.possible += Number(a.max_score) * Number(a.weight);
+        bySubject.set(a.subject_id, cur);
+      }
+      const subjects: ReportCardSubject[] = Array.from(bySubject.entries()).map(([subject_id, v]) => ({
+        subject_id,
+        subject_name: v.name,
+        earned: v.earned,
+        possible: v.possible,
+        percent: v.possible > 0 ? (v.earned / v.possible) * 100 : 0,
+      }));
+      const average = subjects.length
+        ? subjects.reduce((s, x) => s + x.percent, 0) / subjects.length
+        : null;
+
+      return {
+        student: studentRow as Student,
+        enrollments,
+        currentEnrollment: enrollments.find((e) => e.status === 'active') ?? null,
+        attendance,
+        subjects,
+        average,
+      };
+    },
+  });
+}
