@@ -845,7 +845,16 @@ export function useStudentProfile(studentId: string | null) {
       };
 
       const bySubject = new Map<string, { name: string; earned: number; possible: number }>();
-      for (const row of (markRows ?? []) as any[]) {
+      type MarkJoinRow = {
+        score: number | null;
+        assessments: {
+          subject_id: string;
+          max_score: number;
+          weight: number;
+          subjects: { name: string } | null;
+        } | null;
+      };
+      for (const row of (markRows ?? []) as unknown as MarkJoinRow[]) {
         const a = row.assessments;
         if (!a || row.score === null || row.score === undefined) continue;
         const cur = bySubject.get(a.subject_id) ?? { name: a.subjects?.name ?? '—', earned: 0, possible: 0 };
