@@ -50,6 +50,7 @@ const SchoolSubmit = lazy(() => import("./pages/school/Submit"));
 const SchoolAnnouncements = lazy(() => import("./pages/school/Announcements"));
 const SchoolDocuments = lazy(() => import("./pages/school/Documents"));
 const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
+const SchoolAcademicInsights = lazy(() => import("./pages/school/AcademicInsights"));
 
 // District Pages - Lazy loaded
 const DistrictDashboard = lazy(() => import("./pages/district/Dashboard"));
@@ -241,6 +242,11 @@ function AppRoutes() {
       <Route path="/school/deadlines" element={
         <ProtectedRoute allowedTier="school">
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolDeadlines /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/school/academic-insights" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolAcademicInsights /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
 
