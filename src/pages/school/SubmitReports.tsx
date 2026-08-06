@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -106,7 +107,7 @@ export default function SubmitReports() {
       }
     } catch (err) {
       console.error('Error submitting report:', err);
-      const errorMsg = err instanceof Error ? err.message : 'خطایی نامعلوم رخ داد';
+      const errorMsg = sanitizeError(err);
       showErrorMessage(errorMsg, 'خطا در ارسال');
     } finally {
       setIsSubmitting(false);
@@ -149,9 +150,9 @@ export default function SubmitReports() {
       </div>
 
       {isDemoMode && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
+        <Alert className="border-primary/20 bg-primary/10">
+          <AlertCircle className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-primary">
             <strong>🎨 حالت نمایشی:</strong> شما در حالت نمایشی هستید. داده‌های ارسال شده ذخیره نمی‌شوند.
           </AlertDescription>
         </Alert>
