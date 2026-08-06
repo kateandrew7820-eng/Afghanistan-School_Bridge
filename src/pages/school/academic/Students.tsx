@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import PageHeader from '@/components/PageHeader';
 import { DataTable } from '@/components/DataTable';
@@ -33,6 +34,7 @@ const EMPTY_FORM = {
 };
 
 export default function Students() {
+  const navigate = useNavigate();
   const { data: students = [], isLoading } = useStudents();
   const { canManage, schoolId } = useAcademicScope();
   const { save, remove } = useAcademicMutation('students');
@@ -123,7 +125,19 @@ export default function Students() {
       header: 'شماره',
       cell: ({ row }) => <span className="text-muted-foreground text-xs">{row.original.student_code}</span>,
     },
-    { accessorKey: 'full_name', header: 'نام کامل' },
+    {
+      accessorKey: 'full_name',
+      header: 'نام کامل',
+      cell: ({ row }) => (
+        <button
+          type="button"
+          className="text-start font-medium text-primary hover:underline"
+          onClick={() => navigate(`/school/academic/students/${row.original.id}`)}
+        >
+          {row.original.full_name}
+        </button>
+      ),
+    },
     {
       accessorKey: 'father_name',
       header: 'نام پدر',
@@ -168,7 +182,7 @@ export default function Students() {
           </div>
         ) : <span className="text-xs text-muted-foreground">—</span>,
     },
-  ], [canManage, students]);
+  ], [canManage, students, navigate]);
 
   const canCreate = canManage && !!schoolId;
 

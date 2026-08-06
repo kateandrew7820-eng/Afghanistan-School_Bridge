@@ -55,6 +55,7 @@ const SectionsPage = lazy(() => import("./pages/school/academic/Sections"));
 const SubjectsPage = lazy(() => import("./pages/school/academic/Subjects"));
 const TeacherAssignmentsPage = lazy(() => import("./pages/school/academic/TeacherAssignments"));
 const StudentsPage = lazy(() => import("./pages/school/academic/Students"));
+const StudentProfilePage = lazy(() => import("./pages/school/academic/StudentProfile"));
 const EnrollmentsPage = lazy(() => import("./pages/school/academic/Enrollments"));
 const AttendancePage = lazy(() => import("./pages/school/academic/Attendance"));
 const AssessmentsPage = lazy(() => import("./pages/school/academic/Assessments"));
@@ -284,6 +285,16 @@ function AppRoutes() {
       <Route path="/school/academic/students" element={
         <ProtectedRoute allowedTier="school">
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><StudentsPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/school/academic/students/:studentId" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><StudentProfilePage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/school/academic/enrollments" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><EnrollmentsPage /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
       <Route path="/school/academic/attendance" element={

@@ -5,17 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicScope, useReportCard, useSections } from '@/hooks/useAcademic';
+import { gradeBand, useAcademicScope, useReportCard, useSections } from '@/hooks/useAcademic';
 import { Award, Users } from 'lucide-react';
 
 const fmt = (n: number) => n.toLocaleString('fa-AF', { maximumFractionDigits: 1 });
 
-function gradeBadge(percent: number): { label: string; variant: 'success' | 'info' | 'warning' | 'destructive' } {
-  if (percent >= 80) return { label: 'عالی', variant: 'success' };
-  if (percent >= 65) return { label: 'خوب', variant: 'info' };
-  if (percent >= 50) return { label: 'قابل قبول', variant: 'warning' };
-  return { label: 'ناکام', variant: 'destructive' };
-}
+const gradeBadge = gradeBand;
 
 export default function ReportCards() {
   const { schoolId } = useAcademicScope();
