@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import PageHeader from '@/components/PageHeader';
 import { DataTable } from '@/components/DataTable';
@@ -103,7 +104,18 @@ export default function Sections() {
     });
 
   const columns = useMemo<ColumnDef<SectionWithRelations, any>[]>(() => [
-    { accessorKey: 'name', header: 'نام بخش' },
+    {
+      accessorKey: 'name',
+      header: 'نام بخش',
+      cell: ({ row }) => (
+        <Link
+          to={`/school/academic/sections/${row.original.id}`}
+          className="font-medium text-primary hover:underline"
+        >
+          {row.original.name}
+        </Link>
+      ),
+    },
     { accessorKey: 'grade_name', header: 'صنف' },
     { accessorKey: 'academic_year_name', header: 'سال تحصیلی' },
     { accessorKey: 'capacity', header: 'ظرفیت' },

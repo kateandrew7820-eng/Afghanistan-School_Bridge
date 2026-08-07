@@ -52,6 +52,7 @@ const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
 const AcademicYearsPage = lazy(() => import("./pages/school/academic/AcademicYears"));
 const GradesPage = lazy(() => import("./pages/school/academic/Grades"));
 const SectionsPage = lazy(() => import("./pages/school/academic/Sections"));
+const ClassDashboardPage = lazy(() => import("./pages/school/academic/ClassDashboard"));
 const SubjectsPage = lazy(() => import("./pages/school/academic/Subjects"));
 const TeacherAssignmentsPage = lazy(() => import("./pages/school/academic/TeacherAssignments"));
 const StudentsPage = lazy(() => import("./pages/school/academic/Students"));
@@ -272,6 +273,12 @@ function AppRoutes() {
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SectionsPage /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
+      <Route path="/school/academic/sections/:sectionId" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><ClassDashboardPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+
       <Route path="/school/academic/subjects" element={
         <ProtectedRoute allowedTier="school">
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubjectsPage /></Suspense></SchoolLayout>
