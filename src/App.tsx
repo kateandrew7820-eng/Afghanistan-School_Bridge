@@ -273,6 +273,12 @@ function AppRoutes() {
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SectionsPage /></Suspense></SchoolLayout>
         </ProtectedRoute>
       } />
+      <Route path="/school/academic/sections/:sectionId" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><ClassDashboardPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
+
       <Route path="/school/academic/subjects" element={
         <ProtectedRoute allowedTier="school">
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><SubjectsPage /></Suspense></SchoolLayout>
