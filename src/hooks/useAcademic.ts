@@ -894,3 +894,285 @@ export function gradeBand(percent: number): { label: string; variant: GradeBandV
   if (percent >= 50) return { label: 'قابل قبول', variant: 'warning' };
   return { label: 'ناکام', variant: 'destructive' };
 }
+
+// ============================================================
+// Phase 4A — Class (section) dashboard
+// ============================================================
+
+export interface SectionDashboardStudent {
+  student_id: string;
+  full_name: string;
+  student_code: string;
+  gender: string;
+  attendance_rate: number | null;
+  attendance_days: number;
+  average: number | null;
+}
+
+export interface SectionSubjectAverage {
+  subject_id: string;
+  subject_name: string;
+  percent: number;
+  graded_students: number;
+}
+
+export interface SectionActivityItem {
+  id: string;
+  kind: 'attendance' | 'assessment';
+  title: string;
+  description: string;
+  date: string;
+}
+
+export interface SectionDashboardData {
+  section: SectionWithRelations;
+  homeroom_teacher_name: string | null;
+  students: SectionDashboardStudent[];
+  total_students: number;
+  male_students: number;
+  female_students: number;
+  today: { date: string; recorded: boolean } & Record<AttendanceStatus, number>;
+  overall_attendance_rate: number | null;
+  attendance_trend: number[];
+  subject_averages: SectionSubjectAverage[];
+  class_average: number | null;
+  top_students: SectionDashboardStudent[];
+  at_risk_students: (SectionDashboardStudent & { reasons: string[] })[];
+  activity: SectionActivityItem[];
+}
+
+/** Aggregated analytics for a single class/section, composed from existing academic tables. */
+export function useSectionDashboard(sectionId: string | null) {
+  const { schoolId } = useAcademicScope();
+  const { data: teachers = [] } = useSchoolTeachers();
+
+  return useQuery({
+    queryKey: ['section-dashboard', schoolId, sectionId, teachers.length],
+    enabled: !!schoolId && !!sectionId,
+    queryFn: async (): Promise<SectionDashboardData> => {
+      const today = new Date().toISOString().slice(0, 10);
+
+      const { data: sectionRow, error: sectionError } = await supabase
+        .from('sections')
+        .select('*, grade_levels(name), academic_years(name)')
+        .eq('school_id', schoolId!)
+        .eq('id', sectionId!)
+        .maybeSingle();
+      if (sectionError) throw sectionError;
+      if (!sectionRow) throw new Error('بخش یافت نشد');
+
+      const [{ data: enrollmentRows, error: enrollmentError },
+             { data: attendanceRows, error: attendanceError },
+             { data: assessmentRows, error: assessmentError }] = await Promise.all([
+        supabase
+          .from('enrollments')
+          .select('student_id, students(full_name, student_code, gender)')
+          .eq('school_id', schoolId!)
+          .eq('section_id', sectionId!)
+          .eq('status', 'active'),
+        supabase
+          .from('attendance_records')
+          .select('student_id, status, attendance_date')
+          .eq('school_id', schoolId!)
+          .eq('section_id', sectionId!)
+          .order('attendance_date', { ascending: true }),
+        supabase
+          .from('assessments')
+          .select('id, title, subject_id, max_score, weight, term, assessment_date, subjects(name)')
+          .eq('school_id', schoolId!)
+          .eq('section_id', sectionId!)
+          .eq('status', 'active')
+          .order('assessment_date', { ascending: false }),
+      ]);
+      if (enrollmentError) throw enrollmentError;
+      if (attendanceError) throw attendanceError;
+      if (assessmentError) throw assessmentError;
+
+      type EnrollmentRow = {
+        student_id: string;
+        students: { full_name: string; student_code: string; gender: string } | null;
+      };
+      const roster = ((enrollmentRows ?? []) as unknown as EnrollmentRow[])
+        .map((row) => ({
+          student_id: row.student_id,
+          full_name: row.students?.full_name ?? 'نامشخص',
+          student_code: row.students?.student_code ?? '—',
+          gender: row.students?.gender ?? 'unknown',
+        }))
+        .sort((a, b) => a.full_name.localeCompare(b.full_name, 'fa'));
+
+      const assessments = (assessmentRows ?? []) as unknown as {
+        id: string; title: string; subject_id: string; max_score: number;
+        weight: number; term: AssessmentTerm; assessment_date: string;
+        subjects: { name: string } | null;
+      }[];
+
+      let marks: { assessment_id: string; student_id: string; score: number | null }[] = [];
+      if (assessments.length) {
+        const { data: markRows, error: markError } = await supabase
+          .from('marks')
+          .select('assessment_id, student_id, score')
+          .eq('school_id', schoolId!)
+          .in('assessment_id', assessments.map((a) => a.id));
+        if (markError) throw markError;
+        marks = (markRows ?? []) as typeof marks;
+      }
+
+      // --- Attendance aggregation ---
+      const attendance = (attendanceRows ?? []) as unknown as
+        { student_id: string; status: AttendanceStatus; attendance_date: string }[];
+      const perStudentAttendance = new Map<string, Record<AttendanceStatus, number>>();
+      const perDay = new Map<string, { good: number; total: number }>();
+      const todayCounts: Record<AttendanceStatus, number> = { present: 0, absent: 0, late: 0, excused: 0 };
+      let todayRecorded = false;
+
+      for (const row of attendance) {
+        const bucket = perStudentAttendance.get(row.student_id)
+          ?? { present: 0, absent: 0, late: 0, excused: 0 };
+        bucket[row.status] += 1;
+        perStudentAttendance.set(row.student_id, bucket);
+
+        const day = perDay.get(row.attendance_date) ?? { good: 0, total: 0 };
+        day.total += 1;
+        if (row.status === 'present' || row.status === 'excused') day.good += 1;
+        perDay.set(row.attendance_date, day);
+
+        if (row.attendance_date === today) {
+          todayCounts[row.status] += 1;
+          todayRecorded = true;
+        }
+      }
+
+      const attendance_trend = Array.from(perDay.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-30)
+        .map(([, d]) => (d.total > 0 ? (d.good / d.total) * 100 : 0));
+
+      // --- Marks aggregation ---
+      const byAssessment = new Map(assessments.map((a) => [a.id, a]));
+      const perStudentSubject = new Map<string, Map<string, { name: string; earned: number; possible: number }>>();
+      const perSubject = new Map<string, { name: string; earned: number; possible: number; students: Set<string> }>();
+
+      for (const m of marks) {
+        if (m.score === null || m.score === undefined) continue;
+        const a = byAssessment.get(m.assessment_id);
+        if (!a) continue;
+        const earned = Number(m.score) * Number(a.weight);
+        const possible = Number(a.max_score) * Number(a.weight);
+
+        const studentMap = perStudentSubject.get(m.student_id) ?? new Map();
+        const cur = studentMap.get(a.subject_id) ?? { name: a.subjects?.name ?? '—', earned: 0, possible: 0 };
+        cur.earned += earned;
+        cur.possible += possible;
+        studentMap.set(a.subject_id, cur);
+        perStudentSubject.set(m.student_id, studentMap);
+
+        const sub = perSubject.get(a.subject_id)
+          ?? { name: a.subjects?.name ?? '—', earned: 0, possible: 0, students: new Set<string>() };
+        sub.earned += earned;
+        sub.possible += possible;
+        sub.students.add(m.student_id);
+        perSubject.set(a.subject_id, sub);
+      }
+
+      const subject_averages: SectionSubjectAverage[] = Array.from(perSubject.entries())
+        .map(([subject_id, v]) => ({
+          subject_id,
+          subject_name: v.name,
+          percent: v.possible > 0 ? (v.earned / v.possible) * 100 : 0,
+          graded_students: v.students.size,
+        }))
+        .sort((a, b) => b.percent - a.percent);
+
+      const students: SectionDashboardStudent[] = roster.map((s) => {
+        const att = perStudentAttendance.get(s.student_id);
+        const totalDays = att ? att.present + att.absent + att.late + att.excused : 0;
+        const subjectMap = perStudentSubject.get(s.student_id);
+        const percents = subjectMap
+          ? Array.from(subjectMap.values())
+              .filter((v) => v.possible > 0)
+              .map((v) => (v.earned / v.possible) * 100)
+          : [];
+        return {
+          ...s,
+          attendance_days: totalDays,
+          attendance_rate: att && totalDays > 0 ? ((att.present + att.excused) / totalDays) * 100 : null,
+          average: percents.length ? percents.reduce((x, y) => x + y, 0) / percents.length : null,
+        };
+      });
+
+      const graded = students.filter((s) => s.average !== null);
+      const class_average = graded.length
+        ? graded.reduce((sum, s) => sum + (s.average ?? 0), 0) / graded.length
+        : null;
+
+      const top_students = [...graded]
+        .sort((a, b) => (b.average ?? 0) - (a.average ?? 0))
+        .slice(0, 5);
+
+      const at_risk_students = students
+        .map((s) => {
+          const reasons: string[] = [];
+          if (s.attendance_rate !== null && s.attendance_rate < 80) reasons.push('حاضری پایین');
+          if (s.average !== null && s.average < 50) reasons.push('نمرات پایین');
+          return { ...s, reasons };
+        })
+        .filter((s) => s.reasons.length > 0)
+        .sort((a, b) => (a.average ?? 101) - (b.average ?? 101))
+        .slice(0, 8);
+
+      const activity: SectionActivityItem[] = [
+        ...Array.from(perDay.entries())
+          .sort((a, b) => b[0].localeCompare(a[0]))
+          .slice(0, 5)
+          .map(([date, d]) => ({
+            id: `att-${date}`,
+            kind: 'attendance' as const,
+            title: 'ثبت حاضری',
+            description: `${d.good} از ${d.total} شاگرد حاضر`,
+            date,
+          })),
+        ...assessments.slice(0, 5).map((a) => ({
+          id: `asm-${a.id}`,
+          kind: 'assessment' as const,
+          title: a.title,
+          description: `${a.subjects?.name ?? '—'} · نمره اعظمی ${a.max_score}`,
+          date: a.assessment_date,
+        })),
+      ]
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 8);
+
+      const sectionData = sectionRow as unknown as Section & {
+        grade_levels: { name: string } | null;
+        academic_years: { name: string } | null;
+      };
+
+      const overallGood = attendance.filter((r) => r.status === 'present' || r.status === 'excused').length;
+
+      return {
+        section: {
+          ...(sectionRow as unknown as Section),
+          grade_name: sectionData.grade_levels?.name ?? '—',
+          academic_year_name: sectionData.academic_years?.name ?? '—',
+          enrollment_count: roster.length,
+        },
+        homeroom_teacher_name: sectionData.homeroom_teacher_id
+          ? teachers.find((t) => t.user_id === sectionData.homeroom_teacher_id)?.full_name ?? 'نامشخص'
+          : null,
+        students,
+        total_students: roster.length,
+        male_students: roster.filter((s) => s.gender === 'male').length,
+        female_students: roster.filter((s) => s.gender === 'female').length,
+        today: { date: today, recorded: todayRecorded, ...todayCounts },
+        overall_attendance_rate: attendance.length > 0 ? (overallGood / attendance.length) * 100 : null,
+        attendance_trend,
+        subject_averages,
+        class_average,
+        top_students,
+        at_risk_students,
+        activity,
+      };
+    },
+  });
+}
