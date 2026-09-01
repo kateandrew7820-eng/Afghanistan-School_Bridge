@@ -258,6 +258,11 @@ function AppRoutes() {
       } />
 
       {/* Academic Management */}
+      <Route path="/school/academic/dashboard" element={
+        <ProtectedRoute allowedTier="school">
+          <SchoolLayout><Suspense fallback={<LoadingFallback />}><SchoolAcademicDashboardPage /></Suspense></SchoolLayout>
+        </ProtectedRoute>
+      } />
       <Route path="/school/academic/years" element={
         <ProtectedRoute allowedTier="school">
           <SchoolLayout><Suspense fallback={<LoadingFallback />}><AcademicYearsPage /></Suspense></SchoolLayout>
