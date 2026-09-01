@@ -46,6 +46,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
     {
       label: 'مدیریت اکادمیک',
       items: [
+        { href: '/school/academic/dashboard', icon: LayoutDashboard, label: 'داشبورد تحصیلی' },
         { href: '/school/academic/years', icon: CalendarRange, label: 'سال‌های تحصیلی' },
         { href: '/school/academic/grades', icon: Layers, label: 'صنف‌ها' },
         { href: '/school/academic/sections', icon: Grid3x3, label: 'بخش‌ها' },
