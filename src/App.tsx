@@ -49,6 +49,7 @@ const SchoolSubmit = lazy(() => import("./pages/school/Submit"));
 const SchoolAnnouncements = lazy(() => import("./pages/school/Announcements"));
 const SchoolDocuments = lazy(() => import("./pages/school/Documents"));
 const SchoolDeadlines = lazy(() => import("./pages/school/Deadlines"));
+const SchoolAcademicDashboardPage = lazy(() => import("./pages/school/academic/SchoolAcademicDashboard"));
 const AcademicYearsPage = lazy(() => import("./pages/school/academic/AcademicYears"));
 const GradesPage = lazy(() => import("./pages/school/academic/Grades"));
 const SectionsPage = lazy(() => import("./pages/school/academic/Sections"));
