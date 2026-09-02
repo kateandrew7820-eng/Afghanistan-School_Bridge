@@ -1432,3 +1432,376 @@ export function useSchoolAcademicDashboard() {
     },
   });
 }
+
+// ============================================================
+// Phase 4C — School academic reports & analytics (school-scoped)
+// ============================================================
+
+export interface ReportFilters {
+  academicYearId?: string;
+  gradeId?: string;
+  sectionId?: string;
+  subjectId?: string;
+}
+
+export interface ReportSubjectAverage {
+  subject_id: string;
+  subject_name: string;
+  percent: number;
+  graded_students: number;
+}
+
+export interface ReportSectionRow {
+  section_id: string;
+  section_name: string;
+  grade_id: string;
+  grade_name: string;
+  student_count: number;
+  male: number;
+  female: number;
+  attendance_rate: number | null;
+  attendance_records: number;
+  average: number | null;
+}
+
+export interface ReportStudentRow {
+  student_id: string;
+  student_name: string;
+  student_code: string;
+  section_name: string;
+  grade_name: string;
+  average: number | null;
+  attendance_rate: number | null;
+  reasons: string[];
+}
+
+export interface ReportGradeRow {
+  grade_id: string;
+  grade_name: string;
+  student_count: number;
+  average: number | null;
+  attendance_rate: number | null;
+}
+
+export interface SchoolReportsData {
+  performance: {
+    school_average: number | null;
+    graded_students: number;
+    subject_averages: ReportSubjectAverage[];
+    grade_rows: ReportGradeRow[];
+    best_subject: ReportSubjectAverage | null;
+    worst_subject: ReportSubjectAverage | null;
+    attention_students: ReportStudentRow[];
+  };
+  attendance: {
+    overall_rate: number | null;
+    total_records: number;
+    trend: number[];
+    trend_days: { date: string; rate: number }[];
+    by_section: ReportSectionRow[];
+    concerning_students: ReportStudentRow[];
+  };
+  enrollment: {
+    total: number;
+    male: number;
+    female: number;
+    by_grade: ReportGradeRow[];
+    by_section: ReportSectionRow[];
+    monthly_trend: SchoolEnrollmentTrendPoint[];
+  };
+  sections: ReportSectionRow[];
+}
+
+/** Aggregated, filterable academic analytics for the signed-in user's school. */
+export function useSchoolAcademicReports(filters: ReportFilters) {
+  const { schoolId } = useAcademicScope();
+  const { academicYearId, gradeId, sectionId, subjectId } = filters;
+
+  return useQuery({
+    queryKey: ['school-academic-reports', schoolId, academicYearId, gradeId, sectionId, subjectId],
+    enabled: !!schoolId,
+    queryFn: async (): Promise<SchoolReportsData> => {
+      let sectionQuery = supabase
+        .from('sections')
+        .select('id, name, status, grade_level_id, academic_year_id, grade_levels(name)')
+        .eq('school_id', schoolId!)
+        .eq('status', 'active');
+      if (academicYearId) sectionQuery = sectionQuery.eq('academic_year_id', academicYearId);
+      if (gradeId) sectionQuery = sectionQuery.eq('grade_level_id', gradeId);
+      if (sectionId) sectionQuery = sectionQuery.eq('id', sectionId);
+
+      const { data: sectionRows, error: sectionError } = await sectionQuery;
+      if (sectionError) throw sectionError;
+
+      type RSection = {
+        id: string; name: string; status: string; grade_level_id: string;
+        academic_year_id: string; grade_levels: { name: string } | null;
+      };
+      const sections = (sectionRows ?? []) as unknown as RSection[];
+      const sectionIds = sections.map((s) => s.id);
+
+      const empty: SchoolReportsData = {
+        performance: {
+          school_average: null, graded_students: 0, subject_averages: [], grade_rows: [],
+          best_subject: null, worst_subject: null, attention_students: [],
+        },
+        attendance: {
+          overall_rate: null, total_records: 0, trend: [], trend_days: [],
+          by_section: [], concerning_students: [],
+        },
+        enrollment: { total: 0, male: 0, female: 0, by_grade: [], by_section: [], monthly_trend: [] },
+        sections: [],
+      };
+      if (sectionIds.length === 0) return empty;
+
+      let assessmentQuery = supabase
+        .from('assessments')
+        .select('id, section_id, subject_id, max_score, weight, subjects(name)')
+        .eq('school_id', schoolId!)
+        .eq('status', 'active')
+        .in('section_id', sectionIds);
+      if (subjectId) assessmentQuery = assessmentQuery.eq('subject_id', subjectId);
+
+      const [{ data: enrollmentRows, error: enrollmentError },
+             { data: attendanceRows, error: attendanceError },
+             { data: assessmentRows, error: assessmentError }] = await Promise.all([
+        supabase
+          .from('enrollments')
+          .select('student_id, section_id, enrollment_date, students(full_name, student_code, gender)')
+          .eq('school_id', schoolId!)
+          .eq('status', 'active')
+          .in('section_id', sectionIds),
+        supabase
+          .from('attendance_records')
+          .select('student_id, section_id, status, attendance_date')
+          .eq('school_id', schoolId!)
+          .in('section_id', sectionIds),
+        assessmentQuery,
+      ]);
+      if (enrollmentError) throw enrollmentError;
+      if (attendanceError) throw attendanceError;
+      if (assessmentError) throw assessmentError;
+
+      type REnrollment = {
+        student_id: string; section_id: string; enrollment_date: string;
+        students: { full_name: string; student_code: string; gender: string } | null;
+      };
+      type RAssessment = {
+        id: string; section_id: string; subject_id: string;
+        max_score: number; weight: number; subjects: { name: string } | null;
+      };
+      const enrollments = (enrollmentRows ?? []) as unknown as REnrollment[];
+      const attendance = (attendanceRows ?? []) as unknown as
+        { student_id: string; section_id: string; status: AttendanceStatus; attendance_date: string }[];
+      const assessments = (assessmentRows ?? []) as unknown as RAssessment[];
+
+      let marks: { assessment_id: string; student_id: string; score: number | null }[] = [];
+      if (assessments.length) {
+        const { data: markRows, error: markError } = await supabase
+          .from('marks')
+          .select('assessment_id, student_id, score')
+          .eq('school_id', schoolId!)
+          .in('assessment_id', assessments.map((a) => a.id));
+        if (markError) throw markError;
+        marks = (markRows ?? []) as typeof marks;
+      }
+
+      const sectionById = new Map(sections.map((s) => [s.id, s]));
+
+      // --- Enrollment ---
+      const studentMeta = new Map<string, { name: string; code: string; gender: string; section_id: string }>();
+      const perSectionStudents = new Map<string, { total: number; male: number; female: number }>();
+      const monthCounts = new Map<string, number>();
+      for (const e of enrollments) {
+        studentMeta.set(e.student_id, {
+          name: e.students?.full_name ?? '—',
+          code: e.students?.student_code ?? '—',
+          gender: e.students?.gender ?? 'unknown',
+          section_id: e.section_id,
+        });
+        const bucket = perSectionStudents.get(e.section_id) ?? { total: 0, male: 0, female: 0 };
+        bucket.total += 1;
+        if (e.students?.gender === 'male') bucket.male += 1;
+        if (e.students?.gender === 'female') bucket.female += 1;
+        perSectionStudents.set(e.section_id, bucket);
+        const month = (e.enrollment_date ?? '').slice(0, 7);
+        if (month) monthCounts.set(month, (monthCounts.get(month) ?? 0) + 1);
+      }
+      const monthly_trend: SchoolEnrollmentTrendPoint[] = Array.from(monthCounts.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-12)
+        .map(([month, count]) => ({ month, count }));
+
+      // --- Attendance ---
+      const perDay = new Map<string, { good: number; total: number }>();
+      const perSectionAttendance = new Map<string, { good: number; total: number }>();
+      const perStudentAttendance = new Map<string, { good: number; total: number }>();
+      let overallGood = 0;
+      for (const row of attendance) {
+        const good = row.status === 'present' || row.status === 'excused';
+        if (good) overallGood += 1;
+        const d = perDay.get(row.attendance_date) ?? { good: 0, total: 0 };
+        d.total += 1; if (good) d.good += 1;
+        perDay.set(row.attendance_date, d);
+        const sec = perSectionAttendance.get(row.section_id) ?? { good: 0, total: 0 };
+        sec.total += 1; if (good) sec.good += 1;
+        perSectionAttendance.set(row.section_id, sec);
+        const st = perStudentAttendance.get(row.student_id) ?? { good: 0, total: 0 };
+        st.total += 1; if (good) st.good += 1;
+        perStudentAttendance.set(row.student_id, st);
+      }
+      const trend_days = Array.from(perDay.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(-30)
+        .map(([date, d]) => ({ date, rate: d.total > 0 ? (d.good / d.total) * 100 : 0 }));
+
+      // --- Marks ---
+      const byAssessment = new Map(assessments.map((a) => [a.id, a]));
+      const perSubject = new Map<string, { name: string; earned: number; possible: number; students: Set<string> }>();
+      const perSectionMarks = new Map<string, { earned: number; possible: number }>();
+      const perStudentMarks = new Map<string, { earned: number; possible: number }>();
+      let schoolEarned = 0;
+      let schoolPossible = 0;
+      const gradedStudents = new Set<string>();
+
+      for (const m of marks) {
+        if (m.score === null || m.score === undefined) continue;
+        const a = byAssessment.get(m.assessment_id);
+        if (!a) continue;
+        const earned = Number(m.score) * Number(a.weight);
+        const possible = Number(a.max_score) * Number(a.weight);
+        schoolEarned += earned;
+        schoolPossible += possible;
+        gradedStudents.add(m.student_id);
+
+        const sub = perSubject.get(a.subject_id)
+          ?? { name: a.subjects?.name ?? '—', earned: 0, possible: 0, students: new Set<string>() };
+        sub.earned += earned; sub.possible += possible; sub.students.add(m.student_id);
+        perSubject.set(a.subject_id, sub);
+
+        const sec = perSectionMarks.get(a.section_id) ?? { earned: 0, possible: 0 };
+        sec.earned += earned; sec.possible += possible;
+        perSectionMarks.set(a.section_id, sec);
+
+        const st = perStudentMarks.get(m.student_id) ?? { earned: 0, possible: 0 };
+        st.earned += earned; st.possible += possible;
+        perStudentMarks.set(m.student_id, st);
+      }
+
+      const subject_averages: ReportSubjectAverage[] = Array.from(perSubject.entries())
+        .map(([subject_id, v]) => ({
+          subject_id,
+          subject_name: v.name,
+          percent: v.possible > 0 ? (v.earned / v.possible) * 100 : 0,
+          graded_students: v.students.size,
+        }))
+        .sort((a, b) => b.percent - a.percent);
+
+      // --- Section rows ---
+      const sectionRowsOut: ReportSectionRow[] = sections.map((s) => {
+        const st = perSectionStudents.get(s.id) ?? { total: 0, male: 0, female: 0 };
+        const att = perSectionAttendance.get(s.id);
+        const mk = perSectionMarks.get(s.id);
+        return {
+          section_id: s.id,
+          section_name: s.name,
+          grade_id: s.grade_level_id,
+          grade_name: s.grade_levels?.name ?? '—',
+          student_count: st.total,
+          male: st.male,
+          female: st.female,
+          attendance_rate: att && att.total > 0 ? (att.good / att.total) * 100 : null,
+          attendance_records: att?.total ?? 0,
+          average: mk && mk.possible > 0 ? (mk.earned / mk.possible) * 100 : null,
+        };
+      }).sort((a, b) => a.grade_name.localeCompare(b.grade_name, 'fa'));
+
+      // --- Grade rows ---
+      const gradeAgg = new Map<string, {
+        name: string; students: number; earned: number; possible: number; good: number; total: number;
+      }>();
+      for (const s of sections) {
+        const g = gradeAgg.get(s.grade_level_id)
+          ?? { name: s.grade_levels?.name ?? '—', students: 0, earned: 0, possible: 0, good: 0, total: 0 };
+        g.students += perSectionStudents.get(s.id)?.total ?? 0;
+        const mk = perSectionMarks.get(s.id);
+        if (mk) { g.earned += mk.earned; g.possible += mk.possible; }
+        const att = perSectionAttendance.get(s.id);
+        if (att) { g.good += att.good; g.total += att.total; }
+        gradeAgg.set(s.grade_level_id, g);
+      }
+      const grade_rows: ReportGradeRow[] = Array.from(gradeAgg.entries()).map(([grade_id, g]) => ({
+        grade_id,
+        grade_name: g.name,
+        student_count: g.students,
+        average: g.possible > 0 ? (g.earned / g.possible) * 100 : null,
+        attendance_rate: g.total > 0 ? (g.good / g.total) * 100 : null,
+      })).sort((a, b) => (b.average ?? -1) - (a.average ?? -1));
+
+      // --- Student rows ---
+      const buildStudentRow = (studentId: string): ReportStudentRow => {
+        const meta = studentMeta.get(studentId);
+        const sec = meta ? sectionById.get(meta.section_id) : undefined;
+        const mk = perStudentMarks.get(studentId);
+        const att = perStudentAttendance.get(studentId);
+        const average = mk && mk.possible > 0 ? (mk.earned / mk.possible) * 100 : null;
+        const attendance_rate = att && att.total > 0 ? (att.good / att.total) * 100 : null;
+        const reasons: string[] = [];
+        if (average !== null && average < 50) reasons.push('نمرات پایین');
+        if (attendance_rate !== null && attendance_rate < 80) reasons.push('حاضری پایین');
+        return {
+          student_id: studentId,
+          student_name: meta?.name ?? '—',
+          student_code: meta?.code ?? '—',
+          section_name: sec?.name ?? '—',
+          grade_name: sec?.grade_levels?.name ?? '—',
+          average,
+          attendance_rate,
+          reasons,
+        };
+      };
+
+      const allStudentRows = Array.from(studentMeta.keys()).map(buildStudentRow);
+      const attention_students = allStudentRows
+        .filter((s) => s.average !== null && s.average < 50)
+        .sort((a, b) => (a.average ?? 0) - (b.average ?? 0))
+        .slice(0, 10);
+      const concerning_students = allStudentRows
+        .filter((s) => s.attendance_rate !== null && s.attendance_rate < 80)
+        .sort((a, b) => (a.attendance_rate ?? 0) - (b.attendance_rate ?? 0))
+        .slice(0, 10);
+
+      const totalStudents = studentMeta.size;
+      const genders = Array.from(studentMeta.values());
+
+      return {
+        performance: {
+          school_average: schoolPossible > 0 ? (schoolEarned / schoolPossible) * 100 : null,
+          graded_students: gradedStudents.size,
+          subject_averages,
+          grade_rows,
+          best_subject: subject_averages[0] ?? null,
+          worst_subject: subject_averages.length > 1 ? subject_averages[subject_averages.length - 1] : null,
+          attention_students,
+        },
+        attendance: {
+          overall_rate: attendance.length > 0 ? (overallGood / attendance.length) * 100 : null,
+          total_records: attendance.length,
+          trend: trend_days.map((d) => d.rate),
+          trend_days,
+          by_section: [...sectionRowsOut].sort((a, b) => (a.attendance_rate ?? 101) - (b.attendance_rate ?? 101)),
+          concerning_students,
+        },
+        enrollment: {
+          total: totalStudents,
+          male: genders.filter((g) => g.gender === 'male').length,
+          female: genders.filter((g) => g.gender === 'female').length,
+          by_grade: [...grade_rows].sort((a, b) => b.student_count - a.student_count),
+          by_section: sectionRowsOut,
+          monthly_trend,
+        },
+        sections: sectionRowsOut,
+      };
+    },
+  });
+}
