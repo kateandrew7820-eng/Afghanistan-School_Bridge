@@ -1022,6 +1022,7 @@ export function useSectionDashboard(sectionId: string | null) {
       const attendance = (attendanceRows ?? []) as unknown as
         { student_id: string; status: AttendanceStatus; attendance_date: string }[];
       const perStudentAttendance = new Map<string, Record<AttendanceStatus, number>>();
+      const perSectionLastAttendance = new Map<string, string>();
       const perDay = new Map<string, { good: number; total: number }>();
       const todayCounts: Record<AttendanceStatus, number> = { present: 0, absent: 0, late: 0, excused: 0 };
       let todayRecorded = false;
@@ -1050,6 +1051,11 @@ export function useSectionDashboard(sectionId: string | null) {
 
       // --- Marks aggregation ---
       const byAssessment = new Map(assessments.map((a) => [a.id, a]));
+      const perSectionAssessments = new Map<string, number>();
+      for (const a of assessments) {
+        perSectionAssessments.set(a.section_id, (perSectionAssessments.get(a.section_id) ?? 0) + 1);
+      }
+      const perSectionMarkCount = new Map<string, number>();
       const perStudentSubject = new Map<string, Map<string, { name: string; earned: number; possible: number }>>();
       const perSubject = new Map<string, { name: string; earned: number; possible: number; students: Set<string> }>();
 
@@ -1462,6 +1468,9 @@ export interface ReportSectionRow {
   attendance_rate: number | null;
   attendance_records: number;
   average: number | null;
+  assessment_count: number;
+  mark_count: number;
+  last_attendance_date: string | null;
 }
 
 export interface ReportStudentRow {
@@ -1649,6 +1658,8 @@ export function useSchoolAcademicReports(filters: ReportFilters) {
         const st = perStudentAttendance.get(row.student_id) ?? { good: 0, total: 0 };
         st.total += 1; if (good) st.good += 1;
         perStudentAttendance.set(row.student_id, st);
+        const last = perSectionLastAttendance.get(row.section_id);
+        if (!last || row.attendance_date > last) perSectionLastAttendance.set(row.section_id, row.attendance_date);
       }
       const trend_days = Array.from(perDay.entries())
         .sort((a, b) => a[0].localeCompare(b[0]))
@@ -1682,6 +1693,7 @@ export function useSchoolAcademicReports(filters: ReportFilters) {
         const sec = perSectionMarks.get(a.section_id) ?? { earned: 0, possible: 0 };
         sec.earned += earned; sec.possible += possible;
         perSectionMarks.set(a.section_id, sec);
+        perSectionMarkCount.set(a.section_id, (perSectionMarkCount.get(a.section_id) ?? 0) + 1);
 
         const st = perStudentMarks.get(m.student_id) ?? { earned: 0, possible: 0 };
         st.earned += earned; st.possible += possible;
@@ -1713,6 +1725,9 @@ export function useSchoolAcademicReports(filters: ReportFilters) {
           attendance_rate: att && att.total > 0 ? (att.good / att.total) * 100 : null,
           attendance_records: att?.total ?? 0,
           average: mk && mk.possible > 0 ? (mk.earned / mk.possible) * 100 : null,
+          assessment_count: perSectionAssessments.get(s.id) ?? 0,
+          mark_count: perSectionMarkCount.get(s.id) ?? 0,
+          last_attendance_date: perSectionLastAttendance.get(s.id) ?? null,
         };
       }).sort((a, b) => a.grade_name.localeCompare(b.grade_name, 'fa'));
 
