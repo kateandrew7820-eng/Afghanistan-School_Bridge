@@ -1022,7 +1022,6 @@ export function useSectionDashboard(sectionId: string | null) {
       const attendance = (attendanceRows ?? []) as unknown as
         { student_id: string; status: AttendanceStatus; attendance_date: string }[];
       const perStudentAttendance = new Map<string, Record<AttendanceStatus, number>>();
-      const perSectionLastAttendance = new Map<string, string>();
       const perDay = new Map<string, { good: number; total: number }>();
       const todayCounts: Record<AttendanceStatus, number> = { present: 0, absent: 0, late: 0, excused: 0 };
       let todayRecorded = false;
@@ -1051,11 +1050,6 @@ export function useSectionDashboard(sectionId: string | null) {
 
       // --- Marks aggregation ---
       const byAssessment = new Map(assessments.map((a) => [a.id, a]));
-      const perSectionAssessments = new Map<string, number>();
-      for (const a of assessments) {
-        perSectionAssessments.set(a.section_id, (perSectionAssessments.get(a.section_id) ?? 0) + 1);
-      }
-      const perSectionMarkCount = new Map<string, number>();
       const perStudentSubject = new Map<string, Map<string, { name: string; earned: number; possible: number }>>();
       const perSubject = new Map<string, { name: string; earned: number; possible: number; students: Set<string> }>();
 
@@ -1645,6 +1639,7 @@ export function useSchoolAcademicReports(filters: ReportFilters) {
       const perDay = new Map<string, { good: number; total: number }>();
       const perSectionAttendance = new Map<string, { good: number; total: number }>();
       const perStudentAttendance = new Map<string, { good: number; total: number }>();
+      const perSectionLastAttendance = new Map<string, string>();
       let overallGood = 0;
       for (const row of attendance) {
         const good = row.status === 'present' || row.status === 'excused';
@@ -1671,6 +1666,11 @@ export function useSchoolAcademicReports(filters: ReportFilters) {
       const perSubject = new Map<string, { name: string; earned: number; possible: number; students: Set<string> }>();
       const perSectionMarks = new Map<string, { earned: number; possible: number }>();
       const perStudentMarks = new Map<string, { earned: number; possible: number }>();
+      const perSectionMarkCount = new Map<string, number>();
+      const perSectionAssessments = new Map<string, number>();
+      for (const a of assessments) {
+        perSectionAssessments.set(a.section_id, (perSectionAssessments.get(a.section_id) ?? 0) + 1);
+      }
       let schoolEarned = 0;
       let schoolPossible = 0;
       const gradedStudents = new Set<string>();
