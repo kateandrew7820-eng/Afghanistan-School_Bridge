@@ -166,3 +166,9 @@
     box-shadow: var(--shadow-elegant);
   }
 }
+
+@media print {
+  aside, nav, header button, .print\:hidden { display: none !important; }
+  main, body { background: #fff !important; }
+  * { box-shadow: none !important; }
+}
