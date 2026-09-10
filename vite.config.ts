@@ -23,39 +23,14 @@ export default defineConfig(({ mode }) => ({
     target: "es2020",
     minify: 'esbuild',
     
-    // Optimize for smaller chunks
-    rollupOptions: {
-      output: {
-        // Conservative manual chunks. Keep ecosystems together to avoid
-        // cross-chunk Temporal Dead Zone (TDZ) crashes like
-        // "Cannot access 'X' before initialization" that show up as a blank
-        // page in production. Do NOT add a catch-all 'vendor' bucket — let
-        // Rollup's default splitting handle anything not listed here.
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return;
-          // Keep react, react-dom, scheduler, jsx-runtime AND react-router
-          // in a single chunk. Splitting them produces init-order bugs.
-          if (
-            id.includes('/react-router') ||
-            id.includes('/react-dom/') ||
-            id.includes('/react/') ||
-            id.includes('/scheduler/')
-          ) {
-            return 'vendor-react';
-          }
-          // Keep ALL @supabase/* together (supabase-js imports realtime,
-          // gotrue, postgrest, storage — splitting causes TDZ).
-          if (id.includes('@supabase')) return 'vendor-supabase';
-          if (id.includes('@radix-ui')) return 'vendor-radix';
-          if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
-          if (id.includes('xlsx')) return 'vendor-xlsx';
-          if (id.includes('i18next')) return 'vendor-i18n';
-          if (id.includes('lucide-react')) return 'vendor-icons';
-          // Everything else: leave to Rollup default (do not bucket).
-          return undefined;
-        },
-      },
-    },
+    // NOTE: no custom manualChunks.
+    // A hand-written manualChunks map produced circular chunk graphs
+    // (vendor-react imported a CJS interop helper from vendor-charts while
+    // vendor-charts imported React from vendor-react), which crashes at
+    // startup with "Cannot access 'S' before initialization" and a blank
+    // page. Rollup's default splitting is cycle-safe — do not reintroduce
+    // a manual vendor chunk map.
+
 
     
     // Report compressed size
