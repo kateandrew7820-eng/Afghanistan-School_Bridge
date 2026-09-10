@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789036922730,
+      "tag": "0000_harden_approval_requests_and_events_scope",
+      "breakpoints": true
+    }
+  ]
+}
