@@ -1651,6 +1651,16 @@ export type Database = {
         Args: { _conv: string; _user: string }
         Returns: boolean
       }
+      my_approval_request_status: {
+        Args: never
+        Returns: {
+          approver_label: string
+          created_at: string
+          decided_at: string
+          decision_note: string
+          status: string
+        }[]
+      }
     }
     Enums: {
       app_role:

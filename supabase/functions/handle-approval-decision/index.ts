@@ -78,15 +78,27 @@ Deno.serve(async (req) => {
     const dashboardRoute = DASHBOARD_ROUTES[reqRow.applicant_role] ?? '/school';
     const newStatus = action === 'accept' ? 'approved' : action === 'deny' ? 'denied' : 'delayed';
 
-    // Update approval request
-    await admin
+    // Update approval request, and rotate the action token so the link is single-use
+    const { data: updatedRows } = await admin
       .from('approval_requests')
       .update({
         status: newStatus,
         decided_at: new Date().toISOString(),
         decided_by_email: reqRow.approver_email,
+        action_token: crypto.randomUUID(),
       })
-      .eq('id', reqRow.id);
+      .eq('id', reqRow.id)
+      .eq('status', 'pending')
+      .select('id');
+
+    if (!updatedRows || updatedRows.length === 0) {
+      return htmlPage({
+        title: 'قبلاً پاسخ داده شده',
+        message: 'این درخواست قبلاً بررسی شده است. نیازی به اقدام جدید نیست.',
+        color: '#f59e0b',
+        icon: 'ℹ',
+      });
+    }
 
     // Update applicant profile status accordingly
     if (action === 'accept') {
