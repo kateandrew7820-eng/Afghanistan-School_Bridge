@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "@/contexts/LocalizationContext";
 
@@ -22,10 +22,12 @@ export default function Demo() {
   const { setDemoMode } = useAuth();
   const { t } = useTranslation();
 
-  // Gate demo mode to development only
+  // Gate demo mode to development only.
+  // NOTE: must be a declarative redirect — calling navigate() during render
+  // triggers an infinite render/redirect loop that freezes the page in
+  // production builds.
   if (import.meta.env.MODE !== 'development') {
-    navigate('/login');
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   const routes: Record<string, string> = {
