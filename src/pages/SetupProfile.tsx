@@ -216,7 +216,6 @@ export default function SetupProfile() {
       );
 
       // Redirect to pending verification page
-      // PendingVerification will auto-redirect to /afghanistan-info after 2 seconds
       setTimeout(() => navigate('/pending-verification'), 500);
     } catch (err) {
       console.error('Unexpected error:', err);

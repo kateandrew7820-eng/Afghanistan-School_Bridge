@@ -25,7 +25,7 @@ const Signup = lazy(() => import("./pages/auth/Signup"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
-const AfghanistanInfoPage = lazy(() => import("./pages/AfghanistanInfoPage"));
+
 const HelpPage = lazy(() => import("./pages/Help"));
 const RoadmapPage = lazy(() => import("./pages/Roadmap"));
 const ProfilePage = lazy(() => import("./pages/Profile"));
@@ -208,7 +208,7 @@ function AppRoutes() {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/pending-verification" element={<Suspense fallback={<LoadingFallback />}><PendingVerification /></Suspense>} />
       <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
-      <Route path="/afghanistan-info" element={<AfghanistanInfoPage />} />
+      
       <Route path="/profile" element={<Suspense fallback={<LoadingFallback />}><ProfilePage /></Suspense>} />
 
       {/* Chat — shared across all roles */}

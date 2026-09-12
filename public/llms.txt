@@ -8,7 +8,7 @@ The platform replaces paper-based data transfer with a hierarchical, role-based 
 
 - [Home](/): Overview of the portal, mission, and national education statistics.
 - [Login](/login): Sign in or create an account for school, district, province, or ministry roles.
-- [Afghanistan Info](/afghanistan-info): Background on Afghanistan's education system and the portal's national context.
+- [Roadmap](/roadmap): Product roadmap showing released, in-progress, and planned features.
 - [Demo](/demo): Interactive demo of the portal's hierarchical workflow.
 
 ## Optional

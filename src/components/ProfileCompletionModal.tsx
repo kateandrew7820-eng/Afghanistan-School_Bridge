@@ -135,7 +135,7 @@ export function ProfileCompletionModal({ isOpen, onClose }: ProfileCompletionMod
         return;
       }
       onClose?.();
-      navigate('/afghanistan-info');
+      navigate('/');
     } catch (err) {
       const errorMsg = sanitizeError(err);
       toast({ title: t('common.error'), description: errorMsg, variant: 'destructive' });

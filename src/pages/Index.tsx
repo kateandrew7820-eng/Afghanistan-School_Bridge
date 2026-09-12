@@ -16,6 +16,8 @@ import {
   Heart,
   ArrowRight,
   Clock,
+  Rocket,
+  Map,
 } from 'lucide-react';
 
 export default function Index() {
@@ -118,14 +120,18 @@ export default function Index() {
           </div>
 
           <div className="flex items-center gap-2">
-            <NotificationBell align="start" />
             <Button
               size="sm"
               variant="outline"
-              onClick={handleContinue}
-              className="hover:bg-primary hover:text-white transition"
+              onClick={() => navigate('/login')}
             >
-              {t('common.close')}
+              ورود
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => navigate('/signup')}
+            >
+              ثبت‌نام
             </Button>
           </div>
         </div>
@@ -243,15 +249,33 @@ export default function Index() {
         </div>
 
         {/* CTA */}
-        <div className="text-center space-y-4">
-          <h3 className="text-xl font-bold">
-            آماده ادامه هستید؟
-          </h3>
+        <div className="max-w-3xl mx-auto">
+          <Card className="border-0 shadow-sm mb-6">
+            <CardContent className="p-6 text-center space-y-4">
+              <div className="inline-flex items-center justify-center p-3 rounded-full bg-primary/10">
+                <Rocket className="w-6 h-6 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold">حالت نمایشی</h3>
+                <p className="text-muted-foreground text-sm">
+                  بدون ثبت‌نام وارد داشبورد شوید و امکانات سیستم را ببینید.
+                </p>
+              </div>
+              <Button size="lg" onClick={() => navigate('/demo')} className="gap-2">
+                شروع نمایش زنده
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </CardContent>
+          </Card>
 
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button size="lg" onClick={handleContinue} className="gap-2">
-              ورود به دشبورد
-              <ArrowRight className="w-4 h-4" />
+          <div className="text-center space-y-4">
+            <h3 className="text-xl font-bold">نقشه راه محصول</h3>
+            <p className="text-muted-foreground text-sm">
+              ببینید کدام ویژگی‌ها منتشر شده‌اند و چه چیزهایی در راه است.
+            </p>
+            <Button size="lg" variant="outline" onClick={() => navigate('/roadmap')} className="gap-2">
+              مشاهده نقشه راه
+              <Map className="w-4 h-4" />
             </Button>
           </div>
         </div>
