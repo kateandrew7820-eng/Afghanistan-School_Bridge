@@ -499,7 +499,7 @@ export default function ProfilePage() {
                 {/* Email Verification */}
                 <div className="flex items-center justify-between rounded-lg bg-slate-700/50 p-3">
                   <span className="text-sm text-muted-foreground">
-                    تأیید ایمیل
+                    تأیید. ایمیل
                   </span>
 
                   {isEmailVerified ? (
