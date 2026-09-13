@@ -11,7 +11,7 @@ const FAQ_JSONLD = {
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "نقش مکتب  در سیستم چیست🎓؟",
+      "name": "نقش مکتب  در سیستم  چیست🎓؟",
       "acceptedAnswer": { "@type": "Answer", "text": "مکتب (معلم/مدیر) مسئول ارسال آمار، گزارش‌ها و فورم‌ها به سیستم است." }
     },
     {
