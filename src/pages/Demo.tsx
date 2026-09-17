@@ -68,7 +68,7 @@ export default function Demo() {
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold">انتخاب نقش</h2>
           <p className="text-muted-foreground text-sm">
-            فقط کلیک کنید و مستقیم وارد شوید 🚀
+            فقط کلیک کنید و مستقیم واردش شوید 🚀
           </p>
         </div>
 
