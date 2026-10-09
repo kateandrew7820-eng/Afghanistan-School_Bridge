@@ -47,7 +47,6 @@ export default defineConfig(({ mode }) => ({
           // gotrue, postgrest, storage — splitting causes TDZ).
           if (id.includes('@supabase')) return 'vendor-supabase';
           if (id.includes('@radix-ui')) return 'vendor-radix';
-          if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
           if (id.includes('xlsx')) return 'vendor-xlsx';
           if (id.includes('i18next')) return 'vendor-i18n';
           if (id.includes('lucide-react')) return 'vendor-icons';
