@@ -5,9 +5,11 @@ import NavigationBackButton from '@/components/NavigationBackButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationBell } from '@/components/NotificationBell';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { getRoleLabel } from '@/lib/verificationHierarchy';
-import { LogOut, Menu, X, User, Search, Bell, Command as CmdIcon, LucideIcon } from 'lucide-react';
+import { LogOut, Menu, X, User, Search, Command as CmdIcon, LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   href: string;
@@ -42,6 +44,7 @@ export default function RoleLayout({
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [confirmSignOut, setConfirmSignOut] = useState(false);
 
   useEffect(() => setOpen(false), [location.pathname]);
 
@@ -118,16 +121,12 @@ export default function RoleLayout({
               </Button>
             </>
           )}
+          <NotificationBell className="h-9 w-9 text-muted-foreground" align="end" />
           <Button
-            variant="ghost" size="icon"
-            className="h-9 w-9 text-muted-foreground"
-            aria-label="اعلان‌ها"
-          >
-            <Bell className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost" size="icon" onClick={signOut}
-            className="h-9 w-9 text-muted-foreground hover:text-destructive"
+            variant="destructive"
+            size="icon"
+            onClick={() => setConfirmSignOut(true)}
+            className="h-9 w-9 shadow-sm"
             aria-label="خروج از سیستم"
           >
             <LogOut className="h-4 w-4" />
@@ -227,14 +226,33 @@ export default function RoleLayout({
               <span className="text-sm text-muted-foreground">حالت تاریک</span>
               <ThemeToggle className="h-9 w-9 text-muted-foreground" />
             </div>
+            <p className="pt-2 pb-1 text-[10px] text-muted-foreground text-center">
+              پل آموزش افغانستان
+            </p>
           </nav>
-
-          {/* Footer */}
-          <div className="px-4 py-3 border-t border-border space-y-3">
-            <p className="text-[10px] text-muted-foreground text-center">پل آموزش افغانستان</p>
-          </div>
         </div>
       </aside>
+
+      <Dialog open={confirmSignOut} onOpenChange={setConfirmSignOut}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle>Do you want to sign out?</DialogTitle>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmSignOut(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                await signOut();
+                setConfirmSignOut(false);
+                navigate('/login');
+              }}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Main */}
       <main className="lg:mr-64 pt-14 min-h-screen" role="main">

@@ -43,54 +43,58 @@ export function useAcademicOverview() {
   const { profile } = useAuth();
   const schoolId = profile?.school_id as string | undefined;
 
-  return useQuery(['academic', 'overview', schoolId], async (): Promise<Overview> => {
-    if (!schoolId) return {};
+  return useQuery({
+    queryKey: ['academic', 'overview', schoolId],
+    queryFn: async (): Promise<Overview> => {
+      if (!schoolId) return {};
 
-    const [{ data: attendanceRows }, { data: stats }, { data: assessments }] = await Promise.all([
-      supabase.from('attendance_records').select('student_id, present, date, section, school_id').eq('school_id', schoolId),
-      supabase.from('statistics_submissions').select('total_students, attendance_rate').eq('school_id', schoolId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
-      supabase.from('form_submissions').select('id, created_at, form_data, submitted_by').eq('school_id', schoolId).eq('form_type', 'student_assessment').order('created_at', { ascending: false }).limit(20),
-    ]);
+      const [{ data: attendanceRows }, { data: stats }, { data: assessments }] = await Promise.all([
+        supabase.from('attendance_records').select('student_id, present, date, section, school_id').eq('school_id', schoolId),
+        supabase.from('statistics_submissions').select('total_students, attendance_rate').eq('school_id', schoolId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('form_submissions').select('id, created_at, form_data, submitted_by').eq('school_id', schoolId).eq('form_type', 'student_assessment').order('created_at', { ascending: false }).limit(20),
+      ]);
 
-    const safeAttendanceRows = (attendanceRows as AttendanceRow[] | null) ?? [];
-    const recentAssessments = (assessments as AcademicAssessment[] | null) ?? [];
+      const safeAttendanceRows = (attendanceRows as AttendanceRow[] | null) ?? [];
+      const recentAssessments = (assessments as AcademicAssessment[] | null) ?? [];
 
-    let attendanceRate: number | null = null;
-    let totalStudents: number | null = null;
+      let attendanceRate: number | null = null;
+      let totalStudents: number | null = null;
 
-    if (safeAttendanceRows.length > 0) {
-      const grouped: Record<string, { present: number; total: number }> = {};
-      const students = new Set<string>();
-      safeAttendanceRows.forEach((row) => {
-        const section = row.section || 'Unknown';
-        students.add(row.student_id);
-        grouped[section] = grouped[section] || { present: 0, total: 0 };
-        grouped[section].total += 1;
-        if (row.present) grouped[section].present += 1;
-      });
+      if (safeAttendanceRows.length > 0) {
+        const grouped: Record<string, { present: number; total: number }> = {};
+        const students = new Set<string>();
+        safeAttendanceRows.forEach((row) => {
+          const section = row.section || 'Unknown';
+          students.add(row.student_id);
+          grouped[section] = grouped[section] || { present: 0, total: 0 };
+          grouped[section].total += 1;
+          if (row.present) grouped[section].present += 1;
+        });
 
-      const overall = Object.values(grouped).reduce((acc, cur) => ({ present: acc.present + cur.present, total: acc.total + cur.total }), { present: 0, total: 0 });
-      attendanceRate = overall.total > 0 ? Math.round((overall.present / overall.total) * 100) : null;
-      totalStudents = students.size || null;
-    }
+        const overall = Object.values(grouped).reduce((acc, cur) => ({ present: acc.present + cur.present, total: acc.total + cur.total }), { present: 0, total: 0 });
+        attendanceRate = overall.total > 0 ? Math.round((overall.present / overall.total) * 100) : null;
+        totalStudents = students.size || null;
+      }
 
-    if ((attendanceRate === null || totalStudents === null) && stats) {
-      attendanceRate = attendanceRate ?? (stats as { attendance_rate?: number | null } | null)?.attendance_rate ?? null;
-      totalStudents = totalStudents ?? (stats as { total_students?: number | null } | null)?.total_students ?? null;
-    }
+      if ((attendanceRate === null || totalStudents === null) && stats) {
+        attendanceRate = attendanceRate ?? (stats as { attendance_rate?: number | null } | null)?.attendance_rate ?? null;
+        totalStudents = totalStudents ?? (stats as { total_students?: number | null } | null)?.total_students ?? null;
+      }
 
-    const averageBySection = safeAttendanceRows.length > 0 ? Object.entries(
-      safeAttendanceRows.reduce<Record<string, { present: number; total: number }>>((acc, row) => {
-        const section = row.section || 'Unknown';
-        acc[section] = acc[section] || { present: 0, total: 0 };
-        acc[section].total += 1;
-        if (row.present) acc[section].present += 1;
-        return acc;
-      }, {}),
-    ).map(([section, values]) => ({ section, avg: Math.round((values.present / values.total) * 100) })) : [];
+      const averageBySection = safeAttendanceRows.length > 0 ? Object.entries(
+        safeAttendanceRows.reduce<Record<string, { present: number; total: number }>>((acc, row) => {
+          const section = row.section || 'Unknown';
+          acc[section] = acc[section] || { present: 0, total: 0 };
+          acc[section].total += 1;
+          if (row.present) acc[section].present += 1;
+          return acc;
+        }, {}),
+      ).map(([section, values]) => ({ section, avg: Math.round((values.present / values.total) * 100) })) : [];
 
-    return { totalStudents, attendanceRate, recentAssessments, averageBySection };
-  }, { enabled: !!schoolId });
+      return { totalStudents, attendanceRate, recentAssessments, averageBySection };
+    },
+    enabled: !!schoolId,
+  });
 }
 
 export function useAttendanceBySection() {

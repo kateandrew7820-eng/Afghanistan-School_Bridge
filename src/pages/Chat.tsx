@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
-import { MessageSquare } from 'lucide-react';
+import { ArrowRight, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import { useConversations } from '@/hooks/useConversations';
 import { useMessages } from '@/hooks/useMessages';
 import { useChatPresence } from '@/hooks/useChatPresence';
@@ -16,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 export default function Chat() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { conversations, loading, reload } = useConversations();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeId = searchParams.get('c');
@@ -54,6 +57,17 @@ export default function Chat() {
       <Helmet>
         <title>گفتگو | پل آموزش افغانستان</title>
       </Helmet>
+      <header className="h-12 shrink-0 border-b border-border bg-card px-3 flex items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-2"
+          onClick={() => navigate('/')}
+        >
+          <ArrowRight className="h-4 w-4" />
+          بازگشت به صفحهٔ اصلی
+        </Button>
+      </header>
       <div className="flex flex-1 min-h-0">
         {/* Conversation list (right in RTL) — ordered last so it visually sits at the right */}
         <div

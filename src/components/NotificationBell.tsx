@@ -36,8 +36,9 @@ export function NotificationBell({ className, align = 'end' }: Props) {
         <Button
           variant="ghost"
           size="icon"
-          className={cn('relative rounded-full', className)}
+          className={cn('relative rounded-full transition-colors data-[state=open]:bg-primary/10 data-[state=open]:text-primary', className)}
           aria-label="اعلان‌ها"
+          aria-haspopup="dialog"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
@@ -58,12 +59,12 @@ export function NotificationBell({ className, align = 'end' }: Props) {
           )}
         </div>
         <div className="max-h-96 overflow-y-auto">
-          {notifications.length === 0 ? (
+          {notifications.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              هیچ اعلانی وجود ندارد
+              No notifications
             </div>
-          ) : (
-            notifications.map((n) => (
+          )}
+          {notifications.length > 0 && notifications.map((n) => (
               <button
                 key={n.id}
                 onClick={() => handleClick(n)}
@@ -85,8 +86,7 @@ export function NotificationBell({ className, align = 'end' }: Props) {
                   </div>
                 </div>
               </button>
-            ))
-          )}
+          ))}
         </div>
       </PopoverContent>
     </Popover>

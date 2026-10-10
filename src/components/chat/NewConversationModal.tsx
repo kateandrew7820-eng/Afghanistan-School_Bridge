@@ -35,6 +35,22 @@ function isEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function contactLookupErrorMessage(error: unknown): string {
+  const code = typeof error === 'object' && error !== null && 'code' in error &&
+      typeof error.code === 'string'
+    ? error.code
+    : undefined;
+  if (code === 'PGRST202' || code === '42883') {
+    return 'جستجوی ایمیل هنوز در پایگاه داده فعال نشده است. لطفاً مهاجرت پایگاه داده را اجرا کنید.';
+  }
+  if (code === 'P0001') {
+    return 'تعداد جستجوها زیاد است؛ یک دقیقه دیگر دوباره تلاش کنید.';
+  }
+  return navigator.onLine
+    ? 'جستجوی تماس انجام نشد. لطفاً دوباره تلاش کنید.'
+    : 'جستجوی ایمیل در حالت آفلاین در دسترس نیست؛ از تماس‌های ذخیره‌شده استفاده کنید.';
+}
+
 export function NewConversationModal({ open, onOpenChange, onCreated, conversations }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -98,9 +114,7 @@ export function NewConversationModal({ open, onOpenChange, onCreated, conversati
       setSearched(true);
     } catch (error) {
       console.error('Chat contact lookup failed:', error);
-      setSearchError(navigator.onLine
-        ? 'جستجوی تماس انجام نشد. لطفاً دوباره تلاش کنید.'
-        : 'جستجوی ایمیل در حالت آفلاین در دسترس نیست؛ از تماس‌های ذخیره‌شده استفاده کنید.');
+      setSearchError(contactLookupErrorMessage(error));
       setSearched(true);
     } finally {
       setSearching(false);
