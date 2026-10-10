@@ -123,7 +123,7 @@ export default function Index() {
               <Link to="/login">ورود⭧ </Link>
             </Button>
             <Button asChild size="sm" variant="outline" className="shrink-0">
-              <Link to="/signup">ثبت‌نام⭧ </Link>
+              <Link to="/signup">ثبت‌نام ⭧</Link>
             </Button>
           </div>
         </div>
