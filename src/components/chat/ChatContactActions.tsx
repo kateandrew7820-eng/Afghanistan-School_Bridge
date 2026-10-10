@@ -109,7 +109,7 @@ export function ChatContactActions({
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" dir="rtl">
+          <DropdownMenuContent align="end">
             <DropdownMenuItem onSelect={(event) => { event.preventDefault(); void block(); }}>
               <ShieldBan className="me-2 h-4 w-4 text-destructive" /> مسدودسازی
             </DropdownMenuItem>

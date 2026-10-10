@@ -82,7 +82,7 @@ export function useConversations() {
         _user_ids: memberUserIds,
       });
       if (profilesError) throw profilesError;
-      const profileMap = new Map((profiles ?? []).map((profile) => [profile.user_id, profile]));
+      const profileMap = new Map<string, { user_id: string; full_name: string | null }>(((profiles ?? []) as { user_id: string; full_name: string | null }[]).map((profile) => [profile.user_id, profile]));
 
       const { data: recentMsgs, error: messagesError } = await supabase
         .from('messages')
