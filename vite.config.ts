@@ -1,29 +1,8 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { createHash } from "node:crypto";
 import { componentTagger } from "lovable-tagger";
-
-function offlinePrecacheManifest(): Plugin {
-  return {
-    name: "offline-precache-manifest",
-    generateBundle(_options, bundle) {
-      const assets = new Set(["/index.html", "/manifest.json", "/pwa-icon.svg", "/placeholder.svg"]);
-      for (const output of Object.values(bundle)) {
-        if (output.type === "chunk" || /\.(?:css|woff2?|ttf|otf|svg|png|jpe?g|webp|ico)$/i.test(output.fileName)) {
-          assets.add(`/${output.fileName}`);
-        }
-      }
-      const assetList = [...assets];
-      const version = createHash("sha256").update(assetList.join("|")).digest("hex").slice(0, 12);
-      this.emitFile({
-        type: "asset",
-        fileName: "precache-manifest.json",
-        source: JSON.stringify({ version, assets: assetList }),
-      });
-    },
-  };
-}
+import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -34,7 +13,44 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), offlinePrecacheManifest(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: null,
+      devOptions: { enabled: false },
+      manifest: false,
+      filename: "sw.js",
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,ico,woff2}"],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        importScripts: ["/sw-sync.js"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/auth\/callback/],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: { cacheName: "sb-pages", networkTimeoutSeconds: 3 },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
+            handler: "StaleWhileRevalidate",
+            options: { cacheName: "sb-fonts", expiration: { maxEntries: 30 } },
+          },
+          {
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && /\.(png|jpe?g|webp|gif)$/i.test(url.pathname),
+            handler: "CacheFirst",
+            options: { cacheName: "sb-images", expiration: { maxEntries: 60, maxAgeSeconds: 30 * 86400 } },
+          },
+        ],
+      },
+    }),
+    mode === "development" && componentTagger(),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
