@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
+import { getRoleLabel } from '@/lib/verificationHierarchy';
 import { LogOut, Menu, X, User, Search, Bell, Command as CmdIcon, LucideIcon } from 'lucide-react';
 
 export interface NavItem {
@@ -173,9 +174,10 @@ export default function RoleLayout({
               }}
             >
               <User className="h-4 w-4 shrink-0" />
-              <span className="truncate">پروفایل</span>
               {profile?.full_name && (
-                <span className="text-xs text-muted-foreground truncate">{profile.full_name}</span>
+                <span className="text-xs text-muted-foreground truncate">
+                  {profile.full_name}{profile.role ? ` (${getRoleLabel(profile.role)})` : ''}
+                </span>
               )}
             </Button>
           </div>
@@ -221,27 +223,14 @@ export default function RoleLayout({
                 </div>
               </div>
             ))}
-          </nav>
-
-          {/* Footer */}
-          <div className="px-4 py-3 border-t border-border space-y-3">
-            {onOpenCommand && (
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2 h-10"
-                onClick={() => {
-                  setOpen(false);
-                  onOpenCommand();
-                }}
-              >
-                <Search className="h-4 w-4" />
-                <span>جستجو سریع</span>
-              </Button>
-            )}
             <div className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
               <span className="text-sm text-muted-foreground">حالت تاریک</span>
               <ThemeToggle className="h-9 w-9 text-muted-foreground" />
             </div>
+          </nav>
+
+          {/* Footer */}
+          <div className="px-4 py-3 border-t border-border space-y-3">
             <p className="text-[10px] text-muted-foreground text-center">پل آموزش افغانستان</p>
           </div>
         </div>
