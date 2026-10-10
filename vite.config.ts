@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => ({
       filename: "sw.js",
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,ico,woff2}"],
+        globIgnores: ["**/xlsx*", "**/*Chart*", "**/Analytics*", "**/Export*"],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         clientsClaim: true,
