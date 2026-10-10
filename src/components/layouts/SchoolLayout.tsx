@@ -36,9 +36,14 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
       label: 'کار من',
       items: [
         { href: '/school', icon: LayoutDashboard, label: t('navigation.dashboard') },
-          { href: '/school/academic-insights', icon: ChartBar, label: 'Academic Insights' },
         { href: '/school/submit', icon: Send, label: 'ارسال اطلاعات' },
         { href: '/chat', icon: MessageSquare, label: 'گفتگو' },
+      ],
+    },
+    {
+      label: 'بینش‌ها',
+      items: [
+        { href: '/school/academic-insights', icon: ChartBar, label: 'Academic Insights' },
       ],
     },
     {

@@ -90,3 +90,11 @@ Background Sync is used to wake open app tabs where supported. The service worke
 6. Confirm that API-backed dashboards and reference data still require a live connection. Offline mode currently covers the app shell, form drafting, and submission queue; server-backed dashboard data, chat, and other remote reads are not available offline.
 
 IndexedDB can be unavailable in private browsing or cleared/evicted by the browser, and device storage can fill up. In those cases the UI displays a storage warning; users should keep the page open and avoid clearing browser data until pending submissions sync. Browser/device loss cannot be recovered by this client-only queue.
+
+## Navigation menu audit (2026-10-10)
+
+Reviewed the burger menus for Ministry, Province, District, School, and Admin roles.
+
+- **Ministry:** Removed the duplicate “تمام مکاتب” link from Insights (it remains under Management), moved the regions page into Insights and relabeled it “ولسوالی‌ها”, and consolidated the announcements/opportunities navigation to the Announcements page by removing the separate Deadlines menu entry. The deadlines route remains unchanged.
+- **School:** Moved Academic Insights from “کار من” into its own “بینش‌ها” section.
+- **Province, District, Admin:** No duplicate or misplaced menu entries matching these issues were found; unchanged.
