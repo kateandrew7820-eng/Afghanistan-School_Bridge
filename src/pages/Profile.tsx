@@ -241,7 +241,7 @@ export default function ProfilePage() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 sm:p-6"
+      className="mx-auto min-h-screen max-w-screen-2xl bg-background p-4 sm:p-6"
       dir="rtl"
     >
       {/* Header */}
@@ -259,7 +259,7 @@ export default function ProfilePage() {
             </Button>
 
             <div>
-              <h1 className="text-3xl font-bold text-white">پروفایل من</h1>
+              <h1 className="text-3xl font-bold text-foreground">پروفایل من</h1>
               <p className="text-sm text-muted-foreground">
                 مدیریت معلومات حساب کاربری و تنظیمات
               </p>
@@ -277,24 +277,24 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+      <div className="grid grid-cols-1 items-start gap-5 sm:gap-6 lg:grid-cols-4">
         {/* Left Sidebar - Profile */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-6 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 shadow-xl">
+        <div className="min-w-0 space-y-5 lg:col-span-1 lg:space-y-6">
+          <Card className="overflow-hidden rounded-2xl border-border bg-card text-card-foreground shadow-sm">
             <CardContent className="p-6">
               {/* Avatar */}
-              <div className="mb-4 flex justify-center">
+              <div className="mb-5 flex justify-center">
                 <div className="relative">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 shadow-lg">
-                    <UserCircle2 className="h-10 w-10 text-white" />
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/5">
+                    <UserCircle2 className="h-10 w-10 text-primary" />
                   </div>
 
                   {/* This represents account status, not online presence. */}
                   <div
-                    className={`absolute bottom-0 right-0 h-6 w-6 rounded-full border-2 border-slate-800 ${
+                    className={`absolute bottom-0 right-0 h-5 w-5 rounded-full border-[3px] border-card ${
                       profile?.status === 'active'
-                        ? 'bg-green-500'
-                        : 'bg-slate-500'
+                        ? 'bg-emerald-500'
+                        : 'bg-muted-foreground'
                     }`}
                     title={
                       profile?.status === 'active'
@@ -307,16 +307,16 @@ export default function ProfilePage() {
 
               {/* User Info */}
               <div className="mb-6 space-y-2 text-center">
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="break-words text-xl font-bold text-card-foreground">
                   {profile?.full_name || 'نام ثبت نشده'}
                 </h2>
 
-                <p className="text-sm font-medium text-cyan-400">
+                <p className="text-sm font-medium text-primary">
                   {getRoleLabelFA(role)}
                 </p>
               </div>
 
-              <div className="space-y-3 border-t border-slate-700 pt-4">
+              <div className="space-y-3 border-t border-border pt-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Mail className="h-4 w-4 shrink-0" />
                   <span className="truncate">
@@ -338,7 +338,7 @@ export default function ProfilePage() {
               <Button
                 onClick={() => navigate('/setup-profile')}
                 variant="outline"
-                className="mt-6 w-full gap-2 border-cyan-500/30 hover:bg-cyan-500/10"
+                className="mt-5 w-full gap-2"
               >
                 <Edit3 className="h-4 w-4" />
                 ویرایش پروفایل
@@ -347,7 +347,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Section Menu */}
-          <div className="mt-6 space-y-2">
+          <div className="space-y-2">
             {[
               {
                 id: 'personal' as Section,
@@ -381,8 +381,8 @@ export default function ProfilePage() {
                   aria-current={isActive ? 'page' : undefined}
                   className={`w-full rounded-lg border px-4 py-3 text-right transition-all ${
                     isActive
-                      ? 'border-cyan-500/50 bg-cyan-500/20 text-cyan-400'
-                      : 'border-transparent text-muted-foreground hover:bg-slate-800/50'
+                      ? 'border-primary/40 bg-primary/10 text-primary'
+                      : 'border-transparent text-muted-foreground hover:bg-muted'
                   }`}
                 >
                   <span className="flex items-center gap-3">
@@ -399,7 +399,7 @@ export default function ProfilePage() {
             onClick={handleLogout}
             disabled={isLoggingOut}
             variant="outline"
-            className="mt-6 w-full gap-2 border-destructive/50 text-destructive hover:bg-destructive/10"
+            className="w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
           >
             {isLoggingOut ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -412,13 +412,13 @@ export default function ProfilePage() {
         </div>
 
         {/* Main Content */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-5 lg:col-span-2 lg:space-y-6">
           {/* Personal Info */}
           {activeSection === 'personal' && (
-            <Card className="border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
-              <CardHeader className="border-b border-slate-700">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                  <UserCircle2 className="h-5 w-5 text-cyan-400" />
+            <Card className="rounded-2xl border-border bg-card text-card-foreground shadow-sm">
+              <CardHeader className="border-b border-border">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
+                  <UserCircle2 className="h-5 w-5 text-primary" />
                   اطلاعات شخصی
                 </h3>
               </CardHeader>
@@ -456,7 +456,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                <div className="border-t border-slate-700 pt-4">
+                <div className="border-t border-border pt-4">
                   <Button
                     onClick={() => navigate('/setup-profile')}
                     variant="outline"
@@ -472,17 +472,17 @@ export default function ProfilePage() {
 
           {/* Security */}
           {activeSection === 'security' && (
-            <Card className="border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
-              <CardHeader className="border-b border-slate-700">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                  <Lock className="h-5 w-5 text-cyan-400" />
+            <Card className="rounded-2xl border-border bg-card text-card-foreground shadow-sm">
+              <CardHeader className="border-b border-border">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
+                  <Lock className="h-5 w-5 text-primary" />
                   امنیت و حساب کاربری
                 </h3>
               </CardHeader>
 
               <CardContent className="space-y-6 p-6">
                 {/* Account Status */}
-                <div className="flex items-center justify-between rounded-lg bg-slate-700/50 p-3">
+                <div className="flex items-center justify-between rounded-lg bg-muted p-3">
                   <span className="text-sm text-muted-foreground">
                     وضعیت حساب
                   </span>
@@ -496,7 +496,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Email Verification */}
-                <div className="flex items-center justify-between rounded-lg bg-slate-700/50 p-3">
+                <div className="flex items-center justify-between rounded-lg bg-muted p-3">
                   <span className="text-sm text-muted-foreground">
                     تأیید. ایمیل
                   </span>
@@ -515,9 +515,9 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Change Password */}
-                <div className="space-y-4 border-t border-slate-700 pt-6">
+                <div className="space-y-4 border-t border-border pt-6">
                   <div>
-                    <h4 className="font-medium text-white">
+                    <h4 className="font-medium text-card-foreground">
                       تغییر رمز عبور
                     </h4>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -532,7 +532,7 @@ export default function ProfilePage() {
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="رمز عبور جدید"
                       autoComplete="new-password"
-                      className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-cyan-500"
+                      className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
                     />
 
                     <input
@@ -541,7 +541,7 @@ export default function ProfilePage() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="تکرار رمز عبور جدید"
                       autoComplete="new-password"
-                      className="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition focus:border-cyan-500"
+                      className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
                     />
                   </div>
 
@@ -549,8 +549,8 @@ export default function ProfilePage() {
                     <div
                       className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
                         passwordMessage.type === 'success'
-                          ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                          : 'border-red-500/30 bg-red-500/10 text-red-400'
+                          ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                          : 'border-destructive/30 bg-destructive/10 text-destructive'
                       }`}
                     >
                       {passwordMessage.type === 'success' ? (
@@ -566,7 +566,7 @@ export default function ProfilePage() {
                   <Button
                     onClick={handleChangePassword}
                     disabled={isChangingPassword}
-                    className="w-full gap-2 bg-cyan-500 hover:bg-cyan-600"
+                    className="w-full gap-2"
                   >
                     {isChangingPassword ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -585,10 +585,10 @@ export default function ProfilePage() {
 
           {/* Notifications */}
           {activeSection === 'notifications' && (
-            <Card className="border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
-              <CardHeader className="border-b border-slate-700">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                  <Bell className="h-5 w-5 text-cyan-400" />
+            <Card className="rounded-2xl border-border bg-card text-card-foreground shadow-sm">
+              <CardHeader className="border-b border-border">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
+                  <Bell className="h-5 w-5 text-primary" />
                   تنظیمات اعلانات
                 </h3>
               </CardHeader>
@@ -628,12 +628,12 @@ export default function ProfilePage() {
                 />
 
                 {notificationMessage && (
-                  <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-3 text-sm text-cyan-400">
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm text-primary">
                     {notificationMessage}
                   </div>
                 )}
 
-                <div className="border-t border-slate-700 pt-4">
+                <div className="border-t border-border pt-4">
                   <Button
                     onClick={saveNotificationSettings}
                     disabled={isSavingNotifications}
@@ -654,10 +654,10 @@ export default function ProfilePage() {
 
           {/* System Settings */}
           {activeSection === 'settings' && (
-            <Card className="border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
-              <CardHeader className="border-b border-slate-700">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
-                  <Settings className="h-5 w-5 text-cyan-400" />
+            <Card className="rounded-2xl border-border bg-card text-card-foreground shadow-sm">
+              <CardHeader className="border-b border-border">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
+                  <Settings className="h-5 w-5 text-primary" />
                   تنظیمات سیستم
                 </h3>
               </CardHeader>
@@ -678,7 +678,7 @@ export default function ProfilePage() {
                   value="تیره (دارک)"
                 />
 
-                <div className="rounded-lg border border-slate-700 bg-slate-700/30 p-3 text-xs text-muted-foreground">
+                <div className="rounded-lg border border-border bg-muted/60 p-3 text-xs text-muted-foreground">
                   تنظیمات سیستم در نسخه فعلی فقط نمایش داده می‌شوند و هنوز
                   قابلیت تغییر از این صفحه را ندارند.
                 </div>
@@ -688,11 +688,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Right Sidebar - Quick Access */}
-        <div className="lg:col-span-1">
-          <Card className="sticky top-6 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
-            <CardHeader className="border-b border-slate-700">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-                <Zap className="h-4 w-4 text-cyan-400" />
+        <div className="min-w-0 lg:col-span-1">
+          <Card className="overflow-hidden rounded-2xl border-border bg-card text-card-foreground shadow-sm">
+            <CardHeader className="border-b border-border">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-card-foreground">
+                <Zap className="h-4 w-4 text-primary" />
                 دسترسی سریع
               </h3>
             </CardHeader>
@@ -706,7 +706,7 @@ export default function ProfilePage() {
                     key={item.label}
                     type="button"
                     onClick={item.action}
-                    className="w-full rounded-lg px-3 py-2 text-right text-sm text-muted-foreground transition-colors hover:bg-slate-700/50 hover:text-cyan-400"
+                    className="w-full rounded-lg px-3 py-2 text-right text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                   >
                     <span className="flex items-center gap-2">
                       <Icon className="h-4 w-4 shrink-0" />
@@ -740,7 +740,7 @@ function InfoItem({
         {label}
       </label>
 
-      <p className="mt-1 break-words font-medium text-white">
+      <p className="mt-1 break-words font-medium text-foreground">
         {value || 'ثبت نشده'}
       </p>
     </div>
@@ -755,10 +755,10 @@ function SettingRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg bg-slate-700/50 p-3">
+    <div className="flex items-center justify-between rounded-lg bg-muted p-3">
       <span className="text-sm text-muted-foreground">{label}</span>
 
-      <span className="text-sm font-medium text-white">{value}</span>
+      <span className="text-sm font-medium text-foreground">{value}</span>
     </div>
   );
 }
@@ -773,7 +773,7 @@ function NotificationToggle({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between rounded-lg bg-slate-700/50 p-3 transition-colors hover:bg-slate-700">
+    <label className="flex cursor-pointer items-center justify-between rounded-lg bg-muted p-3 transition-colors hover:bg-muted/80">
       <span className="text-sm text-muted-foreground">{label}</span>
 
       <input
