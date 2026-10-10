@@ -28,11 +28,10 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: true,
         skipWaiting: true,
         importScripts: ["/sw-sync.js"],
-        navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/auth\/callback/],
+        navigateFallback: null,
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.mode === "navigate",
+            urlPattern: ({ request, url }) => request.mode === "navigate" && !/^\/(~oauth|auth\/callback)/.test(url.pathname),
             handler: "NetworkFirst",
             options: { cacheName: "sb-pages", networkTimeoutSeconds: 3 },
           },
