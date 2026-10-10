@@ -70,7 +70,6 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('@supabase')) return 'vendor-supabase';
           if (id.includes('@radix-ui')) return 'vendor-radix';
           if (id.includes('xlsx')) return 'vendor-xlsx';
-          if (id.includes('i18next')) return 'vendor-i18n';
           if (id.includes('lucide-react')) return 'vendor-icons';
           // Everything else: leave to Rollup default (do not bucket).
           return undefined;
