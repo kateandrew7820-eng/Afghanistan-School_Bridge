@@ -1,3 +1,4 @@
+import { untypedRpc } from '@/lib/untypedRpc';
 import { useState } from 'react';
 import { MoreVertical, ShieldBan, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,7 +35,7 @@ export function ChatContactActions({
     if (!window.confirm('این کاربر دیگر نمی‌تواند به شما پیام دهد یا وضعیت آنلاین شما را ببیند.')) return;
     setBusy(true);
     try {
-      const { error } = await supabase.rpc('block_chat_user', { _blocked_user_id: contactUserId });
+      const { error } = await untypedRpc('block_chat_user', { _blocked_user_id: contactUserId });
       if (error) throw error;
       onBlocked();
     } catch (error) {
@@ -52,7 +53,7 @@ export function ChatContactActions({
     }
     setBusy(true);
     try {
-      const { error } = await supabase.rpc('report_chat_user', {
+      const { error } = await untypedRpc('report_chat_user', {
         _reported_user_id: contactUserId,
         _conversation_id: conversationId,
         _reason: reason.trim(),

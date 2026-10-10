@@ -36,7 +36,7 @@ describe('offline persistence', () => {
 
   it('restores a saved form draft and preserves attached file blobs', async () => {
     const key = `draft:test-${crypto.randomUUID()}`;
-    const file = new NodeBlob(['report bytes'], { type: 'application/pdf' });
+    const file = new NodeBlob(['report bytes'], { type: 'application/pdf' }) as unknown as Blob;
     await writeDraft(key, { title: 'Monthly report', file });
 
     const restored = await readDraft<{ title: string; file: Blob }>(key);
@@ -82,7 +82,7 @@ describe('offline persistence', () => {
         title: 'Monthly report',
         description: null,
       },
-      file: new NodeBlob(['report bytes'], { type: 'application/pdf' }),
+      file: new NodeBlob(['report bytes'], { type: 'application/pdf' }) as unknown as Blob,
       fileName: 'report.pdf',
     });
 

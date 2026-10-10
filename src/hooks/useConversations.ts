@@ -1,3 +1,4 @@
+import { untypedRpc } from '@/lib/untypedRpc';
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,7 +78,7 @@ export function useConversations() {
       if (membersError) throw membersError;
 
       const memberUserIds = Array.from(new Set((allMembers ?? []).map((member) => member.user_id)));
-      const { data: profiles, error: profilesError } = await supabase.rpc('get_chat_member_profiles', {
+      const { data: profiles, error: profilesError } = await untypedRpc('get_chat_member_profiles', {
         _user_ids: memberUserIds,
       });
       if (profilesError) throw profilesError;

@@ -1,3 +1,4 @@
+import { untypedRpc } from '@/lib/untypedRpc';
 import { useEffect, useState } from 'react';
 import { X, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -45,8 +46,8 @@ export function DetailsPanel({ conv, currentUserId, onlineUserIds, onClose, onBl
     void (async () => {
       try {
         const [contactsResult, detailsResult] = await Promise.all([
-          supabase.rpc('list_chat_contacts'),
-          supabase.rpc('get_chat_contact_details', { _contact_user_id: otherUserId }),
+          untypedRpc('list_chat_contacts'),
+          untypedRpc('get_chat_contact_details', { _contact_user_id: otherUserId }),
         ]);
         if (contactsResult.error) throw contactsResult.error;
         if (detailsResult.error) throw detailsResult.error;
@@ -64,10 +65,10 @@ export function DetailsPanel({ conv, currentUserId, onlineUserIds, onClose, onBl
     if (!otherUserId) return;
     setAdding(true);
     try {
-      const { error } = await supabase.rpc('add_chat_contact', { _contact_user_id: otherUserId });
+      const { error } = await untypedRpc('add_chat_contact', { _contact_user_id: otherUserId });
       if (error) throw error;
       setIsContact(true);
-      const { data, error: detailsError } = await supabase.rpc('get_chat_contact_details', {
+      const { data, error: detailsError } = await untypedRpc('get_chat_contact_details', {
         _contact_user_id: otherUserId,
       });
       if (detailsError) throw detailsError;
