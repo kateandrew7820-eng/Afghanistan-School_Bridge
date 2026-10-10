@@ -5,6 +5,7 @@ import { ArrowRight, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { DASHBOARD_ROUTE_BY_ROLE } from '@/lib/approverRouting';
 import { useConversations } from '@/hooks/useConversations';
 import { useMessages } from '@/hooks/useMessages';
 import { useChatPresence } from '@/hooks/useChatPresence';
@@ -17,7 +18,7 @@ import { NewConversationModal } from '@/components/chat/NewConversationModal';
 import { cn } from '@/lib/utils';
 
 export default function Chat() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const { conversations, loading, reload } = useConversations();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,7 +63,7 @@ export default function Chat() {
           variant="ghost"
           size="sm"
           className="gap-2"
-          onClick={() => navigate('/')}
+          onClick={() => navigate(DASHBOARD_ROUTE_BY_ROLE[role ?? ''] ?? '/school')}
         >
           <ArrowRight className="h-4 w-4" />
           بازگشت به صفحهٔ اصلی
