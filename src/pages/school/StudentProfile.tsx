@@ -53,14 +53,14 @@ export default function StudentProfile() {
 
       try {
         const [{ data: attendanceRows }, { data: assessmentRows, error: assessmentError }] = await Promise.all([
-          supabase.from('attendance_records').select('present, date, section').eq('student_id', id),
+          supabase.from('attendance_records').select('status, attendance_date, section_id').eq('student_id', id),
           supabase.from('form_submissions').select('id, created_at, form_data').eq('form_type', 'student_assessment').filter('form_data->>student_id', 'eq', id),
         ]);
 
         if (!mounted) return;
         if (assessmentError) throw assessmentError;
 
-        const safeAttendanceRows = (attendanceRows as AttendanceRow[] | null) ?? [];
+        const safeAttendanceRows = (attendanceRows ?? []).map((r) => ({ present: r.status === 'present', date: r.attendance_date, section: r.section_id })) as unknown as AttendanceRow[];
         const total = safeAttendanceRows.length;
         const present = safeAttendanceRows.filter((row) => row.present).length;
         setAttendanceSummary({ total, present, rate: total > 0 ? Math.round((present / total) * 100) : null });
