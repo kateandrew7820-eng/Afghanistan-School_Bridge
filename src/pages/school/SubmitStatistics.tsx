@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { BarChart3, Loader2, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Users, GraduationCap, ClipboardCheck, Sparkles, Pencil } from 'lucide-react';
-import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { validateNumberRange, validateRequired } from '@/lib/validation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDraft } from '@/hooks/useDraft';
+import { useOfflineSubmissionStatus } from '@/hooks/useOfflineSubmissionStatus';
 import { Stepper } from '@/components/Stepper';
 import { deriveStats, toInt, toPersianDigits } from '@/lib/smartCalc';
+import { queueSubmissionForSync, type QueuedSubmissionResult } from '@/lib/offlineStore';
 
 type FormData = {
   academic_year: string;
@@ -23,6 +23,7 @@ type FormData = {
   total_teachers: string;
   attendance_rate: string;
   notes: string;
+  total_manual: boolean;
 };
 
 const STEPS = [
@@ -33,12 +34,13 @@ const STEPS = [
 
 export default function SubmitStatistics() {
   const { user, profile, isDemoMode } = useAuth();
-  const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
 
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [queuedSubmission, setQueuedSubmission] = useState<QueuedSubmissionResult | null>(null);
+  const submissionStatus = useOfflineSubmissionStatus(queuedSubmission);
 
   const initialForm: FormData = {
     academic_year: new Date().getFullYear().toString(),
@@ -48,12 +50,17 @@ export default function SubmitStatistics() {
     total_teachers: '',
     attendance_rate: '',
     notes: '',
+    total_manual: false,
   };
-  const [formData, setFormData, clearDraft, hadDraft] = useDraft<FormData>('school-statistics', initialForm);
+  const [formData, setFormData, clearDraft, hadDraft, draftSaveState] = useDraft<FormData>(
+    `school-statistics:${user?.id ?? 'guest'}`,
+    initialForm,
+    user?.id ? 'school-statistics' : undefined,
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [totalManual, setTotalManual] = useState(false); // user overrode auto-total
+  const totalManual = formData.total_manual;
 
-  const setField = (name: keyof FormData, value: string) => {
+  const setField = (name: Exclude<keyof FormData, 'total_manual'>, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
@@ -115,8 +122,10 @@ export default function SubmitStatistics() {
       if (isDemoMode) {
         setSubmitted(true);
       } else {
-        const { error } = await executeWithErrorHandling(
-          async () => await supabase.from('statistics_submissions').insert({
+        const queued = await queueSubmissionForSync({
+          userId: user.id,
+          kind: 'statistics',
+          payload: {
             school_id: profile.school_id,
             submitted_by: user.id,
             academic_year: formData.academic_year,
@@ -126,16 +135,18 @@ export default function SubmitStatistics() {
             total_teachers: parseInt(formData.total_teachers) || 0,
             attendance_rate: formData.attendance_rate ? parseFloat(formData.attendance_rate) : null,
             notes: formData.notes || null,
-          }).select(),
-        );
-        if (error) throw error;
+          },
+        });
+        setQueuedSubmission(queued);
         setSubmitted(true);
         clearDraft();
-        showSuccess('اطلاعات شما با موفقیت ارسال شد', 'موفقیت');
+        if (queued.status === 'synced') showSuccess('اطلاعات شما با موفقیت ارسال شد', 'موفقیت');
+        else if (queued.status === 'pending') showSuccess('اطلاعات در دستگاه ذخیره شد و هنگام اتصال ارسال می‌شود', 'ذخیره آفلاین');
+        else showErrorMessage('اطلاعات روی دستگاه محفوظ است اما ارسال آن ناموفق بود. پیام خطا و گزینه تلاش دوباره بالای صفحه است.', 'ارسال ناموفق');
       }
     } catch (err) {
       console.error('Error submitting statistics:', err);
-      showErrorMessage('خطایی در ارسال اطلاعات رخ داد. دوباره تلاش کنید.', 'خطا در ارسال');
+      showErrorMessage('اطلاعات در دستگاه ذخیره نشد. لطفاً صفحه را باز نگه دارید و دوباره تلاش کنید.', 'خطا در ذخیره');
     } finally {
       setIsSubmitting(false);
     }
@@ -161,14 +172,22 @@ export default function SubmitStatistics() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-              <h2 className="text-xl font-semibold">اطلاعات با موفقیت ارسال شد!</h2>
-              <p className="text-muted-foreground">ارسال شما به مرحله تأیید ولسوالی منتقل شد.</p>
+              <h2 className="text-xl font-semibold">
+                {submissionStatus === 'pending' ? 'اطلاعات ذخیره شد و در انتظار ارسال است' :
+                  submissionStatus === 'failed' ? 'اطلاعات ذخیره شد اما ارسال آن ناموفق بود' : 'اطلاعات با موفقیت ارسال شد!'}
+              </h2>
+              <p className="text-muted-foreground">
+                {submissionStatus === 'pending' ? 'Pending sync — اطلاعات روی این دستگاه محفوظ است و پس از اتصال دوباره ارسال می‌شود.' :
+                  submissionStatus === 'failed' ? 'اطلاعات روی این دستگاه محفوظ است. پیام خطا و گزینه تلاش دوباره در بالای صفحه نمایش داده می‌شود.' :
+                    'ارسال شما به مرحله تأیید ولسوالی منتقل شد.'}
+              </p>
               <Button onClick={() => {
                 setSubmitted(false);
                 setFormData(initialForm);
                 clearDraft();
                 setErrors({});
                 setStep(0);
+                setQueuedSubmission(null);
               }}>
                 ارسال آمار جدید
               </Button>
@@ -190,6 +209,14 @@ export default function SubmitStatistics() {
       </div>
 
       <Stepper steps={STEPS as any} currentIndex={step} />
+      {draftSaveState !== 'loading' && (
+        <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+          {draftSaveState === 'saving' ? 'در حال ذخیره پیش‌نویس…' :
+            draftSaveState === 'saved' && hadDraft ? 'پیش‌نویس روی این دستگاه ذخیره شد' :
+              draftSaveState === 'fallback' ? 'پیش‌نویس در ذخیره‌سازی جایگزین مرورگر ذخیره شد' :
+                draftSaveState === 'error' ? 'ذخیره پیش‌نویس ناموفق بود؛ داده‌ها را کپی کنید' : null}
+        </p>
+      )}
 
       {hadDraft && step === 0 && (
         <Alert className="border-warning/20 bg-warning/10">
@@ -248,7 +275,9 @@ export default function SubmitStatistics() {
                   <Input
                     type="number"
                     value={formData.total_students}
-                    onChange={(e) => { setTotalManual(true); setField('total_students', e.target.value); }}
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, total_manual: true, total_students: e.target.value }));
+                    }}
                     placeholder="0"
                     min="0"
                     disabled={isSubmitting || !totalManual}
@@ -256,11 +285,13 @@ export default function SubmitStatistics() {
                     className={!totalManual ? 'bg-muted/40' : ''}
                   />
                   {!totalManual ? (
-                    <Button type="button" variant="outline" size="sm" onClick={() => setTotalManual(true)} className="shrink-0 gap-1">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setFormData(prev => ({ ...prev, total_manual: true }))} className="shrink-0 gap-1">
                       <Pencil className="h-3.5 w-3.5" /> ویرایش دستی
                     </Button>
                   ) : (
-                    <Button type="button" variant="ghost" size="sm" onClick={() => { setTotalManual(false); setField('total_students', String(derived.autoTotal || '')); }} className="shrink-0 gap-1">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => {
+                      setFormData(prev => ({ ...prev, total_manual: false, total_students: String(derived.autoTotal || '') }));
+                    }} className="shrink-0 gap-1">
                       <Sparkles className="h-3.5 w-3.5" /> خودکار
                     </Button>
                   )}
@@ -326,7 +357,11 @@ export default function SubmitStatistics() {
                       <AlertDescription className="text-warning text-xs flex items-center justify-between gap-2">
                         <span>مجموع پسر و دختر ({toPersianDigits(derived.autoTotal)}) با کل دستی مطابقت ندارد.</span>
                         <Button size="sm" variant="ghost" className="h-6 text-xs"
-                          onClick={() => { setTotalManual(false); setField('total_students', String(derived.autoTotal)); }}>
+                          onClick={() => setFormData(prev => ({
+                            ...prev,
+                            total_manual: false,
+                            total_students: String(derived.autoTotal),
+                          }))}>
                           اصلاح
                         </Button>
                       </AlertDescription>

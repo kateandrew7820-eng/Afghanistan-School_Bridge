@@ -8,6 +8,8 @@ interface FileUploadProgressProps {
   onUploadStart?: () => void;
   onUploadComplete?: (file: File) => void;
   onUploadError?: (error: Error) => void;
+  onFileRemove?: () => void;
+  selectedFile?: File | null;
   acceptedFileTypes?: string[];
   maxFileSize?: number; // in bytes
 }
@@ -17,6 +19,8 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
   onUploadStart,
   onUploadComplete,
   onUploadError,
+  onFileRemove,
+  selectedFile,
   acceptedFileTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx'],
   maxFileSize = 10 * 1024 * 1024, // 10MB default
 }) => {
@@ -27,6 +31,11 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setFile(selectedFile ?? null);
+    setUploadComplete(!!selectedFile);
+  }, [selectedFile]);
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -128,6 +137,7 @@ export const FileUploadProgress: React.FC<FileUploadProgressProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    onFileRemove?.();
   };
 
   const formatFileSize = (bytes: number): string => {

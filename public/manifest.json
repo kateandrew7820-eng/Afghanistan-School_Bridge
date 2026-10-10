@@ -11,66 +11,12 @@
   "lang": "fa",
   "dir": "rtl",
   "categories": ["education", "productivity"],
-  "screenshots": [
-    {
-      "src": "/screenshot-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/screenshot-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ],
   "icons": [
     {
-      "src": "/favicon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon-maskable.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "دشبورد",
-      "short_name": "دشبورد",
-      "description": "رفتن به دشبورد",
-      "url": "/school",
-      "icons": [
-        {
-          "src": "/shortcut-dashboard.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "ارسال گزارش",
-      "short_name": "گزارش",
-      "description": "ارسال گزارش جدید",
-      "url": "/school/reports",
-      "icons": [
-        {
-          "src": "/shortcut-reports.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ],
   "prefer_related_applications": false

@@ -9,11 +9,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, AlertCircle, Zap, ArrowRight, Clock } from 'lucide-react';
-import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { TEMPORARY_TEST_MODE, getApproverLabel } from '@/lib/testMode';
 import { useQuery } from '@tanstack/react-query';
+import { useDraft } from '@/hooks/useDraft';
+import { useOfflineSubmissionStatus } from '@/hooks/useOfflineSubmissionStatus';
+import { queueSubmissionForSync, type QueuedSubmissionResult } from '@/lib/offlineStore';
+import type { Database } from '@/integrations/supabase/types';
 
 const ROLES = [
   { id: 'student', label: 'شاگرد', value: 'student' },
@@ -30,26 +33,50 @@ export default function SetupProfile() {
   const { user, profile } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
 
   const isQuickMode = searchParams.get('quickMode') === 'true';
 
-  const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [schoolSearch, setSchoolSearch] = useState('');
 
-  const [formData, setFormData] = useState({
+  const initialFormData: {
+    full_name: string;
+    role: string;
+    school_name: string;
+    district: string;
+    province: string;
+    phone_number: string;
+    selected_school_id: string | null;
+  } = {
     full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
     role: isQuickMode ? 'teacher' : '',
     school_name: isQuickMode ? 'مکتب توسعه' : '',
     district: isQuickMode ? 'ولسوالی تجربه' : '',
     province: isQuickMode ? 'کابل' : '',
     phone_number: isQuickMode ? '+93 700 000 000' : '',
-  });
+    selected_school_id: null,
+  };
+  const [formData, setFormData, clearDraft, hadDraft, draftSaveState] = useDraft(
+    `setup-profile:${user?.id ?? 'guest'}`,
+    initialFormData,
+  );
+  const selectedSchoolId = formData.selected_school_id;
+  const setSelectedSchoolId = (schoolId: string | null) => {
+    setFormData((current) => ({ ...current, selected_school_id: schoolId }));
+  };
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [queuedSubmission, setQueuedSubmission] = useState<QueuedSubmissionResult | null>(null);
+  const submissionStatus = useOfflineSubmissionStatus(queuedSubmission);
+
+  useEffect(() => {
+    if (!queuedSubmission || submissionStatus !== 'synced') return;
+    localStorage.setItem('setupProfileCompleted', 'true');
+    const timer = window.setTimeout(() => navigate('/pending-verification'), 500);
+    return () => window.clearTimeout(timer);
+  }, [navigate, queuedSubmission, submissionStatus]);
 
   // Load provinces from master table
   const { data: masterProvinces } = useQuery({
@@ -110,6 +137,29 @@ export default function SetupProfile() {
     return null;
   }
 
+  if (queuedSubmission) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
+        <Card className="w-full max-w-lg">
+          <CardContent className="space-y-4 pt-6 text-center">
+            <AlertCircle className="mx-auto h-10 w-10 text-primary" />
+            <h1 className="text-xl font-semibold">
+              {submissionStatus === 'failed' ? 'پروفایل ذخیره شد اما ارسال ناموفق بود' :
+                submissionStatus === 'synced' ? 'پروفایل همگام‌سازی شد — منتظر تأیید' : 'پروفایل ذخیره شد — Pending sync'}
+            </h1>
+            <p className="text-muted-foreground">
+              {submissionStatus === 'failed'
+                ? 'معلومات شما روی این دستگاه محفوظ است. پیام خطا و گزینه تلاش دوباره در بالای صفحه نمایش داده می‌شود.'
+                : submissionStatus === 'synced'
+                  ? 'پروفایل به سرور ارسال شد. در حال انتقال به مرحله تأیید…'
+                  : 'معلومات شما روی این دستگاه محفوظ است. پس از اتصال دوباره به اینترنت، برای تأیید ارسال خواهد شد.'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -164,6 +214,10 @@ export default function SetupProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      showErrorMessage('لطفاً وارد سیستم شوید', 'خطا');
+      return;
+    }
     if (!validateForm()) {
       showErrorMessage('لطفاً تمام فیلدهای الزامی را پر کنید', 'خطای اعتبارسنجی');
       return;
@@ -187,7 +241,7 @@ export default function SetupProfile() {
         if (match) schoolId = match.id;
       }
 
-      const profileData: any = {
+      const profileData: Database['public']['Tables']['profiles']['Insert'] = {
         user_id: user.id,
         full_name: formData.full_name,
         district: formData.district,
@@ -200,11 +254,21 @@ export default function SetupProfile() {
         updated_at: new Date().toISOString(),
       };
       
-      const { error } = await executeWithErrorHandling(
-        async () => await supabase.from('profiles').upsert(profileData, { onConflict: 'user_id' }).select()
-      );
-
-      if (error) throw error;
+      const queued = await queueSubmissionForSync({
+        userId: user.id,
+        kind: 'profile',
+        payload: profileData,
+      });
+      clearDraft();
+      if (queued.status !== 'synced') {
+        setQueuedSubmission(queued);
+        if (queued.status === 'failed') {
+          showErrorMessage('پروفایل در دستگاه ذخیره شد اما ارسال ناموفق بود. پیام خطا و گزینه تلاش دوباره بالای صفحه است.', 'ارسال ناموفق');
+        } else {
+          showSuccess('پروفایل در دستگاه ذخیره شد و هنگام اتصال برای تأیید ارسال می‌شود', 'ذخیره آفلاین');
+        }
+        return;
+      }
 
       localStorage.setItem('setupProfileCompleted', 'true');
 
@@ -220,7 +284,7 @@ export default function SetupProfile() {
       setTimeout(() => navigate('/pending-verification'), 500);
     } catch (err) {
       console.error('Unexpected error:', err);
-      showErrorMessage('خطایی در ذخیره پروفایل رخ داد. دوباره تلاش کنید.', 'خطا');
+      showErrorMessage('پروفایل در دستگاه ذخیره نشد. لطفاً صفحه را باز نگه دارید و دوباره تلاش کنید.', 'خطا در ذخیره');
     } finally {
       setIsLoading(false);
     }
@@ -328,6 +392,14 @@ export default function SetupProfile() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {draftSaveState !== 'loading' && (
+                <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+                  {draftSaveState === 'saving' ? 'در حال ذخیره پیش‌نویس…' :
+                    draftSaveState === 'saved' && hadDraft ? 'پیش‌نویس قبلی بازیابی و روی این دستگاه ذخیره شد' :
+                      draftSaveState === 'fallback' ? 'پیش‌نویس در ذخیره‌سازی جایگزین مرورگر ذخیره شد' :
+                        draftSaveState === 'error' ? 'ذخیره پیش‌نویس ناموفق بود؛ معلومات را کپی کنید' : null}
+                </p>
+              )}
               {Object.keys(errors).length > 0 && (
                 <FormErrorSummary errors={errors} />
               )}
@@ -408,35 +480,42 @@ export default function SetupProfile() {
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولسوالی" error={touched.district ? errors.district : undefined}>
-                <select id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
-                  className={`w-full px-3 py-2 border rounded-md bg-background ${errors.district ? 'border-destructive' : 'border-input'}`}
-                  aria-invalid={!!errors.district}
-                >
-                  <option value="">انتخاب ولسوالی</option>
-                  {(masterDistricts ?? []).map(d => (
-                    <option key={d.id} value={d.name}>{d.name}</option>
-                  ))}
-                </select>
-                {formData.province && !(masterDistricts ?? []).length && (
-                  <p className="text-xs text-muted-foreground mt-1">ولسوالی‌ها بارگذاری می‌شوند...</p>
+                {masterDistricts?.length ? (
+                  <select id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur} disabled={isLoading}
+                    className={`w-full px-3 py-2 border rounded-md bg-background ${errors.district ? 'border-destructive' : 'border-input'}`}
+                    aria-invalid={!!errors.district}
+                  >
+                    <option value="">انتخاب ولسوالی</option>
+                    {masterDistricts.map(d => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input id="district" name="district" value={formData.district} onChange={handleChange} onBlur={handleBlur}
+                    placeholder="نام ولسوالی را وارد کنید" disabled={isLoading} aria-invalid={!!errors.district} />
                 )}
               </FormFieldWrapper>
 
               <FormFieldWrapper label="ولایت" error={touched.province ? errors.province : undefined}>
-                <select id="province" name="province" value={formData.province}
-                  onChange={(e) => {
-                    handleChange(e);
-                    setFormData(prev => ({ ...prev, province: e.target.value, district: '' }));
-                  }}
-                  onBlur={handleBlur} disabled={isLoading}
-                  className={`w-full px-3 py-2 border rounded-md bg-background ${errors.province ? 'border-destructive' : 'border-input'}`}
-                  aria-invalid={!!errors.province}
-                >
-                  <option value="">انتخاب ولایت</option>
-                  {(masterProvinces ?? []).map(province => (
-                    <option key={province.id} value={province.name}>{province.name}</option>
-                  ))}
-                </select>
+                {masterProvinces?.length ? (
+                  <select id="province" name="province" value={formData.province}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setFormData(prev => ({ ...prev, province: e.target.value, district: '' }));
+                    }}
+                    onBlur={handleBlur} disabled={isLoading}
+                    className={`w-full px-3 py-2 border rounded-md bg-background ${errors.province ? 'border-destructive' : 'border-input'}`}
+                    aria-invalid={!!errors.province}
+                  >
+                    <option value="">انتخاب ولایت</option>
+                    {masterProvinces.map(province => (
+                      <option key={province.id} value={province.name}>{province.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input id="province" name="province" value={formData.province} onChange={handleChange} onBlur={handleBlur}
+                    placeholder="نام ولایت را وارد کنید" disabled={isLoading} aria-invalid={!!errors.province} />
+                )}
               </FormFieldWrapper>
 
               <FormFieldWrapper label="شماره تلفن (اختیاری)">

@@ -1,15 +1,3 @@
-/**
- * Guarded service-worker registration.
- *
- * For now we only ship the kill-switch worker at /service-worker.js so any
- * browser that still has the broken cache gets evicted. We deliberately do
- * NOT register a new offline worker yet — that comes in a follow-up using
- * vite-plugin-pwa with a NetworkFirst HTML strategy.
- *
- * Registration is refused in dev, inside iframes, on Lovable preview hosts,
- * and when the URL contains ?sw=off (manual kill switch).
- */
-
 function isLovablePreviewHost(host: string): boolean {
   return (
     host.startsWith('id-preview--') ||
@@ -25,45 +13,38 @@ function isLovablePreviewHost(host: string): boolean {
 
 function shouldRefuseRegistration(): boolean {
   if (!import.meta.env.PROD) return true;
-  if (typeof window === 'undefined') return true;
-  if (window.top !== window.self) return true; // inside iframe
-  if (new URLSearchParams(window.location.search).has('sw') &&
-      new URLSearchParams(window.location.search).get('sw') === 'off') return true;
-  if (isLovablePreviewHost(window.location.hostname)) return true;
-  return false;
+  if (typeof window === 'undefined' || window.top !== window.self) return true;
+  if (new URLSearchParams(window.location.search).get('sw') === 'off') return true;
+  return isLovablePreviewHost(window.location.hostname);
 }
 
-async function unregisterAllAppWorkers() {
-  if (!('serviceWorker' in navigator)) return;
+async function unregisterAppWorkers(): Promise<void> {
   try {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    await Promise.allSettled(
-      regs
-        .filter((r) => {
-          const url = r.active?.scriptURL || r.installing?.scriptURL || r.waiting?.scriptURL || '';
-          return url.includes('/service-worker.js') || url.includes('/sw.js');
-        })
-        .map((r) => r.unregister())
-    );
-  } catch {
-    /* ignore */
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(registrations
+      .filter((registration) => {
+        const scriptUrl = registration.active?.scriptURL ||
+          registration.installing?.scriptURL ||
+          registration.waiting?.scriptURL || '';
+        return scriptUrl.includes('/service-worker.js') || scriptUrl.includes('/sw.js');
+      })
+      .map((registration) => registration.unregister()));
+  } catch (error) {
+    console.warn('Could not remove a previously registered app service worker:', error);
   }
 }
 
-export function registerServiceWorker() {
+export function registerServiceWorker(): void {
   if (!('serviceWorker' in navigator)) return;
-
   if (shouldRefuseRegistration()) {
-    // Clean up any stale registrations that might be left over.
-    void unregisterAllAppWorkers();
+    void unregisterAppWorkers();
     return;
   }
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/service-worker.js')
-      .catch(() => {
-        /* swallow — SW is best-effort */
+    void navigator.serviceWorker.register('/service-worker.js')
+      .catch((error: unknown) => {
+        console.error('Service worker registration failed:', error);
       });
-  });
+  }, { once: true });
 }

@@ -1,34 +1,36 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { sanitizeError } from '@/lib/sanitizeError';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
 import { FileText, Loader2, CheckCircle, Upload, AlertCircle } from 'lucide-react';
-import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { FileUploadProgress } from '@/components/FileUploadProgress';
 import { validateFileSize, validateFileType, validateRequired } from '@/lib/validation';
+import { useDraft } from '@/hooks/useDraft';
+import { useOfflineSubmissionStatus } from '@/hooks/useOfflineSubmissionStatus';
+import { queueSubmissionForSync, type QueuedSubmissionResult } from '@/lib/offlineStore';
 // Mock submission removed - using real submissions
 
 export default function SubmitReports() {
   const { user, profile, isDemoMode } = useAuth();
-  const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
-  const mockSubmitReport = async (_data: any, _file: any) => ({ success: true, message: 'Demo mode' });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState({ title: '', description: '' });
+  const [queuedSubmission, setQueuedSubmission] = useState<QueuedSubmissionResult | null>(null);
+  const submissionStatus = useOfflineSubmissionStatus(queuedSubmission);
+  const initialDraft = { title: '', description: '', file: null as File | null };
+  const [formData, setFormData, clearDraft, hadDraft, draftSaveState] = useDraft(
+    `school-report-submission:${user?.id ?? 'guest'}`,
+    initialDraft,
+  );
+  const selectedFile = formData.file;
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -83,32 +85,32 @@ export default function SubmitReports() {
       if (!selectedFile) throw new Error('فایل انتخاب نشده است');
 
       if (isDemoMode) {
-        const result = await mockSubmitReport(formData, selectedFile);
-        if (result.success) setSubmitted(true);
-      } else {
-        const fileExt = selectedFile.name.split('.').pop();
-        const filePath = `${profile.school_id}/${Date.now()}.${fileExt}`;
-        const { data, error: uploadError } = await supabase.storage.from('school-reports').upload(filePath, selectedFile);
-        if (uploadError) throw uploadError;
-
-        const { error: dbError } = await supabase.from('report_submissions').insert({
-          school_id: profile.school_id,
-          submitted_by: user.id,
-          title: formData.title,
-          description: formData.description || null,
-          file_path: data.path,
-          file_name: selectedFile.name,
-          status: 'pending'
-        });
-        if (dbError) throw dbError;
-
         setSubmitted(true);
-        showSuccess('گزارش شما با موفقیت ارسال شد', 'موفقیت');
+      } else {
+        const queued = await queueSubmissionForSync({
+          userId: user.id,
+          kind: 'report',
+          payload: {
+            school_id: profile.school_id,
+            submitted_by: user.id,
+            title: formData.title,
+            description: formData.description || null,
+            status: 'pending',
+          },
+          file: selectedFile,
+          fileName: selectedFile.name,
+        });
+        setQueuedSubmission(queued);
+        clearDraft();
+        setSubmitted(true);
+        if (queued.status === 'synced') showSuccess('گزارش شما با موفقیت ارسال شد', 'موفقیت');
+        else if (queued.status === 'pending') showSuccess('گزارش و فایل در دستگاه ذخیره شد و هنگام اتصال ارسال می‌شود', 'ذخیره آفلاین');
+        else showErrorMessage('گزارش و فایل روی دستگاه محفوظ است اما ارسال ناموفق بود. پیام خطا و گزینه تلاش دوباره بالای صفحه است.', 'ارسال ناموفق');
       }
     } catch (err) {
       console.error('Error submitting report:', err);
       const errorMsg = sanitizeError(err);
-      showErrorMessage(errorMsg, 'خطا در ارسال');
+      showErrorMessage(errorMsg || 'گزارش در دستگاه ذخیره نشد. لطفاً صفحه را باز نگه دارید و دوباره تلاش کنید.', 'خطا در ذخیره');
     } finally {
       setIsSubmitting(false);
     }
@@ -121,14 +123,21 @@ export default function SubmitReports() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-              <h2 className="text-xl font-semibold">گزارش با موفقیت ارسال شد!</h2>
-              <p className="text-muted-foreground">گزارش شما به مرکز ارسال شده است.</p>
+              <h2 className="text-xl font-semibold">
+                {submissionStatus === 'pending' ? 'گزارش ذخیره شد و در انتظار ارسال است' :
+                  submissionStatus === 'failed' ? 'گزارش ذخیره شد اما ارسال آن ناموفق بود' : 'گزارش با موفقیت ارسال شد!'}
+              </h2>
+              <p className="text-muted-foreground">
+                {submissionStatus === 'pending' ? 'Pending sync — گزارش و فایل روی این دستگاه محفوظ است.' :
+                  submissionStatus === 'failed' ? 'گزارش و فایل روی این دستگاه محفوظ است. پیام خطا و گزینه تلاش دوباره در بالای صفحه نمایش داده می‌شود.' :
+                    'گزارش شما به مرکز ارسال شده است.'}
+              </p>
               <Button onClick={() => { 
                 setSubmitted(false); 
-                setFormData({ title: '', description: '' }); 
-                setSelectedFile(null);
+                clearDraft();
                 setErrors({});
                 setTouched({});
+                setQueuedSubmission(null);
               }}>
                 ارسال گزارش دیگری
               </Button>
@@ -165,6 +174,14 @@ export default function SubmitReports() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {draftSaveState !== 'loading' && (
+              <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+                {draftSaveState === 'saving' ? 'در حال ذخیره پیش‌نویس…' :
+                  draftSaveState === 'saved' && hadDraft ? 'پیش‌نویس و فایل روی این دستگاه ذخیره شد' :
+                    draftSaveState === 'fallback' ? 'پیش‌نویس در ذخیره‌سازی جایگزین مرورگر ذخیره شد' :
+                      draftSaveState === 'error' ? 'ذخیره پیش‌نویس ناموفق بود؛ صفحه را باز نگه دارید' : null}
+              </p>
+            )}
             {Object.values(errors).filter(Boolean).length > 0 && (
               <FormErrorSummary errors={errors} />
             )}
@@ -180,8 +197,10 @@ export default function SubmitReports() {
             <div className="space-y-2">
               <Label className={errors.file ? 'text-destructive' : ''}>فایل گزارش *</Label>
               <FileUploadProgress
+                selectedFile={selectedFile}
+                onFileRemove={() => setFormData(prev => ({ ...prev, file: null }))}
                 onFileSelect={(file) => {
-                  setSelectedFile(file);
+                  setFormData(prev => ({ ...prev, file }));
                   setTouched(prev => ({ ...prev, file: true }));
                   if (errors.file) setErrors(prev => ({ ...prev, file: '' }));
                 }}

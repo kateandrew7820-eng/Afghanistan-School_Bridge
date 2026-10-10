@@ -11,6 +11,7 @@ import { SmartConfirmationDialog } from "@/components/SmartConfirmationDialog";
 import { getRoleTier } from "@/lib/supabase";
 import { useVerification } from "@/hooks/useVerification";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OfflineStatus } from "@/components/OfflineStatus";
 
 
 // Pages - Core pages loaded immediately, others lazy-loaded for performance
@@ -412,6 +413,7 @@ const App = () => (
               <SmartConfirmationDialog />
 
               <AuthProvider>
+                <OfflineStatus />
                 <BrowserRouter>
                   <Suspense fallback={null}><CommandPalette /></Suspense>
                   <AppRoutes />

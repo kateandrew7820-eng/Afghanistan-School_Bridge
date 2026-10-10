@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { ClipboardList, Loader2, CheckCircle } from 'lucide-react';
-import { useAPIError } from '@/hooks/useAPIError';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
 import { validateRequired } from '@/lib/validation';
+import { useDraft } from '@/hooks/useDraft';
+import { useOfflineSubmissionStatus } from '@/hooks/useOfflineSubmissionStatus';
+import { queueSubmissionForSync, type QueuedSubmissionResult } from '@/lib/offlineStore';
 
 const formTypes = [
   { value: 'infrastructure', label: 'بررسی زیرساخت‌ها' },
@@ -25,27 +25,32 @@ const formTypes = [
 
 export default function SubmitForms() {
   const { user, profile } = useAuth();
-  const { toast } = useToast();
-  const { executeWithErrorHandling } = useAPIError();
   const { showErrorMessage, showSuccess } = useErrorToast();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [formType, setFormType] = useState('');
-  const [formData, setFormData] = useState({
+  const [queuedSubmission, setQueuedSubmission] = useState<QueuedSubmissionResult | null>(null);
+  const submissionStatus = useOfflineSubmissionStatus(queuedSubmission);
+  const initialDraft = {
+    formType: '',
     title: '',
     details: '',
     additional_info: ''
-  });
+  };
+  const [draft, setDraft, clearDraft, hadDraft, draftSaveState] = useDraft(
+    `school-form-submission:${user?.id ?? 'guest'}`,
+    initialDraft,
+  );
+  const { formType, title, details, additional_info: additionalInfo } = draft;
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (!formType) newErrors.formType = 'نوع فورم الزامی است';
-    const titleError = validateRequired(formData.title);
+    const titleError = validateRequired(title);
     if (titleError) newErrors.title = titleError;
-    const detailsError = validateRequired(formData.details);
+    const detailsError = validateRequired(details);
     if (detailsError) newErrors.details = detailsError;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -53,13 +58,13 @@ export default function SubmitForms() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setDraft(prev => ({ ...prev, [name]: value }));
     setTouched(prev => ({ ...prev, [name]: true }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleFormTypeChange = (value: string) => {
-    setFormType(value);
+    setDraft(prev => ({ ...prev, formType: value }));
     setTouched(prev => ({ ...prev, formType: true }));
     if (errors.formType) setErrors(prev => ({ ...prev, formType: '' }));
   };
@@ -81,24 +86,29 @@ export default function SubmitForms() {
 
     setIsSubmitting(true);
     try {
-      const { error } = await executeWithErrorHandling(
-        async () => await supabase.from('form_submissions').insert({
+      const queued = await queueSubmissionForSync({
+        userId: user.id,
+        kind: 'form',
+        payload: {
           school_id: profile.school_id,
           submitted_by: user.id,
           form_type: formType,
           form_data: {
-            title: formData.title,
-            details: formData.details,
-            additional_info: formData.additional_info
+            title,
+            details,
+            additional_info: additionalInfo
           }
-        }).select()
-      );
-      if (error) throw error;
+        },
+      });
+      setQueuedSubmission(queued);
+      clearDraft();
       setSubmitted(true);
-      showSuccess('فورم شما با موفقیت ارسال شد', 'موفقیت');
+      if (queued.status === 'synced') showSuccess('فورم شما با موفقیت ارسال شد', 'موفقیت');
+      else if (queued.status === 'pending') showSuccess('فورم در دستگاه ذخیره شد و هنگام اتصال ارسال می‌شود', 'ذخیره آفلاین');
+      else showErrorMessage('فورم روی دستگاه محفوظ است اما ارسال آن ناموفق بود. پیام خطا و گزینه تلاش دوباره بالای صفحه است.', 'ارسال ناموفق');
     } catch (err) {
       console.error('Error submitting form:', err);
-      showErrorMessage('خطایی در ارسال فورم رخ داد. دوباره تلاش کنید.', 'خطا در ارسال');
+      showErrorMessage('فورم در دستگاه ذخیره نشد. لطفاً صفحه را باز نگه دارید و دوباره تلاش کنید.', 'خطا در ذخیره');
     } finally {
       setIsSubmitting(false);
     }
@@ -111,14 +121,21 @@ export default function SubmitForms() {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <CheckCircle className="h-12 w-12 text-primary mx-auto" />
-              <h2 className="text-xl font-semibold">فورم با موفقیت ارسال شد!</h2>
-              <p className="text-muted-foreground">فورم شما به مرکز ارسال شده است.</p>
+              <h2 className="text-xl font-semibold">
+                {submissionStatus === 'pending' ? 'فورم ذخیره شد و در انتظار ارسال است' :
+                  submissionStatus === 'failed' ? 'فورم ذخیره شد اما ارسال آن ناموفق بود' : 'فورم با موفقیت ارسال شد!'}
+              </h2>
+                  <p className="text-muted-foreground">
+                    {submissionStatus === 'pending' ? 'Pending sync — فورم روی این دستگاه محفوظ است و پس از اتصال دوباره ارسال می‌شود.' :
+                      submissionStatus === 'failed' ? 'فورم روی این دستگاه محفوظ است. پیام خطا و گزینه تلاش دوباره در بالای صفحه نمایش داده می‌شود.' :
+                        'فورم شما به مرکز ارسال شده است.'}
+              </p>
               <Button onClick={() => { 
                 setSubmitted(false); 
-                setFormType(''); 
-                setFormData({ title: '', details: '', additional_info: '' });
+                clearDraft();
                 setErrors({});
                 setTouched({});
+                setQueuedSubmission(null);
               }}>
                 ارسال فورم دیگری
               </Button>
@@ -146,6 +163,12 @@ export default function SubmitForms() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+              {draftSaveState === 'saving' ? 'در حال ذخیره پیش‌نویس…' :
+                draftSaveState === 'saved' && hadDraft ? 'پیش‌نویس روی این دستگاه ذخیره شد' :
+                  draftSaveState === 'fallback' ? 'پیش‌نویس در ذخیره‌سازی جایگزین مرورگر ذخیره شد' :
+                    draftSaveState === 'error' ? 'ذخیره پیش‌نویس ناموفق بود؛ داده‌ها را کپی کنید' : null}
+            </p>
             {Object.values(errors).filter(Boolean).length > 0 && (
               <FormErrorSummary errors={errors} />
             )}
@@ -168,15 +191,15 @@ export default function SubmitForms() {
             </div>
 
             <FormFieldWrapper label="عنوان / موضوع *" error={touched.title ? errors.title : undefined}>
-              <Input id="title" name="title" value={formData.title} onChange={handleChange} placeholder="موضوع کوتاه درخواست خود" disabled={isSubmitting} aria-invalid={!!errors.title} />
+              <Input id="title" name="title" value={title} onChange={handleChange} placeholder="موضوع کوتاه درخواست خود" disabled={isSubmitting} aria-invalid={!!errors.title} />
             </FormFieldWrapper>
 
             <FormFieldWrapper label="جزئیات *" error={touched.details ? errors.details : undefined}>
-              <Textarea id="details" name="details" value={formData.details} onChange={handleChange} placeholder="اطلاعات تفصیلی را ارائه دهید..." rows={5} disabled={isSubmitting} aria-invalid={!!errors.details} />
+              <Textarea id="details" name="details" value={details} onChange={handleChange} placeholder="اطلاعات تفصیلی را ارائه دهید..." rows={5} disabled={isSubmitting} aria-invalid={!!errors.details} />
             </FormFieldWrapper>
 
             <FormFieldWrapper label="اطلاعات اضافی">
-              <Textarea id="additional_info" name="additional_info" value={formData.additional_info} onChange={handleChange} placeholder="هر اطلاعات مرتبط دیگری..." rows={3} disabled={isSubmitting} />
+              <Textarea id="additional_info" name="additional_info" value={additionalInfo} onChange={handleChange} placeholder="هر اطلاعات مرتبط دیگری..." rows={3} disabled={isSubmitting} />
             </FormFieldWrapper>
 
             <Button type="submit" className="w-full" disabled={isSubmitting || !formType}>

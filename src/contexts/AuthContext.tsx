@@ -26,6 +26,24 @@ interface Profile {
   } | null;
 }
 
+interface CachedUserData {
+  role: UserRole | null;
+  profile: Profile | null;
+}
+
+function readCachedUserData(userId: string): CachedUserData | null {
+  try {
+    const raw = localStorage.getItem(`schoolbridge-offline-profile:${userId}`);
+    if (!raw) return null;
+    const cached = JSON.parse(raw) as CachedUserData;
+    if (cached.profile && cached.profile.user_id !== userId) return null;
+    return cached;
+  } catch (error) {
+    console.warn('[Auth] Could not read offline profile data:', error);
+    return null;
+  }
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -81,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (loadingRef.current) return;
     loadingRef.current = true;
     setProfileLoading(true);
+    const cachedUserData = readCachedUserData(userId);
     try {
       const [roleResult, profileResult] = await Promise.all([
         getUserRole(userId),
@@ -89,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (roleResult.error) {
         console.warn('[Auth] Role fetch failed, using default:', roleResult.error.message);
-        setRole('school');
+        setRole(cachedUserData?.role ?? 'school');
       } else {
         setRole(roleResult.role);
       }
@@ -97,11 +116,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (profileResult.error) {
         console.warn('[Auth] Profile fetch failed:', profileResult.error.message);
       }
-      setProfile(profileResult.profile);
+      const resolvedProfile = profileResult.error
+        ? cachedUserData?.profile ?? null
+        : profileResult.profile;
+      setProfile(resolvedProfile);
+      if (!profileResult.error && (profileResult.profile || roleResult.role)) {
+        try {
+          localStorage.setItem(`schoolbridge-offline-profile:${userId}`, JSON.stringify({
+            role: roleResult.role,
+            profile: profileResult.profile,
+          } satisfies CachedUserData));
+        } catch (cacheError) {
+          console.warn('[Auth] Could not cache profile data for offline use:', cacheError);
+        }
+      }
     } catch (err) {
       console.error('[Auth] loadUserData failed:', err);
-      setRole('school');
-      setProfile(null);
+      setRole(cachedUserData?.role ?? 'school');
+      setProfile(cachedUserData?.profile ?? null);
     } finally {
       loadingRef.current = false;
       setProfileLoading(false);
@@ -159,6 +191,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else if (event === 'SIGNED_OUT') {
           localStorage.removeItem('schoolbridge-owner-bypass');
+          try {
+            Object.keys(localStorage)
+              .filter((key) => key.startsWith('schoolbridge-offline-profile:'))
+              .forEach((key) => localStorage.removeItem(key));
+          } catch (cacheError) {
+            console.warn('[Auth] Could not clear cached profile data:', cacheError);
+          }
           setRole(null);
           setProfile(null);
           setProfileLoading(false);
