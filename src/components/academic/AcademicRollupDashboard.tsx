@@ -1,3 +1,4 @@
+import { untypedRpc } from '@/lib/untypedRpc';
 import { useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, BarChart3, School, Users } from 'lucide-react';
@@ -33,7 +34,7 @@ export function AcademicRollupDashboard({ level }: AcademicRollupDashboardProps)
   const query = useQuery({
     queryKey: ['academic-admin-rollup', viewLevel, provinceScope, districtScope, academicYear, gender, subject],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_academic_admin_rollup', {
+      const { data, error } = await untypedRpc('get_academic_admin_rollup', {
         _level: viewLevel,
         _academic_year: academicYear || null,
         _gender: gender,

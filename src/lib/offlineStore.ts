@@ -186,7 +186,19 @@ async function updateSubmission(id: string, changes: Partial<OfflineSubmission>)
 }
 
 function retryDelay(attempts: number): number {
-  return Math.min(30_000 * (2 ** Math.min(attempts, 10)), MAX_RETRY_DELAY);
+  const base = Math.min(5_000 * (2 ** Math.min(attempts, 10)), 5 * 60_000, MAX_RETRY_DELAY);
+  return Math.round(base * (0.8 + Math.random() * 0.4));
+}
+
+/** Ask the browser not to evict queued offline work. */
+export async function requestPersistentStorage(): Promise<void> {
+  try {
+    if (navigator.storage?.persist && !(await navigator.storage.persisted())) {
+      await navigator.storage.persist();
+    }
+  } catch (error) {
+    console.warn('Persistent storage is unavailable:', error);
+  }
 }
 
 class InvalidOfflineSubmissionError extends Error {

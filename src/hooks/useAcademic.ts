@@ -49,12 +49,12 @@ export function useAcademicOverview() {
       if (!schoolId) return {};
 
       const [{ data: attendanceRows }, { data: stats }, { data: assessments }] = await Promise.all([
-        supabase.from('attendance_records').select('student_id, present, date, section, school_id').eq('school_id', schoolId),
+        supabase.from('attendance_records').select('student_id, status, attendance_date, section_id').eq('school_id', schoolId),
         supabase.from('statistics_submissions').select('total_students, attendance_rate').eq('school_id', schoolId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('form_submissions').select('id, created_at, form_data, submitted_by').eq('school_id', schoolId).eq('form_type', 'student_assessment').order('created_at', { ascending: false }).limit(20),
       ]);
 
-      const safeAttendanceRows = (attendanceRows as AttendanceRow[] | null) ?? [];
+      const safeAttendanceRows: AttendanceRow[] = (attendanceRows ?? []).map((r) => ({ student_id: r.student_id, present: r.status === 'present', date: r.attendance_date, section: r.section_id }));
       const recentAssessments = (assessments as AcademicAssessment[] | null) ?? [];
 
       let attendanceRate: number | null = null;

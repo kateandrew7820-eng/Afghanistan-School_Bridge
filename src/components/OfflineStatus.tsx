@@ -120,14 +120,14 @@ export function OfflineStatus() {
   ) return null;
 
   const message = storageError
-    ? 'Offline storage is unavailable. Keep this page open and do not clear browser data.'
+    ? 'ذخیره‌سازی محلی در دسترس نیست. این صفحه را باز نگه دارید.'
     : connection === 'offline'
-      ? `Offline — changes are saved on this device${pendingCount ? ` · Pending sync: ${pendingCount}` : ''}`
+      ? `آفلاین — تغییرات به صورت محلی ذخیره شد${pendingCount ? ` · در انتظار همگام‌سازی: ${pendingCount}` : ''}`
       : failedCount
-        ? `${failedCount} submission${failedCount === 1 ? '' : 's'} could not sync. Your data is still saved on this device.`
+        ? `خطا در همگام‌سازی ${failedCount} مورد. داده‌ها روی این دستگاه محفوظ است.`
         : pendingCount
-          ? `Pending sync: ${pendingCount} submission${pendingCount === 1 ? '' : 's'}`
-          : 'Synced';
+          ? `در انتظار همگام‌سازی: ${pendingCount} مورد`
+          : 'همگام شد';
 
   return (
     <div
@@ -144,7 +144,7 @@ export function OfflineStatus() {
       <span>{message}</span>
       {(failedCount > 0 || pendingCount > 0) && connection === 'online' && user && (
         <Button size="sm" variant="outline" onClick={() => void retryQueued()}>
-          {failedCount > 0 ? 'Retry failed' : 'Retry now'}
+          {failedCount > 0 ? 'تلاش دوباره' : 'همگام‌سازی اکنون'}
         </Button>
       )}
     </div>

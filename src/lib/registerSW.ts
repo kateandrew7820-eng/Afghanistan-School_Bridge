@@ -42,9 +42,17 @@ export function registerServiceWorker(): void {
   }
 
   window.addEventListener('load', () => {
-    void navigator.serviceWorker.register('/service-worker.js')
-      .catch((error: unknown) => {
-        console.error('Service worker registration failed:', error);
-      });
+    void (async () => {
+      // Retire the old hand-written worker before registering the new one.
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations
+        .filter((r) => (r.active?.scriptURL || '').includes('/service-worker.js'))
+        .map((r) => r.unregister()));
+      await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      const { requestPersistentStorage } = await import('./offlineStore');
+      await requestPersistentStorage();
+    })().catch((error: unknown) => {
+      console.error('Service worker registration failed:', error);
+    });
   }, { once: true });
 }

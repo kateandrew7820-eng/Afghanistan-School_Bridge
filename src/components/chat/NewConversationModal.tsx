@@ -1,3 +1,4 @@
+import { untypedRpc } from '@/lib/untypedRpc';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -69,7 +70,7 @@ export function NewConversationModal({ open, onOpenChange, onCreated, conversati
     try {
       const cached = await readCachedChatContacts(user.id);
       setContacts(cached);
-      const { data, error } = await supabase.rpc('list_chat_contacts');
+      const { data, error } = await untypedRpc('list_chat_contacts');
       if (error) throw error;
       const updated = data ?? [];
       setContacts(updated);
@@ -108,7 +109,7 @@ export function NewConversationModal({ open, onOpenChange, onCreated, conversati
     }
     setSearching(true);
     try {
-      const { data, error } = await supabase.rpc('find_chat_user_by_email', { _email: query });
+      const { data, error } = await untypedRpc('find_chat_user_by_email', { _email: query });
       if (error) throw error;
       setResult(data?.[0] ?? null);
       setSearched(true);
@@ -134,7 +135,7 @@ export function NewConversationModal({ open, onOpenChange, onCreated, conversati
     setCreating(true);
     try {
       if (selected.length === 1) {
-        const { data, error } = await supabase.rpc('create_direct_chat_by_email', { _email: selected[0].email });
+        const { data, error } = await untypedRpc('create_direct_chat_by_email', { _email: selected[0].email });
         if (error) throw error;
         onCreated(data);
         onOpenChange(false);
@@ -142,7 +143,7 @@ export function NewConversationModal({ open, onOpenChange, onCreated, conversati
       }
 
       for (const person of selected) {
-        const { error } = await supabase.rpc('add_chat_contact_by_email', { _email: person.email });
+        const { error } = await untypedRpc('add_chat_contact_by_email', { _email: person.email });
         if (error) throw error;
       }
 
