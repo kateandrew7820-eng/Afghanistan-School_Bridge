@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { AcademicRollupDashboard } from '@/components/academic/AcademicRollupDashboard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubmissions } from '@/hooks/useSubmissions';
 import { useSubmissionActions } from '@/hooks/useSubmissionActions';
@@ -99,6 +100,8 @@ export default function DistrictDashboard() {
           to="/district/verify"
         />
       </section>
+
+      <AcademicRollupDashboard level="district" />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Action Required */}

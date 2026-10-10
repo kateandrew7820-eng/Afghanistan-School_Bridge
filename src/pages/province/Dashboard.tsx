@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, BarChart3, Users, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { AcademicRollupDashboard } from '@/components/academic/AcademicRollupDashboard';
 
 export default function ProvinceDashboard() {
   const { profile } = useAuth();
@@ -72,6 +73,8 @@ export default function ProvinceDashboard() {
         <DashboardStatCard title="دانش‌آموزان" value={data?.totalStudents} icon={<Users className="h-4 w-4" />} loading={loading} format />
         <DashboardStatCard title="در انتظار" value={stats?.pending} loading={loading} />
       </div>
+
+      <AcademicRollupDashboard level="province" />
 
       {/* District Breakdown */}
       {districtBreakdown && districtBreakdown.length > 0 && (

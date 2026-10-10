@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { NationalTargetsCard } from '@/components/NationalTargetsCard';
+import { AcademicRollupDashboard } from '@/components/academic/AcademicRollupDashboard';
 
 export default function MinistryDashboard() {
   const { isDemoMode } = useAuth();
@@ -144,6 +145,8 @@ export default function MinistryDashboard() {
           hint="شاگرد به ازای هر معلم"
         />
       </div>
+
+      {!isDemoMode && <AcademicRollupDashboard level="ministry" />}
 
       {/* Province Breakdown */}
       {provinceBreakdown && provinceBreakdown.length > 0 && (

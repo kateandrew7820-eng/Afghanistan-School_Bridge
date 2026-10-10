@@ -863,6 +863,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_academic_admin_rollup: {
+        Args: {
+          _academic_year?: string | null
+          _district?: string | null
+          _gender?: string
+          _level: string
+          _province?: string | null
+          _subject?: string | null
+        }
+        Returns: Json
+      }
       add_chat_contact: {
         Args: { _contact_user_id: string }
         Returns: undefined
