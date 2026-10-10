@@ -12,6 +12,7 @@ interface Props {
   showAvatar: boolean;
   showSenderName: boolean;
   totalOtherMembers: number;
+  onRetry: () => void;
 }
 
 export function MessageBubble({
@@ -21,6 +22,7 @@ export function MessageBubble({
   showAvatar,
   showSenderName,
   totalOtherMembers,
+  onRetry,
 }: Props) {
   const readByOthers = message.read_by.filter((uid) => uid !== message.sender_id).length;
   const seenByAll = totalOtherMembers > 0 && readByOthers >= totalOtherMembers;
@@ -58,6 +60,11 @@ export function MessageBubble({
             />
           </div>
         )}
+        {!message.attachment_url && message.attachment_name && (
+          <p className="mb-1 rounded-md bg-background/40 px-2 py-1 text-xs">
+            {message.attachment_name}
+          </p>
+        )}
         {message.body && (
           <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
             {message.deleted_at ? <span className="italic opacity-70">پیام حذف شد</span> : message.body}
@@ -69,6 +76,23 @@ export function MessageBubble({
             isMine ? 'justify-end' : 'justify-start',
           )}
         >
+          {message.local_state && (
+            <span className={cn(
+              'text-[10px]',
+              isMine ? 'text-primary-foreground/75' : 'text-muted-foreground',
+            )}>
+              {message.local_state === 'pending'
+                ? 'در انتظار ارسال'
+                : message.local_state === 'failed'
+                  ? 'ارسال ناموفق'
+                  : 'ارسال شد'}
+            </span>
+          )}
+          {message.local_state === 'failed' && (
+            <button type="button" onClick={onRetry} className="text-[10px] underline">
+              تلاش دوباره
+            </button>
+          )}
           <span
             className={cn(
               'text-[10px]',

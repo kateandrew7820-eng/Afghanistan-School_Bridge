@@ -87,9 +87,17 @@ Background Sync is used to wake open app tabs where supported. The service worke
 3. Open a school form/statistics/report, enter values (and attach a report file), then reload or close and reopen the app. Confirm the draft and attachment are restored.
 4. Go offline in DevTools or enable airplane mode. Confirm the app shell and form pages still load, edit a draft, submit it, and verify the UI reports `Pending sync`.
 5. Restore connectivity, including a throttled/intermittent profile. Confirm the queued record appears once on the server, the report attachment is present, and the UI reports `Synced`. Verify that a failed request remains queued and is retried after backoff.
-6. Confirm that API-backed dashboards and reference data still require a live connection. Offline mode currently covers the app shell, form drafting, and submission queue; server-backed dashboard data, chat, and other remote reads are not available offline.
+6. Confirm that API-backed dashboards and reference data still require a live connection. Offline mode covers the app shell, form drafting, submission queue, cached chat contacts/conversation summaries/recent messages, and queued outgoing chat messages. Server-backed dashboard data, contact lookup, new conversation creation, and uncached remote reads still require a live connection.
 
 IndexedDB can be unavailable in private browsing or cleared/evicted by the browser, and device storage can fill up. In those cases the UI displays a storage warning; users should keep the page open and avoid clearing browser data until pending submissions sync. Browser/device loss cannot be recovered by this client-only queue.
+
+### Private chat contacts
+
+New chat discovery uses an exact, case-insensitive email lookup RPC and returns only the verified user's id, display name, and role. Search attempts are rate-limited; there is no client-side user directory or partial-email discovery. Partial email/name filtering is limited to contacts the signed-in user has already saved. The contact list, conversation summaries, recent 200 messages per conversation, and pending outgoing messages are stored in IndexedDB per account. Pending messages and attachment blobs are retried with exponential backoff; the app syncs on reconnect, focus, and while open. Server-backed contact discovery and first-time conversation creation need a connection.
+
+The `20261010201000_private_chat_contacts.sql` migration preserves existing conversation/member/message identifiers and adds contact, block, and report storage plus restricted RPCs. Existing chats are deliberately **not** backfilled as mutual contacts: each account must add the other before either can see the other's phone number. Email and phone values are only returned by server functions to an authenticated participant in a direct chat; phone is null until both contact edges exist. Blocking prevents new direct messages and private presence/typing subscriptions, and signals the other active client to close the chat. Reports are insertable only through a server-validated RPC and are visible to admins. The migration does not delete old messages or conversations.
+
+To reverse the application rollout, deploy the previous client first. Keep the new tables and functions until any contact/block/report data has been explicitly exported or intentionally discarded; dropping those tables would destroy user-managed state and reports. The new message insert policy can be restored to the prior member-only rule only if the contact/block feature is fully rolled back. This migration has not been applied to a live database as part of this change.
 
 ## Navigation menu audit (2026-10-10)
 

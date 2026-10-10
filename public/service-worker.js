@@ -150,7 +150,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('sync', (event) => {
-  if (event.tag !== 'schoolbridge-submissions') return;
+  if (!['schoolbridge-submissions', 'schoolbridge-chat-messages'].includes(event.tag)) return;
   event.waitUntil((async () => {
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     for (const client of clients) {

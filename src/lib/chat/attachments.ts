@@ -33,13 +33,14 @@ export function fileKindIcon(mime: string): 'image' | 'pdf' | 'doc' | 'sheet' | 
 
 export async function uploadChatAttachment(
   conversationId: string,
-  file: File,
+  file: Blob & { name: string },
+  messageId?: string,
 ): Promise<{ path: string; signedUrl: string | null }> {
-  const cleanName = file.name.replace(/[^\w.\-]+/g, '_');
-  const path = `${conversationId}/${crypto.randomUUID()}-${cleanName}`;
+  const cleanName = file.name.replace(/[^\w.-]+/g, '_');
+  const path = `${conversationId}/${messageId ?? crypto.randomUUID()}-${cleanName}`;
   const { error } = await supabase.storage
     .from('chat-attachments')
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, file, { contentType: file.type, upsert: Boolean(messageId) });
   if (error) throw error;
   const { data: signed } = await supabase.storage
     .from('chat-attachments')

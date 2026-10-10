@@ -1,6 +1,10 @@
-import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatAvatar } from './ChatAvatar';
+import { ChatContactActions } from './ChatContactActions';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import type { ConversationSummary } from '@/hooks/useConversations';
 
 interface Props {
@@ -8,6 +12,7 @@ interface Props {
   currentUserId: string;
   onlineUserIds: Set<string>;
   onClose: () => void;
+  onBlocked: () => void;
 }
 
 const ROLE_FA: Record<string, string> = {
@@ -15,11 +20,65 @@ const ROLE_FA: Record<string, string> = {
   member: 'عضو',
 };
 
-export function DetailsPanel({ conv, currentUserId, onlineUserIds, onClose }: Props) {
+export function DetailsPanel({ conv, currentUserId, onlineUserIds, onClose, onBlocked }: Props) {
+  const { toast } = useToast();
+  const [contactDetails, setContactDetails] = useState<{
+    email: string;
+    phone_number: string | null;
+    mutual: boolean;
+  } | null>(null);
+  const [isContact, setIsContact] = useState(false);
+  const [adding, setAdding] = useState(false);
   const isGroup = conv.type === 'group';
   const name = isGroup
     ? conv.title || 'گفتگوی گروهی'
     : conv.members.find((m) => m.user_id !== currentUserId)?.full_name || 'گفتگو';
+  const otherUserId = !isGroup
+    ? conv.members.find((member) => member.user_id !== currentUserId)?.user_id
+    : undefined;
+
+  useEffect(() => {
+    let active = true;
+    setContactDetails(null);
+    setIsContact(false);
+    if (!otherUserId) return;
+    void (async () => {
+      try {
+        const [contactsResult, detailsResult] = await Promise.all([
+          supabase.rpc('list_chat_contacts'),
+          supabase.rpc('get_chat_contact_details', { _contact_user_id: otherUserId }),
+        ]);
+        if (contactsResult.error) throw contactsResult.error;
+        if (detailsResult.error) throw detailsResult.error;
+        if (!active) return;
+        setIsContact((contactsResult.data ?? []).some((contact) => contact.user_id === otherUserId));
+        setContactDetails(detailsResult.data?.[0] ?? null);
+      } catch (error) {
+        console.error('Could not load private contact details:', error);
+      }
+    })();
+    return () => { active = false; };
+  }, [otherUserId]);
+
+  const addContact = async () => {
+    if (!otherUserId) return;
+    setAdding(true);
+    try {
+      const { error } = await supabase.rpc('add_chat_contact', { _contact_user_id: otherUserId });
+      if (error) throw error;
+      setIsContact(true);
+      const { data, error: detailsError } = await supabase.rpc('get_chat_contact_details', {
+        _contact_user_id: otherUserId,
+      });
+      if (detailsError) throw detailsError;
+      setContactDetails(data?.[0] ?? null);
+    } catch (error) {
+      console.error('Could not add chat contact:', error);
+      toast({ title: 'افزودن تماس انجام نشد', description: 'لطفاً اتصال را بررسی و دوباره تلاش کنید.', variant: 'destructive' });
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <aside className="w-full lg:w-[300px] h-full bg-card border-e border-border flex flex-col shrink-0">
@@ -59,6 +118,32 @@ export function DetailsPanel({ conv, currentUserId, onlineUserIds, onClose }: Pr
                 </div>
               );
             })}
+            {otherUserId && (
+              <div className="mt-4 space-y-3 border-t border-border pt-4">
+                {isContact ? (
+                  <div className="space-y-1 text-xs">
+                    {contactDetails?.email && <p dir="ltr" className="text-muted-foreground">{contactDetails.email}</p>}
+                    {contactDetails?.phone_number && (
+                      <p className="text-muted-foreground" dir="ltr">{contactDetails.phone_number}</p>
+                    )}
+                    {!contactDetails?.mutual && (
+                      <p className="text-muted-foreground">شمارهٔ تماس تا افزودن متقابل پنهان است.</p>
+                    )}
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm" className="w-full gap-2" disabled={adding} onClick={() => void addContact()}>
+                    <UserPlus className="h-4 w-4" />
+                    {adding ? 'در حال افزودن…' : 'افزودن به تماس‌ها'}
+                  </Button>
+                )}
+                <ChatContactActions
+                  display="buttons"
+                  contactUserId={otherUserId}
+                  conversationId={conv.id}
+                  onBlocked={onBlocked}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

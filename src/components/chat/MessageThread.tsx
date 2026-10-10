@@ -12,6 +12,7 @@ interface Props {
   onLoadOlder: () => void;
   hasMore: boolean;
   onVisible: () => void;
+  onRetryMessage: (messageId: string) => Promise<void>;
 }
 
 function sameDay(a: string, b: string) {
@@ -28,6 +29,7 @@ export function MessageThread({
   onLoadOlder,
   hasMore,
   onVisible,
+  onRetryMessage,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -86,6 +88,7 @@ export function MessageThread({
               showAvatar={showAvatar}
               showSenderName={showSenderName}
               totalOtherMembers={Math.max(0, conv.members.length - 1)}
+              onRetry={() => onRetryMessage(m.id)}
             />
           </div>
         );

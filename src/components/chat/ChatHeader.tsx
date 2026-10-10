@@ -1,6 +1,7 @@
 import { Info, Phone, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatAvatar } from './ChatAvatar';
+import { ChatContactActions } from './ChatContactActions';
 import type { ConversationSummary } from '@/hooks/useConversations';
 
 interface Props {
@@ -8,9 +9,10 @@ interface Props {
   currentUserId: string;
   onlineUserIds: Set<string>;
   onToggleDetails: () => void;
+  onBlocked: () => void;
 }
 
-export function ChatHeader({ conv, currentUserId, onlineUserIds, onToggleDetails }: Props) {
+export function ChatHeader({ conv, currentUserId, onlineUserIds, onToggleDetails, onBlocked }: Props) {
   const name =
     conv.type === 'group'
       ? conv.title || 'گفتگوی گروهی'
@@ -37,6 +39,13 @@ export function ChatHeader({ conv, currentUserId, onlineUserIds, onToggleDetails
         </div>
       </div>
       <div className="flex items-center gap-1">
+        {conv.type === 'direct' && conv.members.find((member) => member.user_id !== currentUserId) && (
+          <ChatContactActions
+            contactUserId={conv.members.find((member) => member.user_id !== currentUserId)!.user_id}
+            conversationId={conv.id}
+            onBlocked={onBlocked}
+          />
+        )}
         <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="تماس ویدیویی" disabled>
           <Video className="h-4 w-4 text-muted-foreground" />
         </Button>

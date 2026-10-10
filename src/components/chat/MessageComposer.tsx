@@ -5,23 +5,22 @@ import { useToast } from '@/hooks/use-toast';
 import {
   isAllowedMime,
   MAX_ATTACHMENT_SIZE,
-  uploadChatAttachment,
   humanFileSize,
 } from '@/lib/chat/attachments';
 
 interface Props {
-  conversationId: string;
   onSend: (input: {
     body?: string | null;
     attachment_url?: string | null;
     attachment_name?: string | null;
     attachment_mime?: string | null;
     attachment_size?: number | null;
+    file?: File | null;
   }) => Promise<void>;
   onTyping: () => void;
 }
 
-export function MessageComposer({ conversationId, onSend, onTyping }: Props) {
+export function MessageComposer({ onSend, onTyping }: Props) {
   const { toast } = useToast();
   const [text, setText] = useState('');
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -50,33 +49,26 @@ export function MessageComposer({ conversationId, onSend, onTyping }: Props) {
     if (!body && !attachment) return;
     setSending(true);
     try {
-      let attachmentPath: string | null = null;
-      let attachmentName: string | null = null;
-      let attachmentMime: string | null = null;
-      let attachmentSize: number | null = null;
-      if (attachment) {
-        const { path } = await uploadChatAttachment(conversationId, attachment);
-        attachmentPath = path;
-        attachmentName = attachment.name;
-        attachmentMime = attachment.type;
-        attachmentSize = attachment.size;
-      }
       await onSend({
         body: body || null,
-        attachment_url: attachmentPath,
-        attachment_name: attachmentName,
-        attachment_mime: attachmentMime,
-        attachment_size: attachmentSize,
+        attachment_name: attachment?.name ?? null,
+        attachment_mime: attachment?.type ?? null,
+        attachment_size: attachment?.size ?? null,
+        file: attachment,
       });
       setText('');
       setAttachment(null);
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    } catch (err: any) {
-      toast({ title: 'ارسال ناموفق بود', description: err?.message ?? '', variant: 'destructive' });
+    } catch (error: unknown) {
+      toast({
+        title: 'ارسال ناموفق بود',
+        description: error instanceof Error ? error.message : 'ارسال پیام انجام نشد.',
+        variant: 'destructive',
+      });
     } finally {
       setSending(false);
     }
-  }, [text, attachment, conversationId, onSend, toast]);
+  }, [text, attachment, onSend, toast]);
 
   const handleKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

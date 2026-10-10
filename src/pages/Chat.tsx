@@ -23,7 +23,7 @@ export default function Chat() {
   const [newOpen, setNewOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(true);
 
-  const { messages, hasMore, loadOlder, sendMessage, markRead } = useMessages(activeId);
+  const { messages, hasMore, loadOlder, sendMessage, markRead, retryMessage } = useMessages(activeId);
   const { onlineUserIds, typingUserIds, broadcastTyping } = useChatPresence(activeId);
 
   const setActive = (id: string | null) => {
@@ -37,6 +37,15 @@ export default function Chat() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversations, activeId]);
+
+  useEffect(() => {
+    const onAccessRevoked = (event: Event) => {
+      const detail = (event as CustomEvent<{ conversationId: string }>).detail;
+      if (detail?.conversationId === activeId) setActive(null);
+    };
+    window.addEventListener('schoolbridge-chat-access-revoked', onAccessRevoked);
+    return () => window.removeEventListener('schoolbridge-chat-access-revoked', onAccessRevoked);
+  }, [activeId]);
 
   if (!user) return null;
 
@@ -72,6 +81,7 @@ export default function Chat() {
                 currentUserId={user.id}
                 onlineUserIds={onlineUserIds}
                 onToggleDetails={() => setDetailsOpen((v) => !v)}
+                onBlocked={() => setActive(null)}
               />
               <MessageThread
                 messages={messages}
@@ -81,9 +91,9 @@ export default function Chat() {
                 onLoadOlder={loadOlder}
                 hasMore={hasMore}
                 onVisible={markRead}
+                onRetryMessage={retryMessage}
               />
               <MessageComposer
-                conversationId={activeConv.id}
                 onSend={async (input) => {
                   await sendMessage(input);
                   reload();
@@ -112,6 +122,7 @@ export default function Chat() {
               currentUserId={user.id}
               onlineUserIds={onlineUserIds}
               onClose={() => setDetailsOpen(false)}
+              onBlocked={() => setActive(null)}
             />
           </div>
         )}
@@ -120,6 +131,7 @@ export default function Chat() {
       <NewConversationModal
         open={newOpen}
         onOpenChange={setNewOpen}
+        conversations={conversations}
         onCreated={(id) => {
           setActive(id);
           reload();

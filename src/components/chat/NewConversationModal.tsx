@@ -1,136 +1,169 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Check } from 'lucide-react';
+import { Search, Check, UserPlus, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ChatAvatar } from './ChatAvatar';
-import { cn } from '@/lib/utils';
+import type { ConversationSummary } from '@/hooks/useConversations';
+import {
+  cacheChatContacts,
+  readCachedChatContacts,
+  type ChatContact,
+} from '@/lib/chat/offlineStore';
 
 interface Props {
   open: boolean;
-  onOpenChange: (v: boolean) => void;
+  onOpenChange: (open: boolean) => void;
   onCreated: (conversationId: string) => void;
+  conversations: ConversationSummary[];
 }
 
-interface UserRow {
+interface SearchResult {
   user_id: string;
   full_name: string | null;
   role: string | null;
 }
 
-export function NewConversationModal({ open, onOpenChange, onCreated }: Props) {
+interface SelectedContact extends SearchResult {
+  email: string;
+}
+
+function isEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+export function NewConversationModal({ open, onOpenChange, onCreated, conversations }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [users, setUsers] = useState<UserRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [email, setEmail] = useState('');
+  const [contacts, setContacts] = useState<ChatContact[]>([]);
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [selected, setSelected] = useState<SelectedContact[]>([]);
   const [groupTitle, setGroupTitle] = useState('');
+  const [searching, setSearching] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  const refreshContacts = useCallback(async () => {
+    if (!user) return;
+    try {
+      const cached = await readCachedChatContacts(user.id);
+      setContacts(cached);
+      const { data, error } = await supabase.rpc('list_chat_contacts');
+      if (error) throw error;
+      const updated = data ?? [];
+      setContacts(updated);
+      await cacheChatContacts(user.id, updated);
+    } catch (error) {
+      console.error('Could not refresh chat contacts:', error);
+      setSearchError('فهرست تماس‌های ذخیره‌شده به‌روز نشد؛ تماس‌های آفلاین همچنان نمایش داده می‌شوند.');
+    }
+  }, [user]);
 
   useEffect(() => {
-    if (!open || !user) return;
-    setLoading(true);
-    supabase
-      .from('profiles')
-      .select('user_id, full_name, role')
-      .eq('status', 'verified')
-      .neq('user_id', user.id)
-      .order('full_name', { ascending: true })
-      .limit(200)
-      .then(({ data }) => {
-        setUsers((data ?? []) as UserRow[]);
-        setLoading(false);
-      });
-  }, [open, user]);
+    if (open) void refreshContacts();
+  }, [open, refreshContacts]);
 
   useEffect(() => {
     if (!open) {
-      setSearch('');
-      setSelected(new Set());
+      setEmail('');
+      setResult(null);
+      setSelected([]);
       setGroupTitle('');
+      setSearched(false);
+      setSearchError('');
     }
   }, [open]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return users;
-    return users.filter((u) => (u.full_name || '').toLowerCase().includes(q));
-  }, [users, search]);
-
-  const toggle = (uid: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(uid)) next.delete(uid);
-      else next.add(uid);
-      return next;
-    });
+  const lookup = async (event: FormEvent) => {
+    event.preventDefault();
+    const query = email.trim();
+    setResult(null);
+    setSearched(false);
+    setSearchError('');
+    if (!isEmail(query)) {
+      setSearched(true);
+      setSearchError('یک نشانی ایمیل کامل وارد کنید.');
+      return;
+    }
+    setSearching(true);
+    try {
+      const { data, error } = await supabase.rpc('find_chat_user_by_email', { _email: query });
+      if (error) throw error;
+      setResult(data?.[0] ?? null);
+      setSearched(true);
+    } catch (error) {
+      console.error('Chat contact lookup failed:', error);
+      setSearchError(navigator.onLine
+        ? 'جستجوی تماس انجام نشد. لطفاً دوباره تلاش کنید.'
+        : 'جستجوی ایمیل در حالت آفلاین در دسترس نیست؛ از تماس‌های ذخیره‌شده استفاده کنید.');
+      setSearched(true);
+    } finally {
+      setSearching(false);
+    }
   };
 
-  const isGroup = selected.size > 1;
+  const addResult = (person: SearchResult, contactEmail: string) => {
+    if (selected.some((item) => item.user_id === person.user_id)) return;
+    setSelected((items) => [...items, { ...person, email: contactEmail }]);
+    setResult(null);
+    setEmail('');
+    setSearched(false);
+  };
 
   const create = async () => {
-    if (!user || selected.size === 0) return;
+    if (!user || selected.length === 0) return;
     setCreating(true);
     try {
-      // For direct: check for existing 1-1 conversation
-      if (!isGroup) {
-        const otherId = Array.from(selected)[0];
-        const { data: mine } = await supabase
-          .from('conversation_members')
-          .select('conversation_id, conversations!inner(type)')
-          .eq('user_id', user.id);
-        const directIds = (mine ?? [])
-          .filter((r: any) => r.conversations?.type === 'direct')
-          .map((r) => r.conversation_id);
-        if (directIds.length > 0) {
-          const { data: others } = await supabase
-            .from('conversation_members')
-            .select('conversation_id')
-            .eq('user_id', otherId)
-            .in('conversation_id', directIds);
-          const existing = others?.[0]?.conversation_id;
-          if (existing) {
-            onCreated(existing);
-            onOpenChange(false);
-            return;
-          }
-        }
+      if (selected.length === 1) {
+        const { data, error } = await supabase.rpc('create_direct_chat_by_email', { _email: selected[0].email });
+        if (error) throw error;
+        onCreated(data);
+        onOpenChange(false);
+        return;
       }
 
-      const { data: conv, error } = await supabase
-        .from('conversations')
-        .insert({
-          type: isGroup ? 'group' : 'direct',
-          title: isGroup ? (groupTitle.trim() || null) : null,
-          created_by: user.id,
-        })
-        .select()
-        .single();
-      if (error || !conv) throw error;
+      for (const person of selected) {
+        const { error } = await supabase.rpc('add_chat_contact_by_email', { _email: person.email });
+        if (error) throw error;
+      }
 
-      const members = [
-        { conversation_id: conv.id, user_id: user.id, role: 'admin' as const },
-        ...Array.from(selected).map((uid) => ({
-          conversation_id: conv.id,
-          user_id: uid,
+      const { data: conversation, error } = await supabase
+        .from('conversations')
+        .insert({ type: 'group', title: groupTitle.trim() || null, created_by: user.id })
+        .select('id')
+        .single();
+      if (error) throw error;
+      const { error: memberError } = await supabase.from('conversation_members').insert([
+        { conversation_id: conversation.id, user_id: user.id, role: 'admin' },
+        ...selected.map((person) => ({
+          conversation_id: conversation.id,
+          user_id: person.user_id,
           role: 'member' as const,
         })),
-      ];
-      const { error: mErr } = await supabase.from('conversation_members').insert(members);
-      if (mErr) throw mErr;
-
-      onCreated(conv.id);
+      ]);
+      if (memberError) throw memberError;
+      onCreated(conversation.id);
       onOpenChange(false);
-    } catch (err: any) {
-      toast({ title: 'ایجاد گفتگو ناموفق بود', description: err?.message, variant: 'destructive' });
+    } catch (error) {
+      console.error('Could not create chat:', error);
+      toast({ title: 'ایجاد گفتگو ناموفق بود', description: 'لطفاً اتصال و ایمیل اعضا را بررسی کنید.', variant: 'destructive' });
     } finally {
       setCreating(false);
     }
   };
+
+  const visibleContacts = contacts.filter((contact) => {
+    const query = email.trim().toLocaleLowerCase();
+    return !query || (
+      contact.email.toLocaleLowerCase().includes(query) ||
+      (contact.full_name ?? '').toLocaleLowerCase().includes(query)
+    );
+  }).slice(0, 50);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -138,57 +171,104 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: Props) {
         <DialogHeader>
           <DialogTitle>گفتگوی جدید</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute top-1/2 -translate-y-1/2 right-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+        <form onSubmit={lookup} className="space-y-3">
+          <div className="flex gap-2">
             <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="جستجوی کاربران…"
-              className="ps-3 pe-9"
+              type="email"
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setResult(null);
+                setSearched(false);
+                setSearchError('');
+              }}
+              placeholder="ایمیل کامل کاربر"
+              autoComplete="email"
+              dir="ltr"
             />
+            <Button type="submit" variant="outline" disabled={searching || !email.trim()}>
+              <Search className="h-4 w-4" />
+            </Button>
           </div>
-          {isGroup && (
-            <Input
-              value={groupTitle}
-              onChange={(e) => setGroupTitle(e.target.value)}
-              placeholder="نام گروه (اختیاری)"
-            />
-          )}
-          <div className="max-h-72 overflow-y-auto space-y-1 border border-border rounded-lg p-1">
-            {loading ? (
-              <p className="text-center text-sm text-muted-foreground py-6">در حال بارگیری…</p>
-            ) : filtered.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-6">کاربری یافت نشد</p>
-            ) : (
-              filtered.map((u) => {
-                const on = selected.has(u.user_id);
+        </form>
+        {searchError && <p role="status" className="text-xs text-destructive">{searchError}</p>}
+        {searching && <p className="text-center text-sm text-muted-foreground py-3">در حال جستجو…</p>}
+        {searched && !searching && !result && !searchError && (
+          <p role="status" className="text-center text-sm text-muted-foreground py-3">کاربری با این ایمیل یافت نشد.</p>
+        )}
+        {result && (
+          <div className="flex items-center gap-3 rounded-lg border p-3">
+            <ChatAvatar name={result.full_name} type="direct" size="sm" />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm">{result.full_name || 'کاربر'}</p>
+              <p className="truncate text-xs text-muted-foreground" dir="ltr">{email.trim()}</p>
+            </div>
+            <Button type="button" size="sm" variant="outline" onClick={() => addResult(result, email.trim())}>
+              <UserPlus className="me-1 h-4 w-4" /> افزودن
+            </Button>
+          </div>
+        )}
+        {visibleContacts.length > 0 && (
+          <div className="max-h-40 overflow-y-auto rounded-lg border p-1">
+            <p className="px-2 py-1 text-xs text-muted-foreground">تماس‌های ذخیره‌شده</p>
+            {visibleContacts.map((contact) => (
+              <button
+                key={contact.user_id}
+                type="button"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-right hover:bg-muted"
+                onClick={() => {
+                  const existing = conversations.find((conversation) =>
+                    conversation.type === 'direct' &&
+                    conversation.members.some((member) => member.user_id === contact.user_id),
+                  );
+                  if (!navigator.onLine && existing) {
+                    onCreated(existing.id);
+                    onOpenChange(false);
+                  } else if (!navigator.onLine) {
+                    toast({ title: 'گفتگوی موجود نیست', description: 'برای آغاز گفتگوی جدید به اینترنت وصل شوید.' });
+                  } else {
+                    addResult(contact, contact.email);
+                  }
+                }}
+              >
+                <ChatAvatar name={contact.full_name} type="direct" size="sm" />
+                <span className="min-w-0 flex-1 truncate text-sm">
+                  {contact.full_name || contact.email}
+                </span>
+                <span className="text-xs text-muted-foreground" dir="ltr">{contact.email}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {selected.length > 0 && (
+          <div className="space-y-2">
+            <div className="space-y-1">
+              {selected.map((person) => {
+                const address = person.email;
                 return (
-                  <button
-                    key={u.user_id}
-                    onClick={() => toggle(u.user_id)}
-                    className={cn(
-                      'w-full text-right flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-                      on ? 'bg-primary/10' : 'hover:bg-muted',
-                    )}
-                  >
-                    <ChatAvatar name={u.full_name} type="direct" size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{u.full_name || 'کاربر'}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{u.role || ''}</p>
-                    </div>
-                    {on && <Check className="h-4 w-4 text-primary" />}
-                  </button>
+                  <div key={person.user_id} className="flex items-center gap-2 rounded-md bg-muted px-2 py-1.5">
+                    <Check className="h-4 w-4 text-primary" />
+                    <span className="min-w-0 flex-1 truncate text-sm">{person.full_name || address || 'کاربر'}</span>
+                    {address && <span className="text-xs text-muted-foreground" dir="ltr">{address}</span>}
+                    <button type="button" onClick={() => setSelected((items) => items.filter((item) => item.user_id !== person.user_id))} aria-label="حذف">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 );
-              })
+              })}
+            </div>
+            {selected.length > 1 && (
+              <Input value={groupTitle} onChange={(event) => setGroupTitle(event.target.value)} placeholder="نام گروه (اختیاری)" />
             )}
           </div>
-        </div>
+        )}
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>لغو</Button>
-          <Button disabled={selected.size === 0 || creating} onClick={create}>
-            {creating ? 'در حال ایجاد…' : selected.size > 1 ? `ایجاد گروه (${selected.size})` : 'شروع گفتگو'}
-          </Button>
+          {selected.length > 0 && (
+            <Button disabled={creating || !navigator.onLine} onClick={() => void create()}>
+              {creating ? 'در حال ایجاد…' : selected.length > 1 ? `ایجاد گروه (${selected.length})` : 'شروع گفتگو'}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

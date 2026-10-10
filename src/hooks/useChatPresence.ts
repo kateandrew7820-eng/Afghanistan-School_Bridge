@@ -21,9 +21,26 @@ export function useChatPresence(conversationId: string | null) {
     if (!user || !conversationId) return;
 
     const channel = supabase.channel(`presence:${conversationId}`, {
-      config: { presence: { key: user.id } },
+      config: { private: true, presence: { key: user.id } },
     });
     channelRef.current = channel;
+    const typingTimers = typingTimeouts.current;
+    const controlChannel = supabase.channel(`chat-control:${user.id}`, {
+      config: { private: true },
+    });
+
+    controlChannel
+      .on('broadcast', { event: 'access-refresh' }, ({ payload }) => {
+        const conversationIds = payload?.conversationIds;
+        if (!Array.isArray(conversationIds) || !conversationIds.includes(conversationId)) return;
+        void supabase.removeChannel(channel);
+        channelRef.current = null;
+        setState({ onlineUserIds: new Set(), typingUserIds: new Set() });
+        window.dispatchEvent(new CustomEvent('schoolbridge-chat-access-revoked', {
+          detail: { conversationId },
+        }));
+      })
+      .subscribe();
 
     channel
       .on('presence', { event: 'sync' }, () => {
@@ -38,7 +55,7 @@ export function useChatPresence(conversationId: string | null) {
           next.add(uid);
           return { ...prev, typingUserIds: next };
         });
-        const old = typingTimeouts.current.get(uid);
+        const old = typingTimers.get(uid);
         if (old) clearTimeout(old);
         const t = setTimeout(() => {
           setState((prev) => {
@@ -46,9 +63,9 @@ export function useChatPresence(conversationId: string | null) {
             next.delete(uid);
             return { ...prev, typingUserIds: next };
           });
-          typingTimeouts.current.delete(uid);
+          typingTimers.delete(uid);
         }, 3500);
-        typingTimeouts.current.set(uid, t);
+        typingTimers.set(uid, t);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -57,9 +74,10 @@ export function useChatPresence(conversationId: string | null) {
       });
 
     return () => {
-      typingTimeouts.current.forEach((t) => clearTimeout(t));
-      typingTimeouts.current.clear();
+      typingTimers.forEach((timer) => clearTimeout(timer));
+      typingTimers.clear();
       supabase.removeChannel(channel);
+      supabase.removeChannel(controlChannel);
       channelRef.current = null;
     };
   }, [user, conversationId]);

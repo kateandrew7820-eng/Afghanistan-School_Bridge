@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  cacheChatMessages,
+  listQueuedChatMessages,
+  readCachedChatMessages,
+  queueChatMessage,
+  queuedMessageToChatMessage,
+  retryQueuedChatMessage,
+  syncQueuedChatMessages,
+} from '@/lib/chat/offlineStore';
 
 export interface ChatMessage {
   id: string;
@@ -16,6 +25,7 @@ export interface ChatMessage {
   edited_at: string | null;
   deleted_at: string | null;
   read_by: string[];
+  local_state?: 'pending' | 'failed' | 'synced';
 }
 
 const PAGE_SIZE = 50;
@@ -43,56 +53,127 @@ export function useMessages(conversationId: string | null) {
   }, []);
 
   const loadInitial = useCallback(async () => {
-    if (!conversationId) return;
+    if (!conversationId || !user) return;
+    try {
+      const cached = await readCachedChatMessages(user.id, conversationId);
+      if (cached.length > 0) setMessages(cached);
+    } catch (error) {
+      console.error('Could not read cached chat history:', error);
+    }
     setLoading(true);
-    const { data } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: false })
-      .limit(PAGE_SIZE);
-    const list = (data ?? []).slice().reverse();
-    const withReads = await attachReads(list as any);
-    setMessages(withReads);
-    oldestRef.current = list[0]?.created_at ?? null;
-    setHasMore((data ?? []).length === PAGE_SIZE);
-    setLoading(false);
-  }, [conversationId, attachReads]);
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE);
+      if (error) throw error;
+      const list = (data ?? []).slice().reverse();
+      const withReads = await attachReads(list);
+      const queued = await listQueuedChatMessages(user.id);
+      const pending = queued
+        .filter((entry) => entry.conversationId === conversationId && entry.status !== 'synced')
+        .map(queuedMessageToChatMessage);
+      const merged = [...withReads, ...pending]
+        .sort((a, b) => a.created_at.localeCompare(b.created_at));
+      setMessages(merged);
+      await cacheChatMessages(user.id, conversationId, merged);
+      oldestRef.current = list[0]?.created_at ?? null;
+      setHasMore((data ?? []).length === PAGE_SIZE);
+    } catch (error) {
+      console.error('Could not load chat history:', error);
+      const queued = await listQueuedChatMessages(user.id).catch(() => []);
+      setMessages((previous) => {
+        const cachedById = new Map(previous.map((message) => [message.id, message]));
+        queued
+          .filter((entry) => entry.conversationId === conversationId && entry.status !== 'synced')
+          .forEach((entry) => cachedById.set(entry.id, queuedMessageToChatMessage(entry)));
+        return [...cachedById.values()].sort((a, b) => a.created_at.localeCompare(b.created_at));
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [conversationId, attachReads, user]);
 
   const loadOlder = useCallback(async () => {
-    if (!conversationId || !oldestRef.current || !hasMore) return;
-    const { data } = await supabase
+    if (!conversationId || !oldestRef.current || !hasMore || !user) return;
+    const { data, error } = await supabase
       .from('messages')
       .select('*')
       .eq('conversation_id', conversationId)
       .lt('created_at', oldestRef.current)
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);
+    if (error) {
+      console.error('Could not load older chat messages:', error);
+      return;
+    }
     const list = (data ?? []).slice().reverse();
-    const withReads = await attachReads(list as any);
+    const withReads = await attachReads(list);
     setMessages((prev) => [...withReads, ...prev]);
+    await cacheChatMessages(user.id, conversationId, withReads);
     if (list.length > 0) oldestRef.current = list[0].created_at;
     if ((data ?? []).length < PAGE_SIZE) setHasMore(false);
-  }, [conversationId, hasMore, attachReads]);
+  }, [conversationId, hasMore, attachReads, user]);
 
   useEffect(() => {
     setMessages([]);
     setHasMore(true);
     oldestRef.current = null;
-    if (conversationId) loadInitial();
+    if (conversationId) void loadInitial();
   }, [conversationId, loadInitial]);
+
+  useEffect(() => {
+    if (!user || !conversationId) return;
+    const refreshQueued = async () => {
+      const queued = await listQueuedChatMessages(user.id);
+      const localMessages = queued
+        .filter((entry) => entry.conversationId === conversationId)
+        .map(queuedMessageToChatMessage);
+      setMessages((previous) => {
+        const merged = new Map(previous.map((message) => [message.id, message]));
+        localMessages.forEach((message) => merged.set(message.id, message));
+        return [...merged.values()].sort((a, b) => a.created_at.localeCompare(b.created_at));
+      });
+    };
+    const sync = () => {
+      if (!navigator.onLine) return;
+      void syncQueuedChatMessages(user.id).then(refreshQueued).catch((error: unknown) => {
+        console.error('Could not sync queued chat messages:', error);
+      });
+    };
+    window.addEventListener('schoolbridge-chat-queue-change', refreshQueued);
+    window.addEventListener('online', sync);
+    window.addEventListener('focus', sync);
+    const interval = window.setInterval(sync, 20_000);
+    void refreshQueued();
+    sync();
+    return () => {
+      window.removeEventListener('schoolbridge-chat-queue-change', refreshQueued);
+      window.removeEventListener('online', sync);
+      window.removeEventListener('focus', sync);
+      window.clearInterval(interval);
+    };
+  }, [conversationId, user]);
 
   // Realtime new messages + read receipts
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
-      .channel(`conv:${conversationId}`)
+      .channel(`conv:${conversationId}`, { config: { private: true } })
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         (payload) => {
           const m = payload.new as Omit<ChatMessage, 'read_by'>;
-          setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, { ...m, read_by: [] }]));
+          setMessages((prev) => {
+            const next = prev.some((message) => message.id === m.id)
+              ? prev.map((message) => message.id === m.id ? { ...m, read_by: message.read_by, local_state: undefined } : message)
+              : [...prev, { ...m, read_by: [] }];
+            if (user) void cacheChatMessages(user.id, conversationId, next);
+            return next;
+          });
         },
       )
       .on(
@@ -100,7 +181,11 @@ export function useMessages(conversationId: string | null) {
         { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         (payload) => {
           const m = payload.new as Omit<ChatMessage, 'read_by'>;
-          setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...x, ...m } : x)));
+          setMessages((prev) => {
+            const next = prev.map((message) => message.id === m.id ? { ...message, ...m } : message);
+            if (user) void cacheChatMessages(user.id, conversationId, next);
+            return next;
+          });
         },
       )
       .on(
@@ -121,7 +206,7 @@ export function useMessages(conversationId: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, user]);
 
   const sendMessage = useCallback(
     async (input: {
@@ -130,20 +215,26 @@ export function useMessages(conversationId: string | null) {
       attachment_name?: string | null;
       attachment_mime?: string | null;
       attachment_size?: number | null;
+      file?: File | null;
     }) => {
       if (!user || !conversationId) return;
-      const { error } = await supabase.from('messages').insert({
-        conversation_id: conversationId,
-        sender_id: user.id,
+      const queued = await queueChatMessage({
+        id: crypto.randomUUID(),
+        userId: user.id,
+        conversationId,
         body: input.body ?? null,
-        attachment_url: input.attachment_url ?? null,
-        attachment_name: input.attachment_name ?? null,
-        attachment_mime: input.attachment_mime ?? null,
-        attachment_size: input.attachment_size ?? null,
+        attachmentName: input.file?.name ?? input.attachment_name ?? null,
+        attachmentMime: input.file?.type ?? input.attachment_mime ?? null,
+        attachmentSize: input.file?.size ?? input.attachment_size ?? null,
+        file: input.file ?? undefined,
+        createdAt: new Date().toISOString(),
       });
-      if (error) throw error;
+      const optimistic = queuedMessageToChatMessage(queued);
+      setMessages((previous) => [...previous, optimistic]);
+      await cacheChatMessages(user.id, conversationId, [...messages, optimistic]);
+      if (navigator.onLine) await syncQueuedChatMessages(user.id);
     },
-    [user, conversationId],
+    [user, conversationId, messages],
   );
 
   const markRead = useCallback(async () => {
@@ -171,5 +262,11 @@ export function useMessages(conversationId: string | null) {
       .eq('user_id', user.id);
   }, [user, conversationId, messages]);
 
-  return { messages, loading, hasMore, loadOlder, sendMessage, markRead };
+  const retryMessage = useCallback(async (messageId: string) => {
+    if (!user) return;
+    await retryQueuedChatMessage(messageId);
+    await syncQueuedChatMessages(user.id);
+  }, [user]);
+
+  return { messages, loading, hasMore, loadOlder, sendMessage, markRead, retryMessage };
 }

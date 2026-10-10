@@ -9,6 +9,7 @@ import {
   syncOfflineSubmissions,
 } from '@/lib/offlineStore';
 import { Button } from '@/components/ui/button';
+import { syncQueuedChatMessages } from '@/lib/chat/offlineStore';
 
 type ConnectionState = 'checking' | 'online' | 'offline';
 
@@ -36,8 +37,9 @@ export function OfflineStatus() {
     if (reachable && user?.id) {
       try {
         await syncOfflineSubmissions(user.id);
+        await syncQueuedChatMessages(user.id);
       } catch (error) {
-        console.error('Could not sync offline submissions:', error);
+        console.error('Could not sync offline work:', error);
       }
       await refreshQueue();
     }

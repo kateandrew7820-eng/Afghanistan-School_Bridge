@@ -863,6 +863,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_chat_contact: {
+        Args: { _contact_user_id: string }
+        Returns: undefined
+      }
+      add_chat_contact_by_email: {
+        Args: { _email: string }
+        Returns: {
+          full_name: string | null
+          role: string | null
+          user_id: string
+        }[]
+      }
       admin_update_profile_status: {
         Args: {
           _rejection_reason?: string
@@ -874,6 +886,71 @@ export type Database = {
       can_access_submission: {
         Args: { _id: string; _table: string }
         Returns: boolean
+      }
+      can_send_chat_message: {
+        Args: { _conversation: string; _sender: string }
+        Returns: boolean
+      }
+      can_use_chat_realtime: { Args: { _topic: string }; Returns: boolean }
+      chat_users_blocked: {
+        Args: { _other: string; _user: string }
+        Returns: boolean
+      }
+      block_chat_user: {
+        Args: { _blocked_user_id: string }
+        Returns: undefined
+      }
+      create_direct_chat_by_email: {
+        Args: { _email: string }
+        Returns: string
+      }
+      find_chat_user_by_email: {
+        Args: { _email: string }
+        Returns: {
+          full_name: string | null
+          role: string | null
+          user_id: string
+        }[]
+      }
+      get_chat_contact_details: {
+        Args: { _contact_user_id: string }
+        Returns: {
+          email: string
+          full_name: string | null
+          mutual: boolean
+          phone_number: string | null
+          role: string | null
+          user_id: string
+        }[]
+      }
+      get_chat_member_profiles: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          full_name: string | null
+          role: string | null
+          user_id: string
+        }[]
+      }
+      list_chat_contacts: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string | null
+          role: string | null
+          user_id: string
+        }[]
+      }
+      report_chat_user: {
+        Args: {
+          _conversation_id: string
+          _reason: string
+          _reported_user_id: string
+        }
+        Returns: string
+      }
+      unblock_chat_user: {
+        Args: { _blocked_user_id: string }
+        Returns: undefined
       }
       get_user_district: { Args: { _user_id: string }; Returns: string }
       get_user_province: { Args: { _user_id: string }; Returns: string }
