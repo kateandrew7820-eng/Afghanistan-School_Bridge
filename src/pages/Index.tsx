@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { NotificationBell } from '@/components/NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   Building2,
   Users,
@@ -107,8 +107,8 @@ export default function Index() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-background/80 via-card/70 to-background/80 backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between" dir="rtl">
-          <div className="space-y-1">
+        <div className="container mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-4" dir="rtl">
+          <div className="min-w-0 flex-1 space-y-1">
             <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
               {t('afghanistan.title')}
             </h1>
@@ -117,15 +117,13 @@ export default function Index() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <NotificationBell align="start" />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleContinue}
-              className="hover:bg-primary hover:text-white transition"
-            >
-              {t('common.close')}
+          <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
+            <ThemeToggle showLabel className="shrink-0" />
+            <Button asChild size="sm" variant="ghost" className="shrink-0">
+              <Link to="/login">ورود ↗️</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline" className="shrink-0">
+              <Link to="/signup">ثبت‌نام ↗️</Link>
             </Button>
           </div>
         </div>
@@ -252,9 +250,10 @@ export default function Index() {
             <Button size="lg" onClick={handleContinue} className="gap-2">
               ورود به دشبورد
               <ArrowRight className="w-4 h-4" />
+              ورود به دشبورد
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/owner-access">ورود مالک</Link>
+              <Link to="/owner-access">ورود به عنوان ادمین</Link>
             </Button>
           </div>
         </div>
