@@ -248,7 +248,7 @@ export default function Index() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <Button size="lg" onClick={handleContinue} className="gap-2">
-              ورود به دشبورد
+            
               <ArrowRight className="w-4 h-4" />
               ورود به دشبورد
             </Button>
