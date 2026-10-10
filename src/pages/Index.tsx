@@ -120,10 +120,10 @@ export default function Index() {
           <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
             <ThemeToggle showLabel className="shrink-0" />
             <Button asChild size="sm" variant="ghost" className="shrink-0">
-              <Link to="/login">ورود ⭧</Link>
+              <Link to="/login">ورود⭧ </Link>
             </Button>
             <Button asChild size="sm" variant="outline" className="shrink-0">
-              <Link to="/signup">ثبت‌نام ⭧</Link>
+              <Link to="/signup">ثبت‌نام⭧ </Link>
             </Button>
           </div>
         </div>
