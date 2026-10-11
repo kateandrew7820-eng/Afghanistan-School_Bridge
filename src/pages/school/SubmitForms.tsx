@@ -13,6 +13,7 @@ import { validateRequired } from '@/lib/validation';
 import { useDraft } from '@/hooks/useDraft';
 import { useOfflineSubmissionStatus } from '@/hooks/useOfflineSubmissionStatus';
 import { queueSubmissionForSync, type QueuedSubmissionResult } from '@/lib/offlineStore';
+import NavigationBackButton from '@/components/NavigationBackButton';
 
 const formTypes = [
   { value: 'infrastructure', label: 'بررسی زیرساخت‌ها' },
@@ -116,7 +117,8 @@ export default function SubmitForms() {
 
   if (submitted) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6" dir="rtl">
+        <NavigationBackButton fallback="/school" label="بازگشت به دشبورد مکتب" />
         <Card>
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -147,7 +149,8 @@ export default function SubmitForms() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6" dir="rtl">
+      <NavigationBackButton fallback="/school" label="بازگشت به دشبورد مکتب" />
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <ClipboardList className="h-6 w-6" />

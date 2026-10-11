@@ -15,6 +15,7 @@ import { validateFileSize, validateFileType, validateRequired } from '@/lib/vali
 import { useDraft } from '@/hooks/useDraft';
 import { useOfflineSubmissionStatus } from '@/hooks/useOfflineSubmissionStatus';
 import { queueSubmissionForSync, type QueuedSubmissionResult } from '@/lib/offlineStore';
+import NavigationBackButton from '@/components/NavigationBackButton';
 // Mock submission removed - using real submissions
 
 export default function SubmitReports() {
@@ -118,7 +119,8 @@ export default function SubmitReports() {
 
   if (submitted) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6" dir="rtl">
+        <NavigationBackButton fallback="/school" label="بازگشت به دشبورد مکتب" />
         <Card>
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -149,7 +151,8 @@ export default function SubmitReports() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6" dir="rtl">
+      <NavigationBackButton fallback="/school" label="بازگشت به دشبورد مکتب" />
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <FileText className="h-6 w-6" />

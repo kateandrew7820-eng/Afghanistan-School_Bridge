@@ -1,9 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle2, Circle, Loader2 } from 'lucide-react';
+import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
+import NavigationBackButton from '@/components/NavigationBackButton';
 
 const items = [
   { phase: 'منتشر شد', status: 'done', title: 'احراز هویت و نقش‌ها', desc: 'ورود ایمیلی، تأیید توسط وزارت، نقش‌های چهارلایه' },
@@ -12,9 +11,9 @@ const items = [
   { phase: 'منتشر شد', status: 'done', title: 'جدول‌های مرجع ولایات و ولسوالی‌ها', desc: 'با ۳۴ ولایت افغانستان' },
   { phase: 'منتشر شد', status: 'done', title: 'پالت دستورات (⌘K)', desc: 'دسترسی سریع به همه صفحات' },
   { phase: 'منتشر شد', status: 'done', title: 'خروجی Excel و CSV', desc: 'گزارش‌گیری چندبرگه' },
-  { phase: 'در حال انجام', status: 'in', title: 'مرکز اعلان‌ها', desc: 'اعلان لحظه‌ای ارسال‌های جدید' },
+  { phase: 'منتشر شد', status: 'done', title: 'مرکز اعلان‌ها', desc: 'نمایش اطلاعیه‌ها و به‌روزرسانی‌های تازه سیستم' },
   { phase: 'در حال انجام', status: 'in', title: 'حافظه کوتاه‌مدت', desc: 'ذخیره مسوده فورم و فیلترها' },
-  { phase: 'برنامه‌ریزی', status: 'todo', title: 'برنامه آفلاین (PWA)', desc: 'ارسال در شرایط اینترنت ضعیف' },
+  { phase: 'منتشر شد', status: 'done', title: 'برنامه آفلاین (PWA)', desc: 'ذخیره محلی مسوده‌ها و ارسال خودکار پس از وصل‌شدن اینترنت' },
   { phase: 'برنامه‌ریزی', status: 'todo', title: 'تحلیل پیشرفته', desc: 'نمودارهای ملی و حرارتی ولایت‌ها' },
   { phase: 'برنامه‌ریزی', status: 'todo', title: 'پشتی‌بانی پشتو', desc: 'دو زبانه دری/پشتو' },
 ];
@@ -35,7 +34,7 @@ export default function Roadmap() {
       <main className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">نقشه راه</h1>
-          <Link to="/"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 ml-1" />بازگشت</Button></Link>
+          <NavigationBackButton fallback="/" label="بازگشت به صفحه اصلی" />
         </div>
         <Card>
           <CardHeader><CardTitle className="text-base">مسیر تولید</CardTitle></CardHeader>

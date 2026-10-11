@@ -14,6 +14,7 @@ import { useOfflineSubmissionStatus } from '@/hooks/useOfflineSubmissionStatus';
 import { Stepper } from '@/components/Stepper';
 import { deriveStats, toInt, toPersianDigits } from '@/lib/smartCalc';
 import { queueSubmissionForSync, type QueuedSubmissionResult } from '@/lib/offlineStore';
+import NavigationBackButton from '@/components/NavigationBackButton';
 
 type FormData = {
   academic_year: string;
@@ -167,7 +168,8 @@ export default function SubmitStatistics() {
 
   if (submitted) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6" dir="rtl">
+        <NavigationBackButton fallback="/school" label="بازگشت به دشبورد مکتب" />
         <Card>
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -199,7 +201,8 @@ export default function SubmitStatistics() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-2xl mx-auto space-y-6" dir="rtl">
+      <NavigationBackButton fallback="/school" label="بازگشت به دشبورد مکتب" />
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <BarChart3 className="h-6 w-6" />
@@ -208,7 +211,7 @@ export default function SubmitStatistics() {
         <p className="text-sm text-muted-foreground">در سه مرحله ساده، آمار مکتب خود را ارسال کنید</p>
       </div>
 
-      <Stepper steps={STEPS as any} currentIndex={step} />
+      <Stepper steps={STEPS.map((step) => ({ ...step }))} currentIndex={step} />
       {draftSaveState !== 'loading' && (
         <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
           {draftSaveState === 'saving' ? 'در حال ذخیره پیش‌نویس…' :
@@ -267,7 +270,7 @@ export default function SubmitStatistics() {
                         <Sparkles className="h-3 w-3" /> محاسبه خودکار
                       </span>
                     )}
-                  </span> as any
+                  </span>
                 }
                 error={errors.total_students}
               >

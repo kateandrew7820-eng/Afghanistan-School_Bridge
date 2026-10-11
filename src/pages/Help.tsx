@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BookOpen, KeyRound, Layers, ShieldCheck, Sparkles, FileText, Download } from 'lucide-react';
+import { BookOpen, KeyRound, Layers, ShieldCheck, Sparkles, FileText, Download } from 'lucide-react';
+import NavigationBackButton from '@/components/NavigationBackButton';
 
 const FAQ_JSONLD = {
   "@context": "https://schema.org",
@@ -56,7 +56,7 @@ export default function Help() {
       <main className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="h-6 w-6" />راهنما</h1>
-          <Link to="/"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4 ml-1" />بازگشت</Button></Link>
+          <NavigationBackButton fallback="/" label="بازگشت به صفحه اصلی" />
         </div>
 
         <Card>

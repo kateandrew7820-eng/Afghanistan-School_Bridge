@@ -128,7 +128,7 @@ export const FormErrorSummary: React.FC<ErrorSummaryProps> = ({
  */
 export interface FormFieldWrapperProps {
   /** Field label in Persian */
-  label?: string;
+  label?: React.ReactNode;
   /** Field name (for accessibility) */
   name?: string;
   /** Error message */

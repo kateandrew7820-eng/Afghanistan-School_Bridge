@@ -121,12 +121,26 @@ export default function Index() {
 
           <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
             <ThemeToggle showLabel className="shrink-0" />
-            <Button asChild size="sm" variant="ghost" className="shrink-0">
-              <Link to="/login">ورود⭧ </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="shrink-0">
-              <Link to="/signup">ثبت‌نام ⭧</Link>
-            </Button>
+            {user ? (
+              <Button asChild size="sm" variant="default" className="shrink-0">
+                <Link to={
+                  profile?.role === 'district_coordinator' || profile?.role === 'district_admin' ? '/district' :
+                    profile?.role === 'province_coordinator' || profile?.role === 'province_admin' ? '/province' :
+                      profile?.role === 'ministry_admin' ? '/ministry' : '/school'
+                }>
+                  دشبورد من
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button asChild size="sm" variant="ghost" className="shrink-0">
+                  <Link to="/login">ورود⭧ </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline" className="shrink-0">
+                  <Link to="/signup">ثبت‌نام ⭧</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
