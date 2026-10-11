@@ -8,7 +8,7 @@ import RecentAssessments from '@/components/academic/RecentAssessments';
 export default function AcademicInsights() {
   return (
     <div className="space-y-6" dir="rtl">
-      <PageHeader title="Academic Insights" description="نمای کلی عملکرد حضور و ارزیابی‌ها" />
+      <PageHeader title="بینش‌های تحصیلی" description="نمای کلی عملکرد حضور و ارزیابی‌ها" />
       <AttendanceAnalytics />
       <AssessmentAnalytics />
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">

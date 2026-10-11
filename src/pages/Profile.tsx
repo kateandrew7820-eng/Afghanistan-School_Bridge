@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
-  ArrowLeft,
+  ArrowRight,
   Building2,
   Mail,
   MapPin,
@@ -24,7 +24,7 @@ import {
   Zap,
   Eye,
   Edit3,
-  ChevronLeft,
+  ChevronRight,
   Award,
   Loader2,
   Save,
@@ -221,12 +221,25 @@ export default function ProfilePage() {
    * The original page displayed many navigation items without routes/actions,
    * which made them appear clickable while doing nothing.
    */
+  const roleHomeRoutes: Record<string, string> = {
+    teacher: '/school',
+    school: '/school',
+    school_principal: '/school',
+    principal: '/school',
+    district_coordinator: '/district',
+    district_admin: '/district',
+    province_coordinator: '/province',
+    province_admin: '/province',
+    ministry_admin: '/ministry',
+  };
+  const homeRoute = roleHomeRoutes[role ?? ''] ?? '/';
+
   const quickAccessItems = useMemo(
     () => [
       {
         label: 'صفحه اصلی',
         icon: Eye,
-        action: () => navigate('/ministry'),
+        action: () => navigate(homeRoute),
       },
       {
         label: 'ویرایش پروفایل',
@@ -234,7 +247,7 @@ export default function ProfilePage() {
         action: () => navigate('/setup-profile'),
       },
     ],
-    [navigate]
+    [homeRoute, navigate]
   );
 
   const isEmailVerified = Boolean(user?.email_confirmed_at);
@@ -255,7 +268,7 @@ export default function ProfilePage() {
               className="text-muted-foreground hover:text-foreground"
               aria-label="بازگشت"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowRight className="h-5 w-5" />
             </Button>
 
             <div>
@@ -271,7 +284,7 @@ export default function ProfilePage() {
             className="gap-2"
             variant="outline"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4 ml-1" />
             بازگشت به داشبورد
           </Button>
         </div>

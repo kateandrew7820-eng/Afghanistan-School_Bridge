@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import NavigationBackButton from '@/components/NavigationBackButton';
 import PageHeader from '@/components/PageHeader';
 import AcademicTrendChart from '@/components/academic/AcademicTrendChart';
 import AcademicStatusBadge from '@/components/academic/AcademicStatusBadge';
@@ -104,6 +105,7 @@ export default function StudentProfile() {
 
   return (
     <div className="space-y-6" dir="rtl">
+      <NavigationBackButton fallback="/school/academic-insights" label="بازگشت به بینش‌ها" />
       <PageHeader title="پروفایل دانش‌آموز" description={id ? `مشاهده عملکرد ${id}` : 'شناسه دانش‌آموز یافت نشد'} />
 
       {error ? (

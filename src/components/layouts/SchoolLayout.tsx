@@ -43,7 +43,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
     {
       label: 'بینش‌ها',
       items: [
-        { href: '/school/academic-insights', icon: ChartBar, label: 'Academic Insights' },
+        { href: '/school/academic-insights', icon: ChartBar, label: 'بینش‌های تحصیلی' },
       ],
     },
     {
@@ -63,7 +63,7 @@ export default function SchoolLayout({ children }: SchoolLayoutProps) {
         navAriaLabel="منوی مکتب"
         brand={{
           icon: School,
-          title: (profile as any)?.schools?.name || profile?.school_name || t('navigation.schoolName'),
+          title: profile?.schools?.name || profile?.school_name || t('navigation.schoolName'),
           subtitle: t('roles.school'),
         }}
         scopeChip={<ScopeChip levels={[profile?.province, profile?.district]} />}
