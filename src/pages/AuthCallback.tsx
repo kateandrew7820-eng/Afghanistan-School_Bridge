@@ -11,24 +11,55 @@ export default function AuthCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<Status>("loading");
   const [errorMsg, setErrorMsg] = useState("");
+  const [isDelayed, setIsDelayed] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout>;
+    let redirectTimeout: ReturnType<typeof setTimeout>;
     let unsubscribe: (() => void) | undefined;
+    let isCurrent = true;
+
+    const timeout = setTimeout(() => {
+      fail("لینک تأیید منقضی شده یا نامعتبر است. لطفاً دوباره ثبت‌نام کنید.");
+    }, 25000);
+    const delayedTimeout = setTimeout(() => {
+      if (isCurrent) setIsDelayed(true);
+    }, 6000);
+
+    const clearPendingTimeouts = () => {
+      clearTimeout(timeout);
+      clearTimeout(delayedTimeout);
+    };
+
+    const fail = (message: string) => {
+      clearPendingTimeouts();
+      if (!isCurrent) return;
+      setErrorMsg(message);
+      setStatus("error");
+    };
+
+    const succeed = () => {
+      if (!isCurrent) return;
+      clearPendingTimeouts();
+      setStatus("success");
+      redirectTimeout = setTimeout(() => navigate("/", { replace: true }), 800);
+      unsubscribe?.();
+    };
+
+    setIsDelayed(false);
 
     const handleCallback = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
+        if (!isCurrent) return;
 
         if (error) {
-          setErrorMsg(mapError(error.message));
-          setStatus("error");
+          fail(mapError(error.message));
           return;
         }
 
         if (data.session) {
-          setStatus("success");
-          setTimeout(() => navigate("/", { replace: true }), 800);
+          succeed();
           return;
         }
 
@@ -41,13 +72,12 @@ export default function AuthCallback() {
             access_token: accessToken,
             refresh_token: refreshToken,
           });
+          if (!isCurrent) return;
           if (sessionError) {
-            setErrorMsg(mapError(sessionError.message));
-            setStatus("error");
+            fail(mapError(sessionError.message));
             return;
           }
-          setStatus("success");
-          setTimeout(() => navigate("/", { replace: true }), 800);
+          succeed();
           return;
         }
 
@@ -55,51 +85,40 @@ export default function AuthCallback() {
         const code = urlParams.get("code");
         if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (!isCurrent) return;
           if (exchangeError) {
-            setErrorMsg(mapError(exchangeError.message));
-            setStatus("error");
+            fail(mapError(exchangeError.message));
             return;
           }
-          setStatus("success");
-          setTimeout(() => navigate("/", { replace: true }), 800);
+          succeed();
           return;
         }
 
         const errorParam = hashParams.get("error_description") || urlParams.get("error_description");
         if (errorParam) {
-          setErrorMsg(mapError(errorParam));
-          setStatus("error");
+          fail(mapError(errorParam));
           return;
         }
 
-        timeout = setTimeout(() => {
-          setErrorMsg("لینک تأیید منقضی شده یا نامعتبر است. لطفاً دوباره ثبت‌نام کنید.");
-          setStatus("error");
-        }, 6000);
-
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          if (session) {
-            clearTimeout(timeout);
-            setStatus("success");
-            setTimeout(() => navigate("/", { replace: true }), 800);
-            subscription.unsubscribe();
-          }
+          if (session) succeed();
         });
 
         unsubscribe = () => subscription.unsubscribe();
       } catch (err) {
-        setErrorMsg("خطا در تأیید ایمیل. لطفاً دوباره تلاش کنید.");
-        setStatus("error");
+        fail("خطا در تأیید ایمیل. لطفاً دوباره تلاش کنید.");
       }
     };
 
     handleCallback();
 
     return () => {
-      clearTimeout(timeout);
+      isCurrent = false;
+      clearPendingTimeouts();
+      clearTimeout(redirectTimeout);
       unsubscribe?.();
     };
-  }, [navigate]);
+  }, [navigate, retryAttempt]);
 
   return (
     <AuthShell title="تأیید ایمیل" description="در حال تأیید حساب کاربری شما">
@@ -108,7 +127,11 @@ export default function AuthCallback() {
           <>
             <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
             <h1 className="text-xl font-heading font-bold text-foreground">در حال تأیید ایمیل...</h1>
-            <p className="text-muted-foreground text-sm">لطفاً چند لحظه صبر کنید</p>
+            <p className="text-muted-foreground text-sm" aria-live="polite">
+              {isDelayed
+                ? 'در حال برقراری ارتباط با سرور و بررسی پیوند تأیید… در صورت کندی اینترنت لطفاً کمی صبر نمایید.'
+                : 'لطفاً چند لحظه صبر کنید'}
+            </p>
             <div className="mx-auto h-1.5 w-40 overflow-hidden rounded-full bg-muted">
               <div className="h-full w-1/2 bg-primary animate-[shimmer_1.2s_ease-in-out_infinite]" />
             </div>
@@ -129,12 +152,12 @@ export default function AuthCallback() {
             <h1 className="text-xl font-heading font-bold text-foreground">خطا در تأیید</h1>
             <p className="text-muted-foreground text-sm leading-relaxed">{errorMsg}</p>
             <div className="flex flex-col gap-2 pt-2">
-              <Button onClick={() => navigate("/login")} className="w-full">
-                بازگشت به ورود
-              </Button>
-              <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
+              <Button onClick={() => { setErrorMsg(""); setStatus("loading"); setRetryAttempt((attempt) => attempt + 1); }} className="w-full">
                 <RotateCcw className="ml-2 h-4 w-4" />
                 تلاش مجدد
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/login", { replace: true })} className="w-full">
+                ورود به سیستم
               </Button>
             </div>
           </>

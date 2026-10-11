@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, AlertCircle, Zap, ArrowRight, Clock } from 'lucide-react';
+import { Loader2, AlertCircle, Zap, ArrowRight, Clock, LogOut } from 'lucide-react';
 import { useErrorToast } from '@/lib/errorToast';
 import { FormFieldWrapper, FormErrorSummary } from '@/components/FormFieldError';
+import NavigationBackButton from '@/components/NavigationBackButton';
 import { TEMPORARY_TEST_MODE, getApproverLabel } from '@/lib/testMode';
 import { useQuery } from '@tanstack/react-query';
 import { useDraft } from '@/hooks/useDraft';
@@ -30,7 +31,7 @@ const ROLES = [
 export default function SetupProfile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { t } = useTranslation();
   const { toast } = useToast();
   const { showErrorMessage, showSuccess } = useErrorToast();
@@ -49,12 +50,12 @@ export default function SetupProfile() {
     selected_school_id: string | null;
   } = {
     full_name: isQuickMode ? 'سازنده' : (profile?.full_name || ''),
-    role: isQuickMode ? 'teacher' : '',
-    school_name: isQuickMode ? 'مکتب توسعه' : '',
-    district: isQuickMode ? 'ولسوالی تجربه' : '',
-    province: isQuickMode ? 'کابل' : '',
-    phone_number: isQuickMode ? '+93 700 000 000' : '',
-    selected_school_id: null,
+    role: isQuickMode ? 'teacher' : (profile?.role || ''),
+    school_name: isQuickMode ? 'مکتب توسعه' : (profile?.school_name || ''),
+    district: isQuickMode ? 'ولسوالی تجربه' : (profile?.district || ''),
+    province: isQuickMode ? 'کابل' : (profile?.province || ''),
+    phone_number: isQuickMode ? '+93 700 000 000' : (profile?.phone_number || ''),
+    selected_school_id: isQuickMode ? null : (profile?.school_id || null),
   };
   const [formData, setFormData, clearDraft, hadDraft, draftSaveState] = useDraft(
     `setup-profile:${user?.id ?? 'guest'}`,
@@ -77,6 +78,23 @@ export default function SetupProfile() {
     const timer = window.setTimeout(() => navigate('/pending-verification'), 500);
     return () => window.clearTimeout(timer);
   }, [navigate, queuedSubmission, submissionStatus]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login', { replace: true });
+  };
+
+  const pageHeader = (
+    <header className="border-b bg-background/80 backdrop-blur">
+      <div className="container mx-auto flex items-center justify-between gap-3 px-4 py-3" dir="rtl">
+        <NavigationBackButton fallback="/" />
+        <Button variant="outline" size="sm" onClick={handleSignOut}>
+          <LogOut className="ml-2 h-4 w-4" />
+          خروج از حساب
+        </Button>
+      </div>
+    </header>
+  );
 
   // Load provinces from master table
   const { data: masterProvinces } = useQuery({
@@ -139,23 +157,38 @@ export default function SetupProfile() {
 
   if (queuedSubmission) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
-        <Card className="w-full max-w-lg">
-          <CardContent className="space-y-4 pt-6 text-center">
-            <AlertCircle className="mx-auto h-10 w-10 text-primary" />
-            <h1 className="text-xl font-semibold">
-              {submissionStatus === 'failed' ? 'پروفایل ذخیره شد اما ارسال ناموفق بود' :
-                submissionStatus === 'synced' ? 'پروفایل همگام‌سازی شد — منتظر تأیید' : 'پروفایل ذخیره شد — Pending sync'}
-            </h1>
-            <p className="text-muted-foreground">
-              {submissionStatus === 'failed'
-                ? 'معلومات شما روی این دستگاه محفوظ است. پیام خطا و گزینه تلاش دوباره در بالای صفحه نمایش داده می‌شود.'
-                : submissionStatus === 'synced'
-                  ? 'پروفایل به سرور ارسال شد. در حال انتقال به مرحله تأیید…'
-                  : 'معلومات شما روی این دستگاه محفوظ است. پس از اتصال دوباره به اینترنت، برای تأیید ارسال خواهد شد.'}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+        {pageHeader}
+        <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
+          <Card className="w-full max-w-lg">
+            <CardContent className="space-y-4 pt-6 text-center">
+              <AlertCircle className="mx-auto h-10 w-10 text-primary" />
+              <h1 className="text-xl font-semibold">
+                {submissionStatus === 'failed' ? 'پروفایل ذخیره شد اما ارسال ناموفق بود' :
+                  submissionStatus === 'synced' ? 'پروفایل همگام‌سازی شد — منتظر تأیید' : 'پروفایل ذخیره شد — Pending sync'}
+              </h1>
+              <Alert className="text-right">
+                <AlertDescription className="space-y-4">
+                  <span>
+                    {submissionStatus === 'failed'
+                      ? 'معلومات شما روی این دستگاه محفوظ است؛ می‌توانید آن را ویرایش کنید یا به خانه برگردید.'
+                      : submissionStatus === 'synced'
+                        ? 'پروفایل به سرور ارسال شد. در حال انتقال به مرحله تأیید…'
+                        : 'معلومات شما روی این دستگاه محفوظ است و پس از اتصال دوباره برای تأیید ارسال می‌شود.'}
+                  </span>
+                  <span className="flex flex-wrap justify-center gap-2">
+                    <Button variant="outline" onClick={() => setQueuedSubmission(null)}>
+                      ویرایش معلومات
+                    </Button>
+                    <Button onClick={() => navigate('/')}>
+                      بازگشت به خانه
+                    </Button>
+                  </span>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }
@@ -287,7 +320,9 @@ export default function SetupProfile() {
 
   if (isQuickMode) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+        {pageHeader}
+        <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-4">
@@ -353,17 +388,37 @@ export default function SetupProfile() {
             </CardContent>
           </Card>
         </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+      {pageHeader}
+      <main className="flex justify-center p-4">
       <div className="w-full max-w-2xl space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold">پروفایل خود را تکمیل کنید</h1>
           <p className="text-muted-foreground">لطفاً معلومات خود را وارد کنید تا حساب شما تأیید شود</p>
         </div>
+
+        {(profile?.status === 'pending_verification' || profile?.status === 'pending') && (
+          <Alert className="border-warning/20 bg-warning/10">
+            <Clock className="h-4 w-4 text-warning" />
+            <AlertDescription className="space-y-3 text-warning">
+              <p>حساب شما در انتظار تأیید است. می‌توانید معلومات را ویرایش کنید یا به خانه برگردید.</p>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" onClick={() => document.getElementById('full_name')?.focus()}>
+                  ویرایش معلومات
+                </Button>
+                <Button type="button" onClick={() => navigate('/')}>
+                  بازگشت به خانه
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* 🚧 TEMPORARY TEST MODE banner */}
         {TEMPORARY_TEST_MODE && (
@@ -386,7 +441,7 @@ export default function SetupProfile() {
             <CardDescription>این معلومات برای تعیین سطح دسترسی درست استفاده می‌شود</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form id="profile-form" onSubmit={handleSubmit} className="space-y-6">
               {draftSaveState !== 'loading' && (
                 <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
                   {draftSaveState === 'saving' ? 'در حال ذخیره پیش‌نویس…' :
@@ -528,6 +583,7 @@ export default function SetupProfile() {
           </CardContent>
         </Card>
       </div>
+      </main>
     </div>
   );
 }

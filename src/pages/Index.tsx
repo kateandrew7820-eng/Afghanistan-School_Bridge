@@ -16,12 +16,14 @@ import {
   Heart,
   ArrowRight,
   Clock,
+  Rocket,
+  Map,
 } from 'lucide-react';
 
 export default function Index() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile, role } = useAuth();
+  const { user, profile, role } = useAuth();
 
   const dashboardRoutes: Record<string, string> = {
     teacher: '/school',
@@ -199,59 +201,74 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Status */}
-        <div className="max-w-2xl mx-auto mb-10">
-          <Alert className="bg-warning/10 border-warning/20">
-            <Clock className="w-4 h-4 text-warning" />
-            <AlertDescription className="text-warning">
-              <strong>وضعیت حساب:</strong> {t('profileCompletion.awaitingApproval')}
-            </AlertDescription>
-          </Alert>
-        </div>
+        {user && profile && (
+          <>
+            {/* Status */}
+            <div className="max-w-2xl mx-auto mb-10">
+              <Alert className="bg-warning/10 border-warning/20">
+                <Clock className="w-4 h-4 text-warning" />
+                <AlertDescription className="text-warning">
+                  <strong>وضعیت حساب:</strong> {t('profileCompletion.awaitingApproval')}
+                </AlertDescription>
+              </Alert>
+            </div>
 
-        {/* User Info */}
-        <div className="max-w-3xl mx-auto grid gap-5 mb-12">
+            {/* User Info */}
+            <div className="max-w-3xl mx-auto grid gap-5 mb-12">
+              <Card>
+                <CardHeader>
+                  <CardTitle>نام شما</CardTitle>
+                  <CardDescription>{profile.full_name || 'ثبت نشده'}</CardDescription>
+                </CardHeader>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>نام شما</CardTitle>
-              <CardDescription>
-                {profile?.full_name || 'ثبت نشده'}
-              </CardDescription>
-            </CardHeader>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>نقش شما</CardTitle>
+                  <CardDescription>
+                    {(typeof role === 'string' && t(`roles.${role}`)) || 'نامشخص'}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>نقش شما</CardTitle>
-              <CardDescription>
-                {(typeof role === 'string' && t(`roles.${role}`)) || 'نامشخص'}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>مکتب</CardTitle>
-              <CardDescription>
-                {profile?.school_name || 'ثبت نشده'}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>مکتب</CardTitle>
+                  <CardDescription>{profile.school_name || 'ثبت نشده'}</CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          </>
+        )}
 
         {/* CTA */}
         <div className="text-center space-y-4">
           <h3 className="text-xl font-bold">
-            آماده ادامه هستید؟
+            {user ? 'آماده ادامه هستید؟' : 'سیستم را تجربه کنید'}
           </h3>
 
           <div className="flex flex-wrap justify-center gap-3">
-            <Button size="lg" onClick={handleContinue} className="gap-2">
-            
-              <ArrowRight className="w-4 h-4" />
-              ورود به دشبورد
-            </Button>
+            {user ? (
+              <Button size="lg" onClick={handleContinue} className="gap-2">
+                <ArrowRight className="w-4 h-4" />
+                ورود به دشبورد
+              </Button>
+            ) : (
+              <>
+                <Button asChild size="lg" className="gap-2">
+                  <Link to="/demo">
+                    <Rocket className="w-4 h-4" />
+                    حالت نمایشی (آزمایشی)
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="gap-2">
+                  <Link to="/roadmap">
+                    <Map className="w-4 h-4" />
+                    مشاهده نقشه راه
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
