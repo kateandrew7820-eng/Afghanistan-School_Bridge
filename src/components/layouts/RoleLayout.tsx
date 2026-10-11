@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { NotificationBell } from '@/components/NotificationBell';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { getRoleLabel } from '@/lib/verificationHierarchy';
 import { LogOut, Menu, X, User, Search, Command as CmdIcon, LucideIcon } from 'lucide-react';
@@ -234,21 +234,30 @@ export default function RoleLayout({
       </aside>
 
       <Dialog open={confirmSignOut} onOpenChange={setConfirmSignOut}>
-        <DialogContent dir="rtl">
-          <DialogHeader>
-            <DialogTitle>Do you want to sign out?</DialogTitle>
+        <DialogContent dir="rtl" className="max-w-md gap-6 rounded-xl p-6">
+          <DialogHeader className="space-y-3 pt-1 text-right sm:text-right">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
+                <LogOut className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <DialogTitle className="text-xl leading-snug">Do you want to sign out?</DialogTitle>
+            </div>
+            <DialogDescription>
+              You will be returned to the sign-in page. Your current session will be ended.
+            </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-2">
             <Button variant="outline" onClick={() => setConfirmSignOut(false)}>Cancel</Button>
             <Button
               variant="destructive"
               onClick={async () => {
-                await signOut();
                 setConfirmSignOut(false);
-                navigate('/login');
+                void signOut();
+                navigate('/login', { replace: true });
               }}
             >
-              Confirm
+              <LogOut className="ms-2 h-4 w-4" aria-hidden="true" />
+              Confirm signing out
             </Button>
           </DialogFooter>
         </DialogContent>
