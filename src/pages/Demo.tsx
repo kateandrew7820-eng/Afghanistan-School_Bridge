@@ -15,18 +15,19 @@ const DEMO_ROLES = [
   { id: "district_admin", label: "ریاست ولسوالی", icon: Building2, tier: "district", color: "from-success to-success" },
   { id: "province_admin", label: "ریاست ولایت", icon: TrendingUp, tier: "province", color: "from-accent to-accent" },
   { id: "ministry_admin", label: "وزارت معارف", icon: Crown, tier: "ministry", color: "from-warning to-warning" },
-];
+] as const;
+
+const TIER_LABELS = {
+  school: "مکتب",
+  district: "ولسوالی",
+  province: "ولایت",
+  ministry: "وزارت",
+} as const;
 
 export default function Demo() {
   const navigate = useNavigate();
   const { setDemoMode } = useAuth();
   const { t } = useTranslation();
-
-  // Gate demo mode to development only
-  if (import.meta.env.MODE !== 'development') {
-    navigate('/login');
-    return null;
-  }
 
   const routes: Record<string, string> = {
     school: "/school",
@@ -35,8 +36,8 @@ export default function Demo() {
     ministry: "/ministry",
   };
 
-  const handleClick = (role: any) => {
-    setDemoMode?.(role.id as any, role.tier as any);
+  const handleClick = (role: (typeof DEMO_ROLES)[number]) => {
+    setDemoMode(role.id, role.tier);
 
     // smooth delay for UX feel
     setTimeout(() => {
@@ -57,7 +58,7 @@ export default function Demo() {
           className="flex items-center gap-2"
         >
           <TestTube className="w-4 h-4" />
-          Test UI
+          آزمایش رابط کاربری
         </Button>
       </div>
 
@@ -93,7 +94,7 @@ export default function Demo() {
                     <div className="flex justify-between items-center">
                       <Icon className="w-6 h-6 text-primary group-hover:scale-110 transition" />
                       <span className="text-xs text-muted-foreground">
-                        {role.tier}
+                        {TIER_LABELS[role.tier]}
                       </span>
                     </div>
 

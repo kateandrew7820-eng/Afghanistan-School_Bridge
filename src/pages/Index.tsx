@@ -252,9 +252,6 @@ export default function Index() {
               <ArrowRight className="w-4 h-4" />
               ورود به دشبورد
             </Button>
-            <Button size="lg" variant="outline" asChild>
-              <Link to="/owner-access">ورود به عنوان ادمین</Link>
-            </Button>
           </div>
         </div>
 

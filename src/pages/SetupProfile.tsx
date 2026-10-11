@@ -225,12 +225,7 @@ export default function SetupProfile() {
 
     setIsLoading(true);
     try {
-      // ============================================================
-      // 🚧 TEMPORARY TEST MODE
-      // In test mode: status = 'pending_verification' (masoudsalik2024@gmail.com confirms)
-      // In production: status = 'pending_verification' (hierarchical approval)
-      // Both paths use pending_verification - the difference is WHO confirms
-      // ============================================================
+      // New profiles begin in the hierarchical approval flow.
       // Try to find matching school
       let schoolId = selectedSchoolId;
       if (!schoolId && formData.school_name && formData.province && formData.district) {

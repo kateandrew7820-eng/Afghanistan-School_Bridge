@@ -1,19 +1,17 @@
-// Hierarchical approver routing.
-// Each applicant role's approval email is sent to a preset head email address.
+// Client-side approver labels; recipient routing is handled by the approval function.
 
 export type ApproverRoute = {
-  email: string;
   label: string;
 };
 
 export const APPROVER_ROUTING: Record<string, ApproverRoute> = {
-  student: { email: 'kateandrew78.20@gmail.com', label: 'مدیر مکتب' },
-  teacher: { email: 'kateandrew78.20@gmail.com', label: 'مدیر مکتب' },
-  principal: { email: 'salikmasoud621@gmail.com', label: 'رئیس معارف ولسوالی' },
-  district_admin: { email: 'zahrasalik87@gmail.com', label: 'رئیس معارف ولایت' },
-  province_admin: { email: 'manotofaza@gmail.com', label: 'مدیر ملی' },
-  admin: { email: 'masoudsalik2024@gmail.com', label: 'وزیر معارف' },
-  ministry_admin: { email: 'masoudsalik2024@gmail.com', label: 'مالک پلتفرم' },
+  student: { label: 'مدیر مکتب' },
+  teacher: { label: 'مدیر مکتب' },
+  principal: { label: 'رئیس معارف ولسوالی' },
+  district_admin: { label: 'رئیس معارف ولایت' },
+  province_admin: { label: 'مدیر ملی' },
+  admin: { label: 'وزیر معارف' },
+  ministry_admin: { label: 'وزیر معارف' },
 };
 
 export function getApproverRoute(role: string | null | undefined): ApproverRoute {

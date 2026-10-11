@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, getUserRole, getUserProfile, UserRole, getRoleTier, getRoleDefaultRoute } from '@/lib/supabase';
-import { isOwnerCredentials, isOwnerBypassMode, getRoleRouteFromEmail, type OwnerRoleSelection } from '@/lib/ownerAccess';
 
 interface Profile {
   id: string;
@@ -190,7 +189,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             loadUserData(newSession.user.id);
           }
         } else if (event === 'SIGNED_OUT') {
-          localStorage.removeItem('schoolbridge-owner-bypass');
           try {
             Object.keys(localStorage)
               .filter((key) => key.startsWith('schoolbridge-offline-profile:'))
@@ -219,45 +217,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string): Promise<{ error: Error | null }> => {
     try {
       setError(null);
-
-      const officialRoute = getRoleRouteFromEmail(email);
-
-      if (isOwnerCredentials(email, password)) {
-        localStorage.setItem('schoolbridge-owner-bypass', 'true');
-
-        const ownerUser = {
-          id: 'owner-user',
-          email,
-          user_metadata: { full_name: 'Masoud Salik' },
-          app_metadata: {},
-          aud: 'authenticated',
-          created_at: new Date().toISOString(),
-        } as any;
-
-        const ownerProfile: Profile = {
-          id: 'owner-profile',
-          user_id: ownerUser.id,
-          full_name: 'Masoud Salik',
-          school_id: null,
-          district: 'مرکز',
-          province: 'کابل',
-          school_name: 'SchoolBridge Owner',
-          role: 'ministry_admin',
-          phone_number: '+93 700 000 000',
-          status: 'verified',
-          verified_by_user_id: null,
-          verified_at: new Date().toISOString(),
-          rejection_reason: null,
-          schools: null,
-        };
-
-        setUser(ownerUser);
-        setSession({ access_token: 'owner-token', refresh_token: 'owner-refresh', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, user: ownerUser } as any);
-        setProfile(ownerProfile);
-        setRole('ministry_admin');
-        setLoading(false);
-        return { error: null };
-      }
 
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -338,7 +297,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      localStorage.removeItem('schoolbridge-owner-bypass');
       setUser(null);
       setSession(null);
       setProfile(null);

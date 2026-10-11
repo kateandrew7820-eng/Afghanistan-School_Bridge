@@ -10,13 +10,12 @@ import { useToast } from "@/hooks/use-toast";
 import { sanitizeError } from "@/lib/sanitizeError";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { PasswordField } from "@/components/auth/PasswordField";
-import { isOwnerCredentials } from '@/lib/ownerAccess';
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { signIn, user, roleTier, setDevQuickMode } = useAuth();
+  const { signIn, signOut, user, profile, profileLoading, roleTier, setDevQuickMode } = useAuth();
   const { toast } = useToast();
 
   const [email, setEmail] = useState("");
@@ -27,10 +26,11 @@ export default function LoginPage() {
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user && roleTier) {
+    if (user && roleTier && !profileLoading) {
+      if (profile?.status === "rejected" || profile?.status === "denied") return;
       navigate(`/${roleTier === "school" ? "school" : roleTier}`, { replace: true });
     }
-  }, [user, roleTier, navigate]);
+  }, [user, roleTier, profile?.status, profileLoading, navigate]);
 
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -67,12 +67,6 @@ export default function LoginPage() {
         return;
       }
 
-      if (isOwnerCredentials(em, password)) {
-        toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به صفحه انتخاب نقش…" });
-        navigate("/owner-access", { replace: true });
-        return;
-      }
-
       toast({ title: "خوش آمدید 🎉", description: "در حال انتقال به داشبورد…" });
       return;
     },
@@ -92,6 +86,19 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {(profile?.status === "rejected" || profile?.status === "denied") && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex flex-col items-start gap-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-3 text-sm text-foreground"
+            >
+              <p>حساب قبلی شما رد شده است. لطفاً با یک حساب دیگر وارد شوید یا از دکمه خروج استفاده نمایید.</p>
+              <Button type="button" variant="outline" size="sm" onClick={signOut}>
+                خروج از حساب قبلی
+              </Button>
+            </div>
+          )}
+
           {errors.form && (
             <div
               role="alert"

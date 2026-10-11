@@ -159,7 +159,7 @@ function ProtectedRoute({ children, allowedTier }: { children: React.ReactNode; 
 }
 
 function AppRoutes() {
-  const { user, role, roleTier, loading } = useAuth();
+  const { user, roleTier, profile, profileLoading, loading } = useAuth();
 
   if (loading) {
     return (
@@ -184,7 +184,14 @@ function AppRoutes() {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={user && roleTier ? <Navigate to={getDashboardRoute()} replace /> : <Login />} />
+      <Route
+        path="/login"
+        element={
+          user && roleTier && profileLoading ? <LoadingFallback /> :
+          user && roleTier && profile?.status !== 'rejected' && profile?.status !== 'denied' ?
+            <Navigate to={getDashboardRoute()} replace /> : <Login />
+        }
+      />
 
       {/* User Setup & Verification Routes */}
       <Route path="/signup" element={<Suspense fallback={<LoadingFallback />}><Signup /></Suspense>} />

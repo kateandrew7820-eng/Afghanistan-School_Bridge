@@ -103,10 +103,16 @@ export default function PendingVerification() {
           )}
           <p className="text-sm text-muted-foreground">لطفاً با پشتیبانی تماس بگیرید</p>
           <div className="flex flex-col gap-2">
-            <Button variant="destructive" onClick={() => navigate("/login")}>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                await signOut();
+                navigate("/login", { replace: true });
+              }}
+            >
               بازگشت به ورود
             </Button>
-            <Button variant="outline" onClick={async () => { await signOut(); navigate("/login"); }}>
+            <Button variant="outline" onClick={async () => { await signOut(); navigate("/login", { replace: true }); }}>
               <LogOut className="w-4 h-4 ml-2" />
               خروج از حساب
             </Button>
