@@ -40,7 +40,7 @@ export function SmartConfirmationDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" dir="rtl">
         <DialogHeader>
           <div className="flex items-center gap-3">
             {isDangerous ? (

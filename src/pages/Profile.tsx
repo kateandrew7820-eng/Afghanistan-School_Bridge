@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useConfirmation } from '@/contexts/ConfirmationContext';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import {
   ArrowRight,
-  Building2,
   Mail,
   MapPin,
   Phone,
@@ -14,18 +15,12 @@ import {
   Bell,
   LogOut,
   Settings,
-  FileText,
-  Users,
-  BarChart3,
-  Download,
   CheckCircle2,
   AlertCircle,
-  Clock,
   Zap,
   Eye,
   Edit3,
   ChevronRight,
-  Award,
   Loader2,
   Save,
   XCircle,
@@ -49,9 +44,45 @@ const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   submissions: true,
 };
 
+interface PasswordChangeResult {
+  success?: boolean;
+  code?: string;
+  retryAfter?: number;
+  reauthenticate?: boolean;
+}
+
+function isStrongPassword(password: string): boolean {
+  return [...password].length >= 12
+    && /[a-z]/.test(password)
+    && /[A-Z]/.test(password)
+    && /[0-9]/.test(password)
+    && /[^A-Za-z0-9]/.test(password);
+}
+
+function passwordErrorMessage(code?: string, retryAfter?: number): string {
+  switch (code) {
+    case 'CURRENT_PASSWORD_INCORRECT':
+      return 'رمز عبور فعلی نادرست است.';
+    case 'PASSWORD_TOO_WEAK':
+      return 'رمز عبور ضعیف است؛ رمز قوی‌تر با حروف بزرگ و کوچک، عدد و نشانه انتخاب کنید.';
+    case 'PASSWORD_BREACHED':
+      return 'این رمز عبور در فهرست رمزهای افشاشده دیده شده است. رمز دیگری انتخاب کنید.';
+    case 'PASSWORD_REUSED':
+      return 'این رمز با رمز فعلی یا یکی از پنج رمز قبلی شما یکسان است.';
+    case 'RATE_LIMITED':
+      return `تلاش‌های ناموفق زیاد بود. ${Math.max(1, Math.ceil((retryAfter ?? 900) / 60))} دقیقه دیگر دوباره تلاش کنید.`;
+    case 'PASSWORD_CHECK_UNAVAILABLE':
+      return 'بررسی ایمنی رمز فعلاً در دسترس نیست. کمی بعد دوباره تلاش کنید.';
+    default:
+      return 'تغییر رمز عبور انجام نشد. اتصال را بررسی کرده و دوباره تلاش کنید.';
+  }
+}
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, profile, role, signOut } = useAuth();
+  const { showConfirmation } = useConfirmation();
+  const { theme, setTheme, systemTheme } = useTheme();
 
   const [activeSection, setActiveSection] = useState<Section>('personal');
 
@@ -59,6 +90,7 @@ export default function ProfilePage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isSavingNotifications, setIsSavingNotifications] = useState(false);
 
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -131,18 +163,18 @@ export default function ProfilePage() {
   const handleChangePassword = async () => {
     setPasswordMessage(null);
 
-    if (!newPassword || !confirmPassword) {
+    if (!currentPassword || !newPassword || !confirmPassword) {
       setPasswordMessage({
         type: 'error',
-        text: 'لطفاً هر دو بخش رمز عبور را تکمیل کنید.',
+        text: 'رمز عبور فعلی، رمز جدید و تأیید آن را وارد کنید.',
       });
       return;
     }
 
-    if (newPassword.length < 6) {
+    if (!isStrongPassword(newPassword)) {
       setPasswordMessage({
         type: 'error',
-        text: 'رمز عبور باید حداقل ۶ کاراکتر باشد.',
+        text: 'رمز عبور باید دست‌کم ۱۲ نویسه داشته و شامل حروف بزرگ و کوچک، عدد و نشانه باشد.',
       });
       return;
     }
@@ -155,37 +187,68 @@ export default function ProfilePage() {
       return;
     }
 
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      setPasswordMessage({ type: 'error', text: 'برای تغییر رمز عبور، از اتصال امن HTTPS استفاده کنید.' });
+      return;
+    }
+
     setIsChangingPassword(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
+      const { data, error } = await supabase.functions.invoke('change-password', {
+        body: { currentPassword, newPassword },
       });
 
+      let result = data as PasswordChangeResult | null;
       if (error) {
-        throw error;
+        const response = error.context;
+        if (response instanceof Response) {
+          try {
+            result = await response.clone().json() as PasswordChangeResult;
+          } catch {
+            result = null;
+          }
+        }
+        if (!result?.code) result = { code: 'SERVICE_UNAVAILABLE' };
+      }
+
+      if (!result?.success) {
+        const message = passwordErrorMessage(result?.code, result?.retryAfter);
+        setPasswordMessage({ type: 'error', text: message });
+        return;
       }
 
       setPasswordMessage({
         type: 'success',
-        text: 'رمز عبور با موفقیت تغییر کرد.',
+        text: 'رمز عبور تغییر کرد و نشست‌های دیگر پایان یافتند.',
       });
 
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error) {
-      console.error('Password update failed:', error);
-
+      if (result.reauthenticate) {
+        await signOut();
+        navigate('/login', { replace: true });
+      }
+    } catch {
       setPasswordMessage({
         type: 'error',
-        text:
-          error instanceof Error
-            ? error.message
-            : 'تغییر رمز عبور انجام نشد. دوباره تلاش کنید.',
+        text: 'تغییر رمز عبور انجام نشد. اتصال امن را بررسی کرده و دوباره تلاش کنید.',
       });
     } finally {
       setIsChangingPassword(false);
     }
+  };
+
+  const requestLogout = () => {
+    showConfirmation({
+      title: 'از حساب خود خارج می‌شوید؟',
+      description: 'آیا مطمئن هستید که می‌خواهید از حساب کاربری خود خارج شوید؟',
+      confirmLabel: 'خروج از سیستم',
+      cancelLabel: 'انصراف',
+      isDangerous: true,
+      onConfirm: handleLogout,
+    });
   };
 
   /**
@@ -290,75 +353,8 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-5 sm:gap-6 lg:grid-cols-4">
-        {/* Left Sidebar - Profile */}
-        <div className="min-w-0 space-y-5 lg:col-span-1 lg:space-y-6">
-          <Card className="overflow-hidden rounded-2xl border-border bg-card text-card-foreground shadow-sm">
-            <CardContent className="p-6">
-              {/* Avatar */}
-              <div className="mb-5 flex justify-center">
-                <div className="relative">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/5">
-                    <UserCircle2 className="h-10 w-10 text-primary" />
-                  </div>
-
-                  {/* This represents account status, not online presence. */}
-                  <div
-                    className={`absolute bottom-0 right-0 h-5 w-5 rounded-full border-[3px] border-card ${
-                      profile?.status === 'active'
-                        ? 'bg-emerald-500'
-                        : 'bg-muted-foreground'
-                    }`}
-                    title={
-                      profile?.status === 'active'
-                        ? 'حساب فعال'
-                        : 'وضعیت حساب'
-                    }
-                  />
-                </div>
-              </div>
-
-              {/* User Info */}
-              <div className="mb-6 space-y-2 text-center">
-                <h2 className="break-words text-xl font-bold text-card-foreground">
-                  {profile?.full_name || 'نام ثبت نشده'}
-                </h2>
-
-                <p className="text-sm font-medium text-primary">
-                  {getRoleLabelFA(role)}
-                </p>
-              </div>
-
-              <div className="space-y-3 border-t border-border pt-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4 shrink-0" />
-                  <span className="truncate">
-                    {user?.email || 'ثبت نشده'}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4 shrink-0" />
-                  <span>{profile?.phone_number || 'ثبت نشده'}</span>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 shrink-0" />
-                  <span>{profile?.province || 'ثبت نشده'}</span>
-                </div>
-              </div>
-
-              <Button
-                onClick={() => navigate('/setup-profile')}
-                variant="outline"
-                className="mt-5 w-full gap-2"
-              >
-                <Edit3 className="h-4 w-4" />
-                ویرایش پروفایل
-              </Button>
-            </CardContent>
-          </Card>
-
+      <div className="grid grid-cols-1 items-start gap-5 sm:gap-6 lg:grid-cols-[minmax(220px,0.85fr)_minmax(0,2fr)_minmax(220px,0.85fr)] xl:gap-8">
+        <div className="min-w-0 space-y-5 lg:space-y-6">
           {/* Section Menu */}
           <div className="space-y-2">
             {[
@@ -409,7 +405,7 @@ export default function ProfilePage() {
 
           {/* Logout */}
           <Button
-            onClick={handleLogout}
+            onClick={requestLogout}
             disabled={isLoggingOut}
             variant="outline"
             className="w-full gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
@@ -425,48 +421,32 @@ export default function ProfilePage() {
         </div>
 
         {/* Main Content */}
-        <div className="min-w-0 space-y-5 lg:col-span-2 lg:space-y-6">
+        <div className="min-w-0 space-y-5 lg:space-y-6">
           {/* Personal Info */}
           {activeSection === 'personal' && (
             <Card className="rounded-2xl border-border bg-card text-card-foreground shadow-sm">
               <CardHeader className="border-b border-border">
-                <h3 className="flex items-center gap-2 text-lg font-semibold text-card-foreground">
-                  <UserCircle2 className="h-5 w-5 text-primary" />
-                  اطلاعات شخصی
-                </h3>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                    <UserCircle2 className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-semibold text-card-foreground">اطلاعات شخصی</h3>
+                    <p className="break-words text-sm text-muted-foreground">
+                      {profile?.full_name || 'نام ثبت نشده'} · {getRoleLabelFA(role)}
+                    </p>
+                  </div>
+                </div>
               </CardHeader>
 
               <CardContent className="space-y-4 p-6">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <InfoItem
-                    label="نام کامل"
-                    value={profile?.full_name}
-                  />
-
-                  <InfoItem
-                    label="ایمیل"
-                    value={user?.email}
-                  />
-
-                  <InfoItem
-                    label="شماره تماس"
-                    value={profile?.phone_number}
-                  />
-
-                  <InfoItem
-                    label="نقش"
-                    value={getRoleLabelFA(role)}
-                  />
-
-                  <InfoItem
-                    label="ولایت"
-                    value={profile?.province}
-                  />
-
-                  <InfoItem
-                    label="ولسوالی"
-                    value={profile?.district}
-                  />
+                  <InfoItem label="ایمیل" value={user?.email} />
+                  <InfoItem label="شماره تماس" value={profile?.phone_number} />
+                  <InfoItem label="مکتب" value={profile?.school_name || profile?.schools?.name} />
+                  <InfoItem label="ولایت" value={profile?.province} />
+                  <InfoItem label="ولسوالی" value={profile?.district} />
+                  <InfoItem label="وضعیت حساب" value={profile?.status || 'فعال'} />
                 </div>
 
                 <div className="border-t border-border pt-4">
@@ -541,21 +521,44 @@ export default function ProfilePage() {
                   <div className="space-y-3">
                     <input
                       type="password"
+                      value={currentPassword}
+                      onChange={(e) => { setCurrentPassword(e.target.value); setPasswordMessage(null); }}
+                      placeholder="رمز عبور فعلی"
+                      aria-label="رمز عبور فعلی"
+                      autoComplete="current-password"
+                      required
+                      className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+
+                    <input
+                      type="password"
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => { setNewPassword(e.target.value); setPasswordMessage(null); }}
                       placeholder="رمز عبور جدید"
+                      aria-label="رمز عبور جدید"
                       autoComplete="new-password"
+                      required
                       className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
                     />
 
                     <input
                       type="password"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => { setConfirmPassword(e.target.value); setPasswordMessage(null); }}
                       placeholder="تکرار رمز عبور جدید"
+                      aria-label="تکرار رمز عبور جدید"
                       autoComplete="new-password"
+                      aria-invalid={confirmPassword.length > 0 && newPassword !== confirmPassword}
+                      required
                       className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
                     />
+                    <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
+                      {confirmPassword.length === 0
+                        ? 'رمز جدید باید دست‌کم ۱۲ نویسه داشته و شامل حروف بزرگ و کوچک، عدد و نشانه باشد.'
+                        : newPassword === confirmPassword
+                          ? 'رمزهای عبور مطابقت دارند.'
+                          : 'رمزهای عبور مطابقت ندارند.'}
+                    </p>
                   </div>
 
                   {passwordMessage && (
@@ -578,7 +581,7 @@ export default function ProfilePage() {
 
                   <Button
                     onClick={handleChangePassword}
-                    disabled={isChangingPassword}
+                    disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
                     className="w-full gap-2"
                   >
                     {isChangingPassword ? (
@@ -686,14 +689,25 @@ export default function ProfilePage() {
                   value="UTC+4:30"
                 />
 
-                <SettingRow
-                  label="تم"
-                  value="تیره (دارک)"
-                />
-
-                <div className="rounded-lg border border-border bg-muted/60 p-3 text-xs text-muted-foreground">
-                  تنظیمات سیستم در نسخه فعلی فقط نمایش داده می‌شوند و هنوز
-                  قابلیت تغییر از این صفحه را ندارند.
+                <div className="space-y-2 rounded-lg bg-muted p-3">
+                  <label htmlFor="profile-theme" className="block text-sm text-muted-foreground">
+                    تم نمایشی
+                  </label>
+                  <select
+                    id="profile-theme"
+                    value={theme ?? 'system'}
+                    onChange={(event) => setTheme(event.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                  >
+                    <option value="light">روشن</option>
+                    <option value="dark">تیره</option>
+                    <option value="system">پیش‌فرض دستگاه</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground" aria-live="polite">
+                    {theme === 'system'
+                      ? `نمایش فعلی: ${systemTheme === 'dark' ? 'تیره' : 'روشن'} بر اساس تنظیم دستگاه`
+                      : `تم ${theme === 'dark' ? 'تیره' : 'روشن'} فعال است`}
+                  </p>
                 </div>
               </CardContent>
             </Card>
