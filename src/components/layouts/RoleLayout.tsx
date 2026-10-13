@@ -9,7 +9,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { getRoleLabel } from '@/lib/verificationHierarchy';
-import { LogOut, Menu, X, User, Search, Command as CmdIcon, LucideIcon } from 'lucide-react';
+import { LogOut, Menu, X, User, Search, Command as CmdIcon, LucideIcon, LayoutDashboard } from 'lucide-react';
 
 export interface NavItem {
   href: string;
@@ -61,24 +61,43 @@ export default function RoleLayout({
   }, [onOpenCommand]);
 
   const allItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
-  const currentItem = allItems.find((i) =>
+  const currentItem = [...allItems].sort((a, b) => b.href.length - a.href.length).find((i) =>
     i.href === location.pathname || matchPath({ path: i.href, end: false }, location.pathname)
   );
   const Brand = brand.icon;
+  const dockItems = useMemo(() => {
+    const home = allItems.find((item) => item.href === homeHref) ?? { href: homeHref, icon: LayoutDashboard, label: 'دشبورد' };
+    const primary = allItems.find((item) => /\/(submit|inbox)$/.test(item.href));
+    const insights = allItems.find((item) => /\/(academic-insights|analytics)$/.test(item.href))
+      ?? allItems.find((item) => /\/(schools|districts)$/.test(item.href));
+    const chat = allItems.find((item) => item.href === '/chat');
+    return [home, primary, insights, chat].filter((item): item is NavItem => item !== undefined);
+  }, [allItems, homeHref]);
+
+  useEffect(() => {
+    if (!open) return;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = oldOverflow; window.removeEventListener('keydown', onKey); };
+  }, [open]);
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Top bar */}
       <header
-        className="fixed top-0 right-0 left-0 lg:right-64 h-14 bg-card/95 backdrop-blur border-b border-border z-40 flex items-center justify-between px-3 sm:px-4"
+        className="fixed top-0 right-0 left-0 lg:right-64 h-16 bg-card border-b border-border z-40 flex items-center justify-between px-3 sm:px-6"
         role="banner"
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Button
             variant="ghost" size="icon"
-            className="lg:hidden h-9 w-9 shrink-0"
+            className="lg:hidden h-10 w-10 shrink-0"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? 'بستن منو' : 'باز کردن منو'}
+            aria-expanded={open}
+            aria-controls="role-sidebar"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -123,10 +142,10 @@ export default function RoleLayout({
           )}
           <NotificationBell className="h-9 w-9 text-muted-foreground" align="end" />
           <Button
-            variant="destructive"
+            variant="ghost"
             size="icon"
             onClick={() => setConfirmSignOut(true)}
-            className="h-9 w-9 shadow-sm"
+            className="h-10 w-10 text-muted-foreground"
             aria-label="خروج از سیستم"
           >
             <LogOut className="h-4 w-4" />
@@ -137,7 +156,7 @@ export default function RoleLayout({
       {/* Mobile overlay */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-background/70 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 z-40 bg-foreground/30"
           onClick={() => setOpen(false)}
           role="presentation"
         />
@@ -145,19 +164,20 @@ export default function RoleLayout({
 
       {/* Sidebar */}
       <aside
+        id="role-sidebar"
         className={cn(
-          'fixed top-0 right-0 h-full w-64 bg-card border-l border-border z-50',
-          'transform transition-transform duration-200 ease-out',
-          'lg:translate-x-0',
-          open ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
+          'fixed top-0 right-0 h-full w-64 bg-sidebar border-l border-sidebar-border z-50',
+          'lg:visible lg:translate-x-0',
+          open ? 'visible translate-x-0' : 'invisible translate-x-full lg:visible lg:translate-x-0'
         )}
       >
         <div className="flex flex-col h-full">
           {/* Brand */}
-          <div className="h-14 flex items-center gap-3 px-4 border-b border-border">
-            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="h-16 flex items-center gap-3 px-4 border-b border-border">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <Brand className="h-5 w-5 text-primary" />
             </div>
+            <Button variant="ghost" size="icon-sm" className="lg:hidden shrink-0" aria-label="بستن منو" onClick={() => setOpen(false)}><X /></Button>
             <div className="min-w-0">
               <p className="font-heading font-bold text-sm leading-tight truncate">{brand.title}</p>
               <p className="text-[11px] text-muted-foreground truncate">{brand.subtitle}</p>
@@ -182,13 +202,13 @@ export default function RoleLayout({
           </div>
           {/* Grouped nav */}
           <nav
-            className="flex-1 px-2 py-3 space-y-5 overflow-y-auto"
+            className="flex-1 px-3 py-4 space-y-6 overflow-y-auto"
             role="navigation"
             aria-label={navAriaLabel}
           >
             {groups.map((group) => (
               <div key={group.label}>
-                <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <div className="px-3 mb-2 text-xs font-medium text-muted-foreground">
                   {group.label}
                 </div>
                 <div className="space-y-0.5">
@@ -198,11 +218,12 @@ export default function RoleLayout({
                     return (
                       <Link
                         key={item.href} to={item.href}
+                        aria-current={active ? 'page' : undefined}
                         className={cn(
-                          'group flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
+                          'group flex min-h-11 items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                           active
-                            ? 'bg-primary text-primary-foreground font-medium shadow-sm'
+                            ? 'bg-primary/10 text-primary font-semibold border-s-2 border-primary'
                             : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                         )}
                       >
@@ -211,7 +232,7 @@ export default function RoleLayout({
                         {item.badge != null && item.badge > 0 && (
                           <span className={cn(
                             'text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center',
-                            active ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/10 text-primary'
+                            'bg-primary/10 text-primary'
                           )}>
                             {item.badge > 99 ? '99+' : item.badge}
                           </span>
@@ -240,14 +261,14 @@ export default function RoleLayout({
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
                 <LogOut className="h-5 w-5" aria-hidden="true" />
               </span>
-              <DialogTitle className="text-xl leading-snug">Do you want to sign out?</DialogTitle>
+              <DialogTitle className="text-xl leading-snug">از حساب خارج می‌شوید؟</DialogTitle>
             </div>
             <DialogDescription>
-              You will be returned to the sign-in page. Your current session will be ended.
+              نشست شما پایان می‌یابد و به صفحه ورود برمی‌گردید.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-2">
-            <Button variant="outline" onClick={() => setConfirmSignOut(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setConfirmSignOut(false)}>انصراف</Button>
             <Button
               variant="destructive"
               onClick={async () => {
@@ -257,14 +278,14 @@ export default function RoleLayout({
               }}
             >
               <LogOut className="ms-2 h-4 w-4" aria-hidden="true" />
-              Confirm signing out
+              خروج از حساب
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Main */}
-      <main className="lg:mr-64 pt-14 min-h-screen" role="main">
+      <main className="role-content lg:mr-64 pt-16 min-h-screen" role="main">
         {isDemoMode && (
           <div className="bg-warning/10 border-b border-warning/30 px-4 py-2 flex items-center justify-between text-xs">
             <span className="text-warning font-medium">⚡ حالت نمایشی — تغییرات ذخیره نمی‌شود</span>
@@ -273,10 +294,19 @@ export default function RoleLayout({
             </Button>
           </div>
         )}
-        <div className="p-4 sm:p-5 lg:p-7 max-w-[1400px] mx-auto">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </main>
+      <nav aria-label="دسترسی سریع" className="mobile-dock fixed bottom-0 inset-x-0 z-30 flex items-stretch justify-around gap-1 border-t border-border bg-card px-2 pt-2 lg:hidden">
+        {dockItems.map((item) => {
+          const active = location.pathname === item.href || (item.href !== homeHref && location.pathname.startsWith(item.href + '/'));
+          return <Button key={item.href} asChild variant="ghost" className={cn('h-14 min-w-0 flex-1 flex-col gap-1 px-1 text-[11px]', active ? 'bg-primary/10 text-primary' : 'text-muted-foreground')}>
+            <Link to={item.href} aria-current={active ? 'page' : undefined}><item.icon className="h-5 w-5" /><span className="max-w-full truncate">{item.href === homeHref ? 'دشبورد' : item.label}</span>{item.badge != null && item.badge > 0 && <span className="sr-only">{item.badge} خوانده نشده</span>}</Link>
+          </Button>;
+        })}
+        <Button variant="ghost" className="h-14 min-w-0 flex-1 flex-col gap-1 px-1 text-[11px] text-muted-foreground" onClick={() => setOpen(true)} aria-expanded={open} aria-controls="role-sidebar"><Menu className="h-5 w-5" /><span>بیشتر</span></Button>
+      </nav>
     </div>
   );
 }

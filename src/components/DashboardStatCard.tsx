@@ -17,16 +17,16 @@ export const DashboardStatCard = React.forwardRef<HTMLDivElement, DashboardStatC
     const display = doFormat ? (value ?? 0).toLocaleString('fa-AF') : (value ?? 0);
 
     return (
-      <Card ref={ref} className="border shadow-sm hover:shadow-md transition">
-        <CardHeader className="flex flex-row justify-between pb-1">
-          <CardTitle className="text-xs text-muted-foreground font-medium">{title}</CardTitle>
-          {icon && <div className="text-muted-foreground">{icon}</div>}
+      <Card ref={ref} variant="stat" className="min-h-[140px] p-4">
+        <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3">
+          <CardTitle className="text-xs leading-relaxed text-muted-foreground font-medium">{title}</CardTitle>
+          {icon && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">{icon}</div>}
         </CardHeader>
         <CardContent>
           {loading ? (
             <Skeleton className="h-7 w-16 rounded" />
           ) : (
-            <div className="text-xl font-bold">{display}{suffix}</div>
+            <div className="text-3xl font-bold leading-snug tabular-nums">{display}{suffix}</div>
           )}
           {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
         </CardContent>

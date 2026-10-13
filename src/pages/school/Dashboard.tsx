@@ -51,7 +51,7 @@ export default function SchoolDashboard() {
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header */}
-      <div>
+      <div className="border-b border-border pb-5">
         <h1 className="text-2xl font-bold">{t('school.dashboard')}</h1>
         <p className="text-xs text-muted-foreground">
           {profile?.school_name ?? profile?.full_name} — {profile?.province}
@@ -62,7 +62,7 @@ export default function SchoolDashboard() {
       {error && (
         <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-lg flex justify-between items-center">
           <span className="text-sm">{error}</span>
-          <button onClick={() => refetch()} className="text-sm underline">تلاش دوباره</button>
+          <Button variant="ghost" size="sm" onClick={() => refetch()}>تلاش دوباره</Button>
         </div>
       )}
 
@@ -80,9 +80,9 @@ export default function SchoolDashboard() {
           const Icon = item.icon;
           return (
             <Link key={item.href} to={item.href}>
-              <Card className="group cursor-pointer border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                <CardContent className="flex items-center gap-3 p-4">
-                  <Icon className="h-5 w-5 text-primary" />
+              <Card variant="action" className="group p-4">
+                <CardContent className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10"><Icon className="h-5 w-5 text-primary" /></span>
                   <div>
                     <p className="font-semibold text-sm">{item.title}</p>
                     <p className="text-xs text-muted-foreground">{item.sub}</p>
@@ -117,7 +117,7 @@ export default function SchoolDashboard() {
       )}
 
       {/* Announcements */}
-      <Card className="rounded-2xl shadow-sm">
+        <Card className="shadow-sm">
         <CardHeader className="flex flex-row justify-between">
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-primary" />
@@ -140,7 +140,7 @@ export default function SchoolDashboard() {
       </Card>
 
       {/* Deadlines */}
-      <Card className="rounded-2xl shadow-sm">
+      <Card className="shadow-sm">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
