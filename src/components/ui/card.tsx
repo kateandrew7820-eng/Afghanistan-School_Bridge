@@ -3,17 +3,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "rounded-xl text-card-foreground transition-all duration-300",
+  "rounded-lg text-card-foreground",
   {
     variants: {
       variant: {
-        default: "border bg-card shadow-md hover:shadow-lg hover:border-primary/50",
-        elevated: "bg-card shadow-lg hover:shadow-xl border-0",
-        outline: "border-2 bg-transparent backdrop-blur-sm hover:border-primary",
-        gradient: "bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 hover:border-primary/40",
-        action: "bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20 hover:shadow-lg hover:border-primary/50 cursor-pointer",
-        stat: "bg-gradient-to-br from-background to-muted/50 border border-border/50 hover:border-primary/30",
-        interactive: "bg-card border-2 border-transparent hover:border-primary shadow-md hover:shadow-xl hover:scale-105",
+        default: "border border-border/80 bg-card shadow-elegant",
+        elevated: "bg-card shadow-elegant border border-border/50",
+        outline: "border bg-transparent",
+        gradient: "bg-primary/5 border border-primary/20",
+        action: "bg-card border border-border hover:border-primary/50 cursor-pointer",
+        stat: "bg-card border border-border/70",
+        interactive: "bg-card border border-border hover:border-primary shadow-elegant",
       },
       size: {
         sm: "p-4",
@@ -54,7 +54,7 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("text-xl font-bold leading-none tracking-tight text-foreground", className)}
+      className={cn("text-xl font-bold leading-snug text-foreground", className)}
       {...props}
     />
   ),

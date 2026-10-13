@@ -41,12 +41,12 @@ export function KpiCard({
 
   const inner = (
     <Card className={cn(
-      'p-4 border-border bg-card transition-all',
-      to && 'hover:shadow-md hover:-translate-y-0.5 cursor-pointer',
+      'min-h-[140px] p-5 border-border bg-card',
+      to && 'hover:border-primary/50 cursor-pointer',
     )}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground font-medium truncate">{label}</p>
+          <p className="text-xs text-muted-foreground font-medium leading-relaxed">{label}</p>
         </div>
         {Icon && (
           <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center shrink-0', t.iconBg)}>
@@ -58,7 +58,7 @@ export function KpiCard({
         {loading ? (
           <Skeleton className="h-8 w-16" />
         ) : (
-          <p className="text-2xl font-bold tracking-tight leading-none">
+          <p className="text-3xl font-bold leading-snug tabular-nums">
             {value ?? '—'}
           </p>
         )}
@@ -78,7 +78,7 @@ export function KpiCard({
       )}
       {(hint || action) && (
         <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
-          {hint && <p className="text-[11px] text-muted-foreground truncate">{hint}</p>}
+          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
           {action}
         </div>
       )}

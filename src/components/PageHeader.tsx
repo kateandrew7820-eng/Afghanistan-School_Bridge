@@ -48,28 +48,29 @@ export default function PageHeader({
   };
 
   return (
-    <div className={cn('space-y-4 mb-8', className)}>
+    <div className={cn('space-y-4 mb-7 border-b border-border pb-6', className)}>
       {/* Header Top - Back Button & Title Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           {/* Back Button */}
           {backButton && (
             <Button
               variant="ghost"
               size="icon"
               onClick={handleBack}
-              className="mt-1 -ml-2"
+              className="mt-1 shrink-0"
               title="بازگشت"
+              aria-label="بازگشت"
             >
               <ArrowRight className="h-5 w-5" />
             </Button>
           )}
 
           {/* Title Section */}
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3 mb-2">
               {icon && <div className="text-primary">{icon}</div>}
-              <h1 className="text-3xl font-bold">{title}</h1>
+              <h1 className="text-2xl font-bold leading-snug sm:text-3xl">{title}</h1>
             </div>
             {description && (
               <p className="text-muted-foreground text-sm">{description}</p>
