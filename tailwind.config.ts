@@ -19,8 +19,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Montserrat', 'sans-serif'],
-        body: ['Roboto', 'sans-serif'],
+        heading: ['Vazirmatn', 'Montserrat', 'sans-serif'],
+        body: ['Vazirmatn', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -28,6 +28,7 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        hero: { foreground: "hsl(var(--hero-foreground))", scrim: "hsl(var(--hero-scrim))" },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
