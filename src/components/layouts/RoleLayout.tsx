@@ -166,7 +166,7 @@ export default function RoleLayout({
       <aside
         id="role-sidebar"
         className={cn(
-          'fixed top-0 right-0 h-full w-64 bg-sidebar border-l border-sidebar-border z-50',
+          'fixed top-0 right-0 h-full w-64 bg-sidebar-background border-l border-sidebar-border z-50',
           'lg:visible lg:translate-x-0',
           open ? 'visible translate-x-0' : 'invisible translate-x-full lg:visible lg:translate-x-0'
         )}
@@ -302,7 +302,7 @@ export default function RoleLayout({
         {dockItems.map((item) => {
           const active = location.pathname === item.href || (item.href !== homeHref && location.pathname.startsWith(item.href + '/'));
           return <Button key={item.href} asChild variant="ghost" className={cn('h-14 min-w-0 flex-1 flex-col gap-1 px-1 text-[11px]', active ? 'bg-primary/10 text-primary' : 'text-muted-foreground')}>
-            <Link to={item.href} aria-current={active ? 'page' : undefined}><item.icon className="h-5 w-5" /><span className="max-w-full truncate">{item.href === homeHref ? 'دشبورد' : item.label}</span>{item.badge != null && item.badge > 0 && <span className="sr-only">{item.badge} خوانده نشده</span>}</Link>
+            <Link to={item.href} title={item.label} aria-label={item.label} aria-current={active ? 'page' : undefined}><span className="relative"><item.icon className="h-5 w-5" />{item.badge != null && item.badge > 0 && <span className="absolute -top-2 -end-3 rounded-full bg-primary px-1 text-[9px] leading-4 text-primary-foreground">{item.badge > 99 ? '99+' : item.badge}</span>}</span><span className="max-w-full truncate">{item.href === homeHref ? 'دشبورد' : item.href === '/chat' ? 'گفتگو' : item.href.endsWith('/submit') ? 'ارسال' : item.href.endsWith('/inbox') ? 'صندوق' : /\/(schools|districts)$/.test(item.href) ? 'مدیریت' : 'بینش‌ها'}</span></Link>
           </Button>;
         })}
         <Button variant="ghost" className="h-14 min-w-0 flex-1 flex-col gap-1 px-1 text-[11px] text-muted-foreground" onClick={() => setOpen(true)} aria-expanded={open} aria-controls="role-sidebar"><Menu className="h-5 w-5" /><span>بیشتر</span></Button>
