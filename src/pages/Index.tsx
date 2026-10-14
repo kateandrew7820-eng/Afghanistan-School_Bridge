@@ -56,7 +56,7 @@ export default function Index() {
         <section className="relative isolate overflow-hidden">
           <img src={schoolCourtyard} alt="تصویر بازآفرینی‌شده از شاگردان در صحن یک مکتب افغانستان" width={1536} height={1024} fetchPriority="high" className="absolute inset-0 -z-20 h-full w-full object-cover object-[65%_55%]" />
           <div className="hero-scrim absolute inset-0 -z-10" />
-          <div className="mx-auto flex min-h-[470px] max-w-7xl items-end px-5 py-10 sm:min-h-[490px] sm:items-center sm:px-8 sm:py-14">
+          <div className="arrival-frame mx-auto flex max-w-7xl items-end px-5 py-10 sm:items-center sm:px-8 sm:py-14">
             <div className="w-full space-y-5 text-hero-foreground sm:mr-auto sm:max-w-xl">
               <p className="flex items-center gap-2 text-sm font-medium"><span className="h-px w-7 bg-hero-foreground/60" />از مکتب تا وزارت معارف</p>
               <h1 className="text-3xl font-bold leading-snug sm:text-4xl lg:text-5xl">پل آموزش افغانستان</h1>

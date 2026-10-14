@@ -16,11 +16,11 @@ export function ThemeToggle({ className, showLabel = false }: { className?: stri
       size={showLabel ? "sm" : "icon"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={`${showLabel ? "gap-2 rounded-full transition-colors duration-300" : ""} ${className ?? ""}`}
-      aria-label={showLabel ? (isDark ? "Day mode" : "Night mode") : (isDark ? "حالت روشن" : "حالت تاریک")}
-      title={showLabel ? (isDark ? "Day mode" : "Night mode") : (isDark ? "حالت روشن" : "حالت تاریک")}
+      aria-label={isDark ? "حالت روشن" : "حالت تاریک"}
+      title={isDark ? "حالت روشن" : "حالت تاریک"}
     >
       {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      {showLabel && <span>{isDark ? "Day mode" : "Night mode"}</span>}
+      {showLabel && <span>{isDark ? "حالت روشن" : "حالت تاریک"}</span>}
     </Button>
   );
 }

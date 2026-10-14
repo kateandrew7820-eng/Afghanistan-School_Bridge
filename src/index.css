@@ -115,6 +115,8 @@
     background: linear-gradient(90deg, hsl(var(--hero-scrim) / 0.88), hsl(var(--hero-scrim) / 0.5) 48%, hsl(var(--hero-scrim) / 0.05));
   }
   .mobile-dock { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .arrival-frame { min-height: min(470px, calc(100svh - 145px)); }
+  @media (min-width: 640px) { .arrival-frame { min-height: min(490px, calc(100svh - 165px)); } }
   .role-content { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
   .auth-surface > div { box-shadow: none; background: transparent; border: 0; padding: 0; }
   @media (min-width: 1024px) { .role-content { padding-bottom: 0; } }
