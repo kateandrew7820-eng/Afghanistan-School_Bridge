@@ -166,7 +166,7 @@ export default function RoleLayout({
       <aside
         id="role-sidebar"
         className={cn(
-          'fixed top-0 right-0 h-full w-64 bg-sidebar border-l border-sidebar-border z-50',
+          'fixed top-0 right-0 h-full w-64 bg-sidebar-background border-l border-sidebar-border z-50',
           'lg:visible lg:translate-x-0',
           open ? 'visible translate-x-0' : 'invisible translate-x-full lg:visible lg:translate-x-0'
         )}
