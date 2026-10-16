@@ -344,6 +344,98 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_blocks: {
+        Row: {
+          blocked_user_id: string
+          blocker_user_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_user_id: string
+          blocker_user_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_user_id?: string
+          blocker_user_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      chat_contacts: {
+        Row: {
+          contact_user_id: string
+          created_at: string
+          owner_user_id: string
+        }
+        Insert: {
+          contact_user_id: string
+          created_at?: string
+          owner_user_id: string
+        }
+        Update: {
+          contact_user_id?: string
+          created_at?: string
+          owner_user_id?: string
+        }
+        Relationships: []
+      }
+      chat_discovery_limits: {
+        Row: {
+          attempts: number
+          user_id: string
+          window_started_at: string
+        }
+        Insert: {
+          attempts: number
+          user_id: string
+          window_started_at: string
+        }
+        Update: {
+          attempts?: number
+          user_id?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
+      chat_reports: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          reason: string
+          reported_user_id: string
+          reporter_user_id: string
+          status: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          reason: string
+          reported_user_id: string
+          reporter_user_id: string
+          status?: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          reported_user_id?: string
+          reporter_user_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_reports_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_members: {
         Row: {
           conversation_id: string
@@ -1611,6 +1703,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_chat_contact: {
+        Args: { _contact_user_id: string }
+        Returns: undefined
+      }
+      add_chat_contact_by_email: {
+        Args: { _email: string }
+        Returns: {
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
       admin_update_profile_status: {
         Args: {
           _rejection_reason?: string
@@ -1619,18 +1723,63 @@ export type Database = {
         }
         Returns: boolean
       }
+      block_chat_user: {
+        Args: { _blocked_user_id: string }
+        Returns: undefined
+      }
       can_access_submission: {
         Args: { _id: string; _table: string }
         Returns: boolean
       }
       can_manage_academics: { Args: { _school_id: string }; Returns: boolean }
       can_record_academics: { Args: { _school_id: string }; Returns: boolean }
+      can_send_chat_message: {
+        Args: { _conversation: string; _sender: string }
+        Returns: boolean
+      }
       chat_unread_counts: {
         Args: never
         Returns: {
           conversation_id: string
           unread_count: number
         }[]
+      }
+      chat_users_blocked: {
+        Args: { _other: string; _user: string }
+        Returns: boolean
+      }
+      consume_chat_discovery_attempt: { Args: never; Returns: boolean }
+      create_direct_chat_by_email: { Args: { _email: string }; Returns: string }
+      find_chat_user_by_email: {
+        Args: { _email: string }
+        Returns: {
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
+      get_chat_contact_details: {
+        Args: { _contact_user_id: string }
+        Returns: {
+          email: string
+          full_name: string
+          mutual: boolean
+          phone_number: string
+          role: string
+          user_id: string
+        }[]
+      }
+      get_chat_member_profiles: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
+      get_user_conversations: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: Json
       }
       get_user_district: { Args: { _user_id: string }; Returns: string }
       get_user_province: { Args: { _user_id: string }; Returns: string }
@@ -1651,6 +1800,15 @@ export type Database = {
         Args: { _conv: string; _user: string }
         Returns: boolean
       }
+      list_chat_contacts: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
       my_approval_request_status: {
         Args: never
         Returns: {
@@ -1660,6 +1818,14 @@ export type Database = {
           decision_note: string
           status: string
         }[]
+      }
+      report_chat_user: {
+        Args: {
+          _conversation_id: string
+          _reason: string
+          _reported_user_id: string
+        }
+        Returns: string
       }
     }
     Enums: {

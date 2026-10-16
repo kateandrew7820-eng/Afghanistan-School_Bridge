@@ -1,3 +1,10 @@
+# Speed and reliability
+- [ ] Restore missing chat and academic services with protected access.
+- [ ] Replace conversation query cascades with one bounded request.
+- [ ] Add server summaries and paginated submission lists without truncating exports.
+- [ ] Protect offline sync across tabs and account changes.
+- [ ] Guard concurrent authentication hydration and verify real journeys.
+
 # Visual transformation
 - [x] Refine semantic tokens, typography, controls and shared page headers.
 - [x] Upgrade role navigation and mobile bottom dock without changing permissions.
